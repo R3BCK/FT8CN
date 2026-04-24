@@ -2,7 +2,7 @@ This repository is a fork of the original [N0BOY/FT8CN](https://github.com/N0BOY
 
 1. The project now includes the original C++ source files, and you can choose whether to use the original `.so` libraries or build from source.
 2. The app now supports exporting and importing QSO logs directly from the application.
-3. The web server port can now be changed from the default 7070 to any other port in the range 1024 to 65535.
+3. The web server port can now be changed from the default 7050 to any other port in the range 1024 to 65535.
 
 
 
