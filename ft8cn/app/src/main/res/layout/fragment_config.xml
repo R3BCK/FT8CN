@@ -345,6 +345,65 @@
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/webPortLayout"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/pttDelayLayout">
+
+                        <TextView
+                            android:id="@+id/webPortText"
+                            android:layout_width="75dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/web_port"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="@+id/inputWebPortEdit"
+                            app:layout_constraintEnd_toStartOf="@+id/inputWebPortEdit"
+                            app:layout_constraintHorizontal_bias="0.5"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="@+id/inputWebPortEdit" />
+
+                        <EditText
+                            android:id="@+id/inputWebPortEdit"
+                            android:layout_width="100dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="6dp"
+                            android:layout_marginBottom="6dp"
+                            android:autofillHints=""
+                            android:background="@drawable/editor_style"
+                            android:ems="10"
+                            android:hint="@string/pl_web_port"
+                            android:inputType="number"
+                            android:minHeight="32dp"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/webPortText"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="TextContrastCheck,TouchTargetSizeCheck" />
+
+                        <ImageButton
+                            android:id="@+id/webPortHelpImageButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/imagebutton_transparent_style"
+                            android:contentDescription="@string/help"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:srcCompat="@drawable/ic_baseline_info_32"
+                            tools:ignore="TouchTargetSizeCheck" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/audioOutputLayout"
@@ -779,7 +838,7 @@
                         android:background="@drawable/editor_layout_style"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/pttDelayLayout">
+                        app:layout_constraintTop_toBottomOf="@+id/webPortLayout">
 
                         <TextView
                             android:id="@+id/operationFreqText"
@@ -987,11 +1046,6 @@
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
-
-
-
-
-
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/messageModeLayout"
                         android:layout_width="0dp"
@@ -1061,12 +1115,6 @@
                         </com.bg7yoz.ft8cn.ui.RadioGroupFt8cn>
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-
-
-
-
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/controlModeLayout"
@@ -1567,7 +1615,7 @@
 
 
 
-                    </com.bg7yoz.ft8cn.ui.RadioGroupFt8cn>
+                        </com.bg7yoz.ft8cn.ui.RadioGroupFt8cn>
 
 
                         <ImageButton
@@ -1667,9 +1715,6 @@
                             tools:ignore="TouchTargetSizeCheck,DuplicateSpeakableTextCheck" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/launchSupervisionLayout"

@@ -38,6 +38,21 @@ public class GeneralVariables {
     public static boolean saveSWL_QSO = false;//保存解码消息消息中的QSO开关
     public static boolean enableCloudlog = false;//是否启用Cloudlog自动同步
     public static boolean enableQRZ = false;//是否启用qrz自动同步
+    // Web server port configuration
+    public static final int DEFAULT_WEB_PORT = 7050;
+    public static final int MIN_WEB_PORT = 1024;
+    public static final int MAX_WEB_PORT = 65535;
+    public static int webPort = DEFAULT_WEB_PORT;
+
+    public static int getWebPort() {
+        return webPort;
+    }
+
+    public static void setWebPort(int port) {
+        if (port >= MIN_WEB_PORT && port <= MAX_WEB_PORT) {
+            webPort = port;
+        }
+    }
 
     public static boolean deepDecodeMode = false;//是否开启深度解码
 

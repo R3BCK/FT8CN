@@ -2,6 +2,7 @@ This repository is a fork of the original [N0BOY/FT8CN](https://github.com/N0BOY
 
 1. The project now includes the original C++ source files, and you can choose whether to use the original `.so` libraries or build from source.
 2. The app now supports exporting and importing QSO logs directly from the application.
+3. The web server port can now be changed from the default 7070 to any other port in the range 1024 to 65535.
 
 
 
@@ -13,8 +14,10 @@ Check https://github.com/R3BCK/FT8CN/blob/release/ft8cn/app/build/outputs/apk/re
 
 
 **Thanks to:**  
-Steve Franke (K9AN), Bill Somerville (G4WJS), and Joe Taylor (K1JT) proposed the FT8 and FT4 protocols. The “FT” stands for Franke and Taylor. Their paper, *The FT4 and FT8 Communication Protocols*, explains the design goals of FT4 and FT8 and the implementation details in WSJT-X, which served as the fundamental guide for this app.  
+Steve Franke (K9AN), Bill Somerville (G4WJS), and Joe Taylor (K1JT) proposed the FT8 and FT4 protocols. 
+The “FT” stands for Franke and Taylor. Their paper, *The FT4 and FT8 Communication Protocols*, explains the design goals of FT4 and FT8 and the implementation details in WSJT-X, which served as the fundamental guide for this app.  
 Karlis Goba (YL3JG) provided references for the implementation details in code.
+
 Developed by BG7YOZ and hosted by N0BOY  
 BG7YOY, for guidance on basic radio theory during the development of FT8CN, and for designing the app icon.  
 BG4IGX, for practical guidance when I first started in amateur radio. You can find many of his teaching videos on Douyin.  

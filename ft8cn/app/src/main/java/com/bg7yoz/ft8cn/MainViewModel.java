@@ -59,6 +59,7 @@ import com.bg7yoz.ft8cn.ft8transmit.FT8TransmitSignal;
 import com.bg7yoz.ft8cn.ft8transmit.OnDoTransmitted;
 import com.bg7yoz.ft8cn.ft8transmit.OnTransmitSuccess;
 import com.bg7yoz.ft8cn.html.LogHttpServer;
+import android.database.Cursor;
 import com.bg7yoz.ft8cn.icom.WifiRig;
 import com.bg7yoz.ft8cn.log.QSLCallsignRecord;
 import com.bg7yoz.ft8cn.log.QSLRecord;
@@ -225,7 +226,7 @@ public class MainViewModel extends ViewModel {
 
 
     //日志管理HTTP SERVER
-    private final LogHttpServer httpServer;
+    public final LogHttpServer httpServer;
 
     /**
      * 获取MainViewModel的实例，确保存在唯一的MainViewModel实例，该实例在APP的全部生存周期中。
@@ -490,9 +491,27 @@ public class MainViewModel extends ViewModel {
 
 
         //打开HTTP SERVER
-        httpServer = new LogHttpServer(this, LogHttpServer.DEFAULT_PORT);
+        // Загружаем сохранённый порт из базы или используем дефолт
+        int savedPort = LogHttpServer.DEFAULT_PORT;
+        Cursor cursor = databaseOpr.getDb().rawQuery("SELECT Value FROM config WHERE KeyName='webPort'", null);
+        if (cursor != null && cursor.moveToFirst()) {
+            try {
+                int port = Integer.parseInt(cursor.getString(0));
+                if (port >= GeneralVariables.MIN_WEB_PORT && port <= GeneralVariables.MAX_WEB_PORT) {
+                    savedPort = port;
+                }
+            } catch (Exception ignored) {}
+            cursor.close();
+        }
+
+        // Обновляем глобальную переменную
+        GeneralVariables.webPort = savedPort;
+
+        // Запускаем сервер на сохранённом порту
+        httpServer = new LogHttpServer(this, savedPort);
         try {
             httpServer.start();
+            Log.i(TAG, "HTTP server started on port " + savedPort);
         } catch (IOException e) {
             Log.e(TAG, "http server error:" + e.getMessage());
         }
@@ -1088,6 +1107,16 @@ public class MainViewModel extends ViewModel {
             if (baseRig != null && message != null) {
                 baseRig.sendWaveData(message);//实际生成的数据是12.64+0.04,0.04是生成的0数据
             }
+        }
+    }
+
+    /**
+     * Restart HTTP server on new port.
+     * @param newPort port number (1024-65535)
+     */
+    public void restartHttpServer(int newPort) {
+        if (httpServer != null) {
+            httpServer.restartServer(newPort);
         }
     }
 

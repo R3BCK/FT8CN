@@ -52,6 +52,11 @@ public class LogHttpServer extends NanoHTTPD {
 
     }
 
+//    public void restartServer(int newPort) {
+  //      stop(); // Остановить текущий сервер
+    //    start(newPort); // Запустить на новом порту
+    //}
+
     @Override
     public Response serve(IHTTPSession session) {
         String[] uriList = session.getUri().split("/");
@@ -1984,4 +1989,39 @@ public class LogHttpServer extends NanoHTTPD {
 //        return logStr.toString();
 //    }
 
+    /**
+     * Create and start a new HTTP server instance on the specified port.
+     * The old instance should be stopped before calling this method.
+     * @param viewModel MainViewModel instance
+     * @param port new port number
+     * @return new LogHttpServer instance or null if failed
+     */
+    public static LogHttpServer createAndStart(MainViewModel viewModel, int port) {
+        LogHttpServer server = new LogHttpServer(viewModel, port);
+        try {
+            server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
+            Log.i(TAG, "HTTP server started on port " + port);
+            return server;
+        } catch (IOException e) {
+            Log.e(TAG, "Failed to start server on port " + port, e);
+            return null;
+        }
+    }
+
+    /**
+     * Restart the HTTP server on a new port.
+     * @param newPort new port number
+     */
+    public void restartServer(int newPort) {
+        stop();
+        try {
+            start(newPort);
+            DEFAULT_PORT = newPort;
+            Log.i(TAG, "HTTP server restarted on port " + newPort);
+        } catch (IOException e) {
+            Log.e(TAG, "Failed to restart server on port " + newPort, e);
+        }
+    }
 }
+
+

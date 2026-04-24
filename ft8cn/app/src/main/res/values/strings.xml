@@ -555,5 +555,8 @@
 
     <string name="import_log_downloads">Import Log</string>
     <string name="export_log_downloads">Export Log</string>
+    <string name="web_port">Web port</string>
+    <string name="pl_web_port">7050</string>
+    <string name="faq_web_port">HTTP server port for web interface. Default is 7050. Change if port is busy. Range: 1024-65535.</string>
 
 </resources>
