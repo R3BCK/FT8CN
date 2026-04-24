@@ -4,9 +4,13 @@ This repository is a fork of the original [N0BOY/FT8CN](https://github.com/N0BOY
 2. The app now supports exporting and importing QSO logs directly from the application.
 
 
-FT8CN  
-Run FT8 natively on Android  
-Check Releases to download the latest APK file.
+
+FT8CN — an app that runs FT8 natively on Android
+Check https://github.com/R3BCK/FT8CN/blob/release/ft8cn/app/build/outputs/apk/release/app-release.apk to download the latest APK file.
+
+
+
+
 
 **Thanks to:**  
 Steve Franke (K9AN), Bill Somerville (G4WJS), and Joe Taylor (K1JT) proposed the FT8 and FT4 protocols. The “FT” stands for Franke and Taylor. Their paper, *The FT4 and FT8 Communication Protocols*, explains the design goals of FT4 and FT8 and the implementation details in WSJT-X, which served as the fundamental guide for this app.  
