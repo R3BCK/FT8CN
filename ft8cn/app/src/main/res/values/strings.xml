@@ -553,4 +553,7 @@
     <string name="alc_switch_on" translatable="false">ALC On</string>
     <string name="alc_switch_off" translatable="false">ALC Off</string>
 
+    <string name="import_log_downloads">Import Log</string>
+    <string name="export_log_downloads">Export Log</string>
+
 </resources>

@@ -1,3 +1,8 @@
-/build
+/build/generated
+/build/intermediates
+/build/tmp
+/build/outputs/logs
+/build/outputs/native-debug-symbols
+/build/outputs/sdk-dependencies
 *.jks
 *.keystore

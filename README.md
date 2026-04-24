@@ -1,22 +1,17 @@
+This repository is a fork of the original [N0BOY/FT8CN](https://github.com/N0BOY/FT8CN/) with the following improvements:
+
+1. The project now includes the original C++ source files, and you can choose whether to use the original `.so` libraries or build from source.
+2. The app now supports exporting and importing QSO logs directly from the application.
+
+
 FT8CN  
-Developed by BG7YOZ and hosted by N0BOY  
 Run FT8 natively on Android  
 Check Releases to download the latest APK file.
 
-**Disclaimer:**  
-FT8CN is intended for research and learning purposes, including decoding and transmitting FT8 signals. The authors are not responsible for any consequences resulting from the user's use of this app.  
-Please comply with local laws and regulations when using FT8CN.  
-Considering the performance and battery limitations of mobile phones, signal processing uses lightweight computation rather than deep decoding and similar processing.  
-If you have suggestions or questions, please submit them in “FAQ / Feedback”.
-
-BG7YOZ  
-2022-07-01
-
-**Acknowledgements:**  
+**Thanks to:**  
 Steve Franke (K9AN), Bill Somerville (G4WJS), and Joe Taylor (K1JT) proposed the FT8 and FT4 protocols. The “FT” stands for Franke and Taylor. Their paper, *The FT4 and FT8 Communication Protocols*, explains the design goals of FT4 and FT8 and the implementation details in WSJT-X, which served as the fundamental guide for this app.  
 Karlis Goba (YL3JG) provided references for the implementation details in code.
-
-**Thanks to:**  
+Developed by BG7YOZ and hosted by N0BOY  
 BG7YOY, for guidance on basic radio theory during the development of FT8CN, and for designing the app icon.  
 BG4IGX, for practical guidance when I first started in amateur radio. You can find many of his teaching videos on Douyin.  
 BD7MXN, for testing some radio connection controls and suggesting improvements.  
@@ -57,3 +52,11 @@ DS1UFX, for contributing the `(tr)uSDX audio over CAT` code.
 BG8HT, for providing a radio model for testing.  
 UB6LUM, for helping solve operating mode settings for a certain radio model.  
 BG5VLI, for contributing code to automatically upload logs to Cloudlog and QRZ.
+
+**Disclaimer:**  
+FT8CN is intended for research and learning purposes, including decoding and transmitting FT8 signals. The authors are not responsible for any consequences resulting from the user's use of this app.  
+Please comply with local laws and regulations when using FT8CN.  
+Considering the performance and battery limitations of mobile phones, signal processing uses lightweight computation rather than deep decoding and similar processing.  
+If you have suggestions or questions, please submit them in “FAQ / Feedback”.
+BG7YOZ  
+2022-07-01

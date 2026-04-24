@@ -22,7 +22,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-
             <ImageButton
                 android:id="@+id/exportImageButton"
                 android:layout_width="wrap_content"
@@ -48,7 +47,6 @@
                 app:srcCompat="@drawable/share_button_icon_24"
                 tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
 
-
             <ImageButton
                 android:id="@+id/locationInMapImageButton"
                 android:layout_width="wrap_content"
@@ -71,7 +69,6 @@
                 android:layout_marginEnd="8dp"
                 android:layout_marginBottom="4dp"
                 android:autofillHints=""
-
                 android:background="@drawable/log_callsign_editor_style"
                 android:ems="10"
                 android:hint="@string/pl_mycall"
@@ -131,10 +128,44 @@
             android:id="@+id/logRecyclerView"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/log_fragment_bar"
+            app:layout_constraintBottom_toTopOf="@+id/logButtonsContainer"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/log_fragment_bar" />
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <LinearLayout
+            android:id="@+id/logButtonsContainer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:background="?android:attr/windowBackground"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <Button
+                android:id="@+id/btnImportLogDownloads"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp"
+                android:text="@string/import_log_downloads"
+                android:backgroundTint="@color/purple_500"
+                android:textColor="@android:color/white"
+                android:paddingVertical="10dp" />
+
+            <Button
+                android:id="@+id/btnExportLogDownloads"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:text="@string/export_log_downloads"
+                android:backgroundTint="@color/purple_500"
+                android:textColor="@android:color/white"
+                android:paddingVertical="10dp" />
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

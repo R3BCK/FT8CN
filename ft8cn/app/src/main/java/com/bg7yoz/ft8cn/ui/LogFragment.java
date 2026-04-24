@@ -1,6 +1,7 @@
 package com.bg7yoz.ft8cn.ui;
+
 /**
- * 通联纪录的主界面。
+ * Main interface for QSO logs.
  *
  * @author BGY70Z
  * @date 2023-03-20
@@ -10,22 +11,29 @@ import static android.widget.AbsListView.OnScrollListener.SCROLL_STATE_IDLE;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -40,6 +48,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bg7yoz.ft8cn.GeneralVariables;
 import com.bg7yoz.ft8cn.MainViewModel;
 import com.bg7yoz.ft8cn.R;
+import com.bg7yoz.ft8cn.log.LogFileImport;
+import com.bg7yoz.ft8cn.log.QSLRecord;
 import com.bg7yoz.ft8cn.log.ShareLogs;
 import com.bg7yoz.ft8cn.databinding.FragmentLogBinding;
 import com.bg7yoz.ft8cn.grid_tracker.GridTrackerMainActivity;
@@ -52,20 +62,33 @@ import com.bg7yoz.ft8cn.log.QSLCallsignRecord;
 import com.bg7yoz.ft8cn.log.QSLRecordStr;
 import com.bg7yoz.ft8cn.log.OnShareLogEvents;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.TimeZone;
 
 
 public class LogFragment extends Fragment {
     private static final String TAG = "LogFragment";
+    private static final int REQUEST_CODE_IMPORT_LOG = 1001;
+    private static final int REQUEST_CODE_EXPORT_LOG = 1002;
     private FragmentLogBinding binding;
     private MainViewModel mainViewModel;
 
     private LogCallsignAdapter logCallsignAdapter;
     private LogQSLAdapter logQSLAdapter;
-    private boolean loading = false;//防止滑动触发多次查询
+    private boolean loading = false;
     private int lastItemPosition;
-    private ShareLogsProgressDialog dialog = null;//生成共享log的对话框
+    private ShareLogsProgressDialog dialog = null;
 
 
     public LogFragment() {
@@ -73,13 +96,10 @@ public class LogFragment extends Fragment {
     }
 
 
-
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mainViewModel = MainViewModel.getInstance(this);
-
     }
 
     @SuppressLint({"DefaultLocale", "NotifyDataSetChanged"})
@@ -92,14 +112,9 @@ public class LogFragment extends Fragment {
         logQSLAdapter = new LogQSLAdapter(requireContext(), mainViewModel);
         binding.logRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
+        setShowStyle();
+        initRecyclerViewAction();
 
-        setShowStyle();//设置显模式
-
-
-        initRecyclerViewAction();//设置列表滑动动作
-
-
-        //设置显示统计页面按钮
         binding.countImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -117,16 +132,13 @@ public class LogFragment extends Fragment {
             }
         });
 
-        //输入条件监听
         binding.inputMycallEdit.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
             }
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
             }
 
             @Override
@@ -136,7 +148,6 @@ public class LogFragment extends Fragment {
             }
         });
 
-        //过滤条件按钮
         binding.filterImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -144,7 +155,6 @@ public class LogFragment extends Fragment {
             }
         });
 
-        //导出按钮
         binding.exportImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -158,15 +168,27 @@ public class LogFragment extends Fragment {
                             , getLocalIp(), LogHttpServer.DEFAULT_PORT)
                             , false).show();
                 }
-
             }
         });
 
-        //分享日志按钮
         binding.shareLogImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 buildShareLogs();
+            }
+        });
+
+        binding.btnImportLogDownloads.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                importLogFromDownloads();
+            }
+        });
+
+        binding.btnExportLogDownloads.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                exportLogToDownloads();
             }
         });
 
@@ -175,11 +197,10 @@ public class LogFragment extends Fragment {
             public void onClick(View view) {
                 mainViewModel.logListShowCallsign = !mainViewModel.logListShowCallsign;
                 setShowStyle();
-                queryByCallsign(binding.inputMycallEdit.getText().toString(), 0);//偏移量0，就是重新查询
+                queryByCallsign(binding.inputMycallEdit.getText().toString(), 0);
             }
         });
 
-        //定位按钮的动作
         binding.locationInMapImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -190,7 +211,6 @@ public class LogFragment extends Fragment {
             }
         });
 
-        //判断生成共享log文件的工作线程还在，如果在，就显示对话框
         if (Boolean.TRUE.equals(mainViewModel.mutableShareRunning.getValue())) {
             showShareDialog();
         }
@@ -198,41 +218,204 @@ public class LogFragment extends Fragment {
         return binding.getRoot();
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
-    /**
-     * 显示生成log的对话框
-     */
+        if (requestCode == REQUEST_CODE_IMPORT_LOG && resultCode == requireActivity().RESULT_OK && data != null) {
+            Uri uri = data.getData();
+            if (uri != null) {
+                Log.d(TAG, "File selected for import: " + uri.toString());
+                importAdifFile(uri);
+            } else {
+                Toast.makeText(requireContext(), "No file URI received for import", Toast.LENGTH_SHORT).show();
+            }
+        } else if (requestCode == REQUEST_CODE_EXPORT_LOG && resultCode == requireActivity().RESULT_OK && data != null) {
+            Uri uri = data.getData();
+            if (uri != null) {
+                Log.d(TAG, "File selected for export: " + uri.toString());
+                exportAdifToFile(uri);
+            } else {
+                Toast.makeText(requireContext(), "No file URI received for export", Toast.LENGTH_SHORT).show();
+            }
+        } else if (requestCode == REQUEST_CODE_EXPORT_LOG && resultCode == requireActivity().RESULT_CANCELED) {
+            Toast.makeText(requireContext(), "Export cancelled", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void importLogFromDownloads() {
+        Log.d(TAG, "Opening file picker for import");
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{
+                "application/octet-stream",
+                "text/plain",
+                "text/csv",
+                "application/adif"
+        });
+        startActivityForResult(intent, REQUEST_CODE_IMPORT_LOG);
+    }
+
+    private void importAdifFile(Uri uri) {
+        Toast.makeText(requireContext(), "Reading file...", Toast.LENGTH_SHORT).show();
+        new Thread(() -> {
+            File tempFile = null;
+            try {
+                // 1. Read content from URI
+                InputStream is = requireContext().getContentResolver().openInputStream(uri);
+                if (is == null) {
+                    throw new IOException("Failed to open file stream");
+                }
+
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                byte[] buffer = new byte[4096];
+                int len;
+                while ((len = is.read(buffer)) != -1) {
+                    baos.write(buffer, 0, len);
+                }
+                is.close();
+
+                String content = new String(baos.toByteArray(), StandardCharsets.UTF_8);
+                Log.d(TAG, "File read. Size: " + content.length() + " chars");
+
+                // 2. Write to temporary file (LogFileImport expects a file path)
+                tempFile = File.createTempFile("ft8cn_import_", ".adi", requireContext().getCacheDir());
+                try (FileOutputStream fos = new FileOutputStream(tempFile)) {
+                    fos.write(content.getBytes(StandardCharsets.UTF_8));
+                }
+
+                // 3. Parse using LogFileImport with file path
+                LogFileImport logFileImport = new LogFileImport(null, tempFile.getAbsolutePath());
+                ArrayList<HashMap<String, String>> records = logFileImport.getLogRecords();
+                int parseErrors = logFileImport.getErrorCount();
+
+                Log.d(TAG, "Parsed records: " + (records != null ? records.size() : 0) + ", Parse errors: " + parseErrors);
+
+                if (records == null || records.isEmpty()) {
+                    String errorMsg = parseErrors > 0 ? "Parse errors: " + parseErrors : "No valid ADIF records found";
+                    requireActivity().runOnUiThread(() ->
+                            Toast.makeText(requireContext(), errorMsg, Toast.LENGTH_LONG).show());
+                    return;
+                }
+
+                Log.d(TAG, "Starting DB insert for " + records.size() + " records...");
+                int imported = 0;
+                int skipped = 0;
+                int duplicate = 0;
+                for (HashMap<String, String> record : records) {
+                    try {
+                        QSLRecord qslRecord = new QSLRecord(record);
+                        boolean result = mainViewModel.databaseOpr.doInsertQSLData(qslRecord, null);
+                        if (result) {
+                            imported++;
+                        } else {
+                            // Check if it is a duplicate by querying the DB
+                            Cursor check = mainViewModel.databaseOpr.getDb().rawQuery(
+                                    "SELECT COUNT(*) FROM QSLTable WHERE call=? AND qso_date=? AND time_on=?",
+                                    new String[]{record.get("call"), record.get("qso_date"), record.get("time_on")});
+                            if (check.moveToFirst() && check.getInt(0) > 1) {
+                                duplicate++;
+                            } else {
+                                skipped++;
+                            }
+                            check.close();
+                        }
+                    } catch (Exception dbEx) {
+                        Log.e(TAG, "DB insert error: " + dbEx.getMessage());
+                        skipped++;
+                    }
+                }
+
+                final int finalImported = imported;
+                final int finalSkipped = skipped;
+                final int finalDuplicate = duplicate;
+                final int finalParseErrors = parseErrors;
+                requireActivity().runOnUiThread(() -> {
+                    StringBuilder msg = new StringBuilder("Imported: " + finalImported);
+                    if (finalDuplicate > 0) msg.append(", Duplicates: ").append(finalDuplicate);
+                    if (finalSkipped > 0) msg.append(", Skipped: ").append(finalSkipped);
+                    if (finalParseErrors > 0) msg.append(", Parse errors: ").append(finalParseErrors);
+                    Toast.makeText(requireContext(), msg.toString(), Toast.LENGTH_LONG).show();
+                    queryByCallsign(mainViewModel.queryKey, 0);
+                });
+
+            } catch (Exception e) {
+                Log.e(TAG, "Import failed", e);
+                requireActivity().runOnUiThread(() ->
+                        Toast.makeText(requireContext(), "Import failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
+            } finally {
+                // 4. Clean up temp file
+                if (tempFile != null && tempFile.exists()) {
+                    //noinspection ResultOfMethodCallIgnored
+                    tempFile.delete();
+                }
+            }
+        }).start();
+    }
+
+    private void exportLogToDownloads() {
+        // Use ACTION_CREATE_DOCUMENT to let user pick filename and location
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/octet-stream");
+        intent.putExtra(Intent.EXTRA_TITLE, "FT8CN_export_" + getUtcDateString() + ".adi");
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"application/octet-stream", "text/plain"});
+        startActivityForResult(intent, REQUEST_CODE_EXPORT_LOG);
+    }
+
+    private void exportAdifToFile(Uri uri) {
+        Toast.makeText(requireContext(), "Exporting...", Toast.LENGTH_SHORT).show();
+        new Thread(() -> {
+            try {
+                Cursor cursor = mainViewModel.databaseOpr.getDb()
+                        .rawQuery("SELECT * FROM QSLTable ORDER BY qso_date DESC", null);
+                String adifContent = mainViewModel.databaseOpr.downQSLTable(cursor, false);
+                cursor.close();
+
+                try (OutputStream os = requireContext().getContentResolver().openOutputStream(uri)) {
+                    if (os != null) {
+                        os.write(adifContent.getBytes(StandardCharsets.UTF_8));
+                        requireActivity().runOnUiThread(() ->
+                                Toast.makeText(requireContext(), "Export successful", Toast.LENGTH_SHORT).show());
+                    } else {
+                        throw new IOException("Failed to open output stream");
+                    }
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Export failed", e);
+                requireActivity().runOnUiThread(() ->
+                        Toast.makeText(requireContext(), "Export failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
+            }
+        }).start();
+    }
+
+    private String getUtcDateString() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd", Locale.US);
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return sdf.format(new Date());
+    }
+
     private void showShareDialog() {
         mainViewModel.mutableShareRunning.setValue(true);
         dialog = new ShareLogsProgressDialog(
                 binding.getRoot().getContext()
-                , mainViewModel,false);
-
+                , mainViewModel, false);
         dialog.show();
         mainViewModel.mutableSharePosition.postValue(0);
         mainViewModel.mutableShareInfo.postValue("");
         mainViewModel.mutableShareCount.postValue(0);
     }
 
-
-    /**
-     * 创建共享日志的数据文件
-     */
     private void buildShareLogs() {
-
-        //先显示生成log的对话框
         showShareDialog();
-
         new Thread(new Runnable() {
             @Override
             public void run() {
-
                 File adiFile = GeneralVariables.writeToTempFile(requireContext()
                         , "FT8CN"
                         , ".txt"
                         , "");
-
-
                 new ShareLogs().doShareLogs(requireContext(), adiFile
                         , GeneralVariables.getStringFromResource(R.string.share_logs)
                         , mainViewModel.databaseOpr.getDb()
@@ -245,7 +428,6 @@ public class LogFragment extends Fragment {
                             public void onPreparing(String info) {
                                 mainViewModel.mutableShareInfo.postValue(info);
                             }
-
                             @Override
                             public void onShareStart(int count, String info) {
                                 mainViewModel.mutableSharePosition.postValue(0);
@@ -253,7 +435,6 @@ public class LogFragment extends Fragment {
                                 mainViewModel.mutableShareRunning.postValue(true);
                                 mainViewModel.mutableShareCount.postValue(count);
                             }
-
                             @Override
                             public boolean onShareProgress(int count, int position, String info) {
                                 mainViewModel.mutableSharePosition.postValue(position);
@@ -261,13 +442,11 @@ public class LogFragment extends Fragment {
                                 mainViewModel.mutableShareCount.postValue(count);
                                 return Boolean.TRUE.equals(mainViewModel.mutableShareRunning.getValue());
                             }
-
                             @Override
                             public void afterGet(int count, String info) {
                                 mainViewModel.mutableShareInfo.postValue(info);
                                 mainViewModel.mutableShareRunning.postValue(false);
                             }
-
                             @Override
                             public void onShareFailed(String info) {
                                 mainViewModel.mutableShareInfo.postValue(info);
@@ -277,12 +456,6 @@ public class LogFragment extends Fragment {
         }).start();
     }
 
-    /**
-     * 弹出菜单选项
-     *
-     * @param item item
-     * @return item
-     */
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem item) {
         int position = (Integer) item.getActionView().getTag();
@@ -304,26 +477,14 @@ public class LogFragment extends Fragment {
                     intent.putExtra("qslList", logQSLAdapter.getRecord(position));
                     startActivity(intent);
                     break;
-
             }
         } else {
             if (item.getItemId() == 2) {
                 showQrzFragment(logCallsignAdapter.getRecord(position).getCallsign());
             }
         }
-
         return super.onContextItemSelected(item);
     }
-
-//    private boolean itemIsOnScreen(View view) {
-//        if (view != null) {
-//            int width = view.getWidth();
-//            int height = view.getHeight();
-//            Rect rect = new Rect(0, 0, width, height);
-//            return view.getLocalVisibleRect(rect);
-//        }
-//        return false;
-//    }
 
     private void loadQueryData() {
         if ((!loading)) {
@@ -335,29 +496,21 @@ public class LogFragment extends Fragment {
         }
     }
 
-    /**
-     * 设置列表滑动动作
-     */
     private void initRecyclerViewAction() {
-
         binding.logRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
-
                 int itemCount;
                 if (mainViewModel.logListShowCallsign) {
                     itemCount = logCallsignAdapter.getItemCount();
                 } else {
                     itemCount = logQSLAdapter.getItemCount();
                 }
-                if (newState == SCROLL_STATE_IDLE &&
-                        lastItemPosition == itemCount) {
+                if (newState == SCROLL_STATE_IDLE && lastItemPosition == itemCount) {
                     loadQueryData();
-
                 }
             }
-
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
@@ -379,12 +532,10 @@ public class LogFragment extends Fragment {
                     , @NonNull RecyclerView.ViewHolder target) {
                 return false;
             }
-
             @SuppressLint("NotifyDataSetChanged")
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 if (direction == ItemTouchHelper.END) {
-                    //做一个是否删除确认对话框
                     AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
                     builder.setIcon(null);
                     builder.setTitle(GeneralVariables.getStringFromResource(R.string.delete_confirmation));
@@ -393,7 +544,7 @@ public class LogFragment extends Fragment {
                             , new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
-                                    logQSLAdapter.deleteRecord(viewHolder.getAdapterPosition());//删除日志
+                                    logQSLAdapter.deleteRecord(viewHolder.getAdapterPosition());
                                     logQSLAdapter.notifyItemRemoved(viewHolder.getAdapterPosition());
                                 }
                             });
@@ -410,17 +561,13 @@ public class LogFragment extends Fragment {
                                     logQSLAdapter.notifyDataSetChanged();
                                 }
                             }).show();
-
                 }
-
                 if (direction == ItemTouchHelper.START) {
                     logQSLAdapter.setRecordIsQSL(viewHolder.getAdapterPosition()
                             , !logQSLAdapter.getRecord(viewHolder.getAdapterPosition()).isQSL);
                     logQSLAdapter.notifyItemChanged(viewHolder.getAdapterPosition());
                 }
             }
-
-            //判断列表格式，呼号列表
             @Override
             public int getMovementFlags(@NonNull RecyclerView recyclerView
                     , @NonNull RecyclerView.ViewHolder viewHolder) {
@@ -432,14 +579,11 @@ public class LogFragment extends Fragment {
                 }
                 return makeMovementFlags(0, swipeFlag);
             }
-
-            //制作删除背景的图标显示
             final Drawable delIcon = ContextCompat.getDrawable(requireActivity()
                     , R.drawable.log_item_delete_icon);
             final Drawable qslIcon = ContextCompat.getDrawable(requireActivity()
                     , R.drawable.ic_baseline_library_add_check_24);
             final Drawable background = new ColorDrawable(Color.LTGRAY);
-
             @Override
             public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView
                     , @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY
@@ -452,7 +596,6 @@ public class LogFragment extends Fragment {
                 } else {
                     icon = qslIcon;
                 }
-
                 int iconMargin = (itemView.getHeight() - icon.getIntrinsicHeight()) / 2;
                 int iconLeft, iconRight, iconTop, iconBottom;
                 int backTop, backBottom, backLeft, backRight;
@@ -480,45 +623,31 @@ public class LogFragment extends Fragment {
                 }
                 background.draw(c);
                 icon.draw(c);
-
             }
         }).attachToRecyclerView(binding.logRecyclerView);
     }
 
-
-    /**
-     * 设置显示模式。通联的呼号和日志两种表现方式
-     */
     @SuppressLint("NotifyDataSetChanged")
     private void setShowStyle() {
-
         if (mainViewModel.logListShowCallsign) {
             binding.logViewStyleimageButton.setImageResource(R.drawable.ic_baseline_assignment_ind_24);
             binding.logRecyclerView.setAdapter(logCallsignAdapter);
             logCallsignAdapter.notifyDataSetChanged();
-            binding.locationInMapImageButton.setVisibility(View.GONE);//隐藏定位按钮
+            binding.locationInMapImageButton.setVisibility(View.GONE);
         } else {
             binding.logViewStyleimageButton.setImageResource(R.drawable.ic_baseline_assignment_24);
             binding.logRecyclerView.setAdapter(logQSLAdapter);
             logQSLAdapter.notifyDataSetChanged();
-            binding.locationInMapImageButton.setVisibility(View.VISIBLE);//显示定位按钮
+            binding.locationInMapImageButton.setVisibility(View.VISIBLE);
         }
-
     }
 
-    /**
-     * 查询日志
-     *
-     * @param callsign 呼号
-     */
     private void queryByCallsign(String callsign, int offset) {
-        loading = true;//开始读数据
-        //分两种查询
+        loading = true;
         if (mainViewModel.logListShowCallsign) {
-            if (offset == 0) {//说明是新增记录
-                logCallsignAdapter.clearRecords();//清空记录
+            if (offset == 0) {
+                logCallsignAdapter.clearRecords();
             }
-
             mainViewModel.databaseOpr.getQSLCallsignsByCallsign(false, offset, callsign, mainViewModel.queryFilter
                     , new OnQueryQSLCallsign() {
                         @Override
@@ -533,7 +662,7 @@ public class LogFragment extends Fragment {
                         }
                     });
         } else {
-            if (offset == 0) {//说明是新增记录
+            if (offset == 0) {
                 logQSLAdapter.clearRecords();
             }
             mainViewModel.databaseOpr.getQSLRecordByCallsign(false, offset, callsign, mainViewModel.queryFilter
@@ -549,42 +678,25 @@ public class LogFragment extends Fragment {
                             });
                         }
                     });
-
         }
     }
 
-
-    /**
-     * 显示统计页面
-     */
     private void showCountFragment() {
-        //用于Fragment的导航。
         NavHostFragment navHostFragment = (NavHostFragment) requireActivity()
                 .getSupportFragmentManager().findFragmentById(R.id.fragmentContainerView);
-        assert navHostFragment != null;//断言不为空
+        assert navHostFragment != null;
         navHostFragment.getNavController().navigate(R.id.countFragment);
     }
 
-    /**
-     * 显示QRZ查询界面
-     *
-     * @param callsign 呼号
-     */
     private void showQrzFragment(String callsign) {
         NavHostFragment navHostFragment = (NavHostFragment) requireActivity()
                 .getSupportFragmentManager().findFragmentById(R.id.fragmentContainerView);
-        assert navHostFragment != null;//断言不为空
+        assert navHostFragment != null;
         Bundle bundle = new Bundle();
         bundle.putString(QRZ_Fragment.CALLSIGN_PARAM, callsign);
         navHostFragment.getNavController().navigate(R.id.QRZ_Fragment, bundle);
     }
 
-
-    /**
-     * 获取本机IP地址
-     *
-     * @return IP 地址
-     */
     @Nullable
     private String getLocalIp() {
         WifiManager wifiManager = (WifiManager) requireContext().getApplicationContext()
@@ -600,14 +712,12 @@ public class LogFragment extends Fragment {
 
     @Override
     public void onDestroy() {
-        //判断生成共享log线程是否还在工作，如果还在工作，要销毁对话框，防止出现not attached to window manager错误
         if (Boolean.TRUE.equals(mainViewModel.mutableShareRunning.getValue())) {
             if (dialog != null) {
                 dialog.dismiss();
                 dialog = null;
             }
         }
-
         super.onDestroy();
     }
 }
