@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -587,6 +588,27 @@ public class ConfigFragment extends Fragment {
             }
         });
 
+        // === КНОПКА ПЕРЕХОДА В РАСШИРЕННЫЕ НАСТРОЙКИ ===
+        Log.d(TAG, "Setting up Advanced Settings button...");
+        if (binding.btnAdvancedSettings != null) {
+            binding.btnAdvancedSettings.setOnClickListener(v -> {
+                Log.d(TAG, "Advanced Settings button clicked!");
+                try {
+                    ConfigAdvancedFragment advancedFragment = new ConfigAdvancedFragment();
+                    requireActivity().getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.fragmentContainerView, advancedFragment)
+                            .addToBackStack(null)
+                            .commit();
+                } catch (Exception e) {
+                    Log.e(TAG, "Failed to open Advanced Settings", e);
+                    ToastMessage.show("Error opening settings: " + e.getMessage());
+                }
+            });
+        } else {
+            Log.w(TAG, "btnAdvancedSettings is NULL. Check fragment_config.xml for android:id=\"@+id/btnAdvancedSettings\"");
+        }
+        // =================================================
 
         return binding.getRoot();
     }
@@ -944,8 +966,8 @@ public class ConfigFragment extends Fragment {
      */
     private void setConnectMode() {
         if (GeneralVariables.controlMode == ControlMode.CAT
-                //&& BluetoothConstants.checkBluetoothIsOpen()
-            ) {
+            //&& BluetoothConstants.checkBluetoothIsOpen()
+        ) {
             //此处要改成VISIBLE
             binding.connectModeLayout.setVisibility(View.VISIBLE);
         } else {
@@ -1017,54 +1039,54 @@ public class ConfigFragment extends Fragment {
         binding.callsignHelpImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    new HelpDialog(requireContext(), requireActivity()
-                            , GeneralVariables.getStringFromResource(R.string.callsign_help)
-                            , true).show();
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.callsign_help)
+                        , true).show();
             }
         });
         //梅登海德网格的帮助
         binding.maidenGridImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    new HelpDialog(requireContext(), requireActivity()
-                            , GeneralVariables.getStringFromResource(R.string.maidenhead_help)
-                            , true).show();
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.maidenhead_help)
+                        , true).show();
             }
         });
         //发射频率的帮助
         binding.frequencyImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    new HelpDialog(requireContext(), requireActivity()
-                            , GeneralVariables.getStringFromResource(R.string.frequency_help)
-                            , true).show();
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.frequency_help)
+                        , true).show();
             }
         });
         //延迟发射帮助
         binding.transDelayImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    new HelpDialog(requireContext(), requireActivity()
-                            , GeneralVariables.getStringFromResource(R.string.transDelay_help)
-                            , true).show();
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.transDelay_help)
+                        , true).show();
             }
         });
         //时间偏移帮助
         binding.timeOffsetImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    new HelpDialog(requireContext(), requireActivity()
-                            , GeneralVariables.getStringFromResource(R.string.timeoffset_help)
-                            , true).show();
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.timeoffset_help)
+                        , true).show();
             }
         });
         //PTT延时帮助
         binding.pttDelayImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    new HelpDialog(requireContext(), requireActivity()
-                            , GeneralVariables.getStringFromResource(R.string.pttdelay_help)
-                            , true).show();
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.pttdelay_help)
+                        , true).show();
             }
         });
         //显示列表方式
@@ -1088,90 +1110,90 @@ public class ConfigFragment extends Fragment {
         binding.operationHelpImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    new HelpDialog(requireContext(), requireActivity()
-                            , GeneralVariables.getStringFromResource(R.string.operationBand_help)
-                            , true).show();
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.operationBand_help)
+                        , true).show();
             }
         });
         //设置操作模式
         binding.controlModeHelpImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    new HelpDialog(requireContext(), requireActivity()
-                            , GeneralVariables.getStringFromResource(R.string.controlMode_help)
-                            , true).show();
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.controlMode_help)
+                        , true).show();
             }
         });
         //设置CI-V地址和波特率帮助
         binding.baudRateHelpImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    new HelpDialog(requireContext(), requireActivity()
-                            , GeneralVariables.getStringFromResource(R.string.civ_help)
-                            , true).show();
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.civ_help)
+                        , true).show();
             }
         });
         //电台型号列表
         binding.rigNameHelpImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    new HelpDialog(requireContext(), requireActivity()
-                            , GeneralVariables.getStringFromResource(R.string.rig_model_help)
-                            , true).show();
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.rig_model_help)
+                        , true).show();
             }
         });
         //发射监管
         binding.launchSupervisionImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    new HelpDialog(requireContext(), requireActivity()
-                            , GeneralVariables.getStringFromResource(R.string.launch_supervision_help)
-                            , true).show();
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.launch_supervision_help)
+                        , true).show();
             }
         });
         //无回应次数
         binding.noResponseCountButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    new HelpDialog(requireContext(), requireActivity()
-                            , GeneralVariables.getStringFromResource(R.string.no_response_help)
-                            , true).show();
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.no_response_help)
+                        , true).show();
             }
         });
         //自动呼叫
         binding.autoFollowCountButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    new HelpDialog(requireContext(), requireActivity()
-                            , GeneralVariables.getStringFromResource(R.string.auto_follow_help)
-                            , true).show();
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.auto_follow_help)
+                        , true).show();
             }
         });
         //连接模式
         binding.connectModeHelpImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    new HelpDialog(requireContext(), requireActivity()
-                            , GeneralVariables.getStringFromResource(R.string.connectMode_help)
-                            , true).show();
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.connectMode_help)
+                        , true).show();
             }
         });
         //排除选项
         binding.excludedHelpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    new HelpDialog(requireContext(), requireActivity()
-                            , GeneralVariables.getStringFromResource(R.string.excludeCallsign_help)
-                            , true).show();
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.excludeCallsign_help)
+                        , true).show();
             }
         });
 
         binding.swlHelpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    new HelpDialog(requireContext(), requireActivity()
-                            , GeneralVariables.getStringFromResource(R.string.swlMode_help)
-                            , true).show();
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.swlMode_help)
+                        , true).show();
             }
         });
 
@@ -1189,9 +1211,9 @@ public class ConfigFragment extends Fragment {
         binding.audioOutputImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    new HelpDialog(requireContext(), requireActivity()
-                            , GeneralVariables.getStringFromResource(R.string.audio_output_help)
-                            , true).show();
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.audio_output_help)
+                        , true).show();
             }
         });
 
@@ -1199,9 +1221,9 @@ public class ConfigFragment extends Fragment {
         binding.clearCacheHelpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    new HelpDialog(requireContext(), requireActivity()
-                            , GeneralVariables.getStringFromResource(R.string.clear_cache_data_help)
-                            , true).show();
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.clear_cache_data_help)
+                        , true).show();
             }
         });
         binding.clearFollowButton.setOnClickListener(new View.OnClickListener() {

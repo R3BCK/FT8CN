@@ -2113,6 +2113,63 @@
                             app:layout_constraintTop_toBottomOf="@+id/clearLogCacheButton" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- ===================================================== -->
+                    <!-- КНОПКА ПЕРЕХОДА В РАСШИРЕННЫЕ НАСТРОЙКИ -->
+                    <!-- ===================================================== -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/advancedSettingsLayout"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="8dp"
+                        android:background="@drawable/editor_layout_style"
+                        android:padding="8dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/clearCacheLayout">
+
+                        <TextView
+                            android:id="@+id/advancedSettingsTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="⚙️ Advanced Settings"
+                            android:textColor="@color/purple_500"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <TextView
+                            android:id="@+id/advancedSettingsDesc"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:gravity="center"
+                            android:text="Backup/Restore settings, Rig test, Logcat export"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="12sp"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/advancedSettingsTitle" />
+
+                        <Button
+                            android:id="@+id/btnAdvancedSettings"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:backgroundTint="@color/purple_500"
+                            android:text="Open Advanced Settings →"
+                            android:textColor="@android:color/white"
+                            android:textSize="14sp"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/advancedSettingsDesc" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                    <!-- ===================================================== -->
+
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </LinearLayout>
         </ScrollView>

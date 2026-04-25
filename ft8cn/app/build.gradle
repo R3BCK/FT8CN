@@ -1,5 +1,9 @@
 import java.text.DateFormat
 import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+import java.util.Properties
+import java.io.FileInputStream
 
 plugins {
     id 'com.android.application'
@@ -25,6 +29,7 @@ def usePrebuiltSo = project.hasProperty('usePrebuiltSo') ?
 
 android {
     compileSdk 33
+    namespace 'com.bg7yoz.ft8cn'
 
     defaultConfig {
         applicationId "com.bg7yoz.ft8cn"
@@ -37,10 +42,8 @@ android {
             enabled true
         }
 
-        // Настройка native build только для режима компиляции
         if (!usePrebuiltSo) {
             ndk {
-                // Опционально: указать только нужные ABI для ускорения
                 // abiFilters 'arm64-v8a', 'armeabi-v7a'
             }
         }
@@ -48,7 +51,6 @@ android {
         signingConfig signingConfigs.debug
     }
 
-    // Конфигурация подписи для Release
     signingConfigs {
         release {
             keyAlias keystoreProperties['keyAlias'] ?: ''
@@ -63,13 +65,13 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "apkBuildTime", "\"${currentTime}\"")
+            buildConfigField "String", "apkBuildTime", "\"${currentTime}\""
         }
 
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            buildConfigField("String", "apkBuildTime", "\"${currentTime}\"")
+            buildConfigField "String", "apkBuildTime", "\"${currentTime}\""
 
             if (keystorePropertiesFile.exists()
                     && keystoreProperties['keyAlias']
@@ -88,18 +90,15 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    // Настройка CMake - ВЫНЕСЕНО ИЗ defaultConfig, исправлен синтаксис path
     if (!usePrebuiltSo) {
         externalNativeBuild {
             cmake {
-                // ИСПРАВЛЕНО: используем присваивание свойства, не метод path()
                 path = file("src/main/cpp/CMakeLists.txt")
                 version = "4.1.2"
             }
         }
     }
 
-    // Настройка источников native библиотек
     sourceSets {
         main {
             if (usePrebuiltSo) {
@@ -111,8 +110,28 @@ android {
             }
         }
     }
+}
 
-    namespace 'com.bg7yoz.ft8cn'
+tasks.register("renameReleaseApk") {
+    dependsOn("assembleRelease")
+    doLast {
+        def srcApk = file("$buildDir/outputs/apk/release/app-release.apk")
+        def dstApk = file("$buildDir/outputs/apk/release/FT8CN-R3BCK.apk")
+
+        if (!srcApk.exists()) {
+            throw new GradleException("Release APK not found: ${srcApk.absolutePath}")
+        }
+
+        if (dstApk.exists()) {
+            dstApk.delete()
+        }
+
+        if (!srcApk.renameTo(dstApk)) {
+            throw new GradleException("Failed to rename APK to ${dstApk.absolutePath}")
+        }
+
+        println "APK renamed to ${dstApk.name}"
+    }
 }
 
 dependencies {

@@ -558,5 +558,16 @@
     <string name="web_port">Web port</string>
     <string name="pl_web_port">7050</string>
     <string name="faq_web_port">HTTP server port for web interface. Default is 7050. Change if port is busy. Range: 1024-65535.</string>
+    <string name="btn_advanced_settings">Advanced Settings</string>
+    <!-- Advanced Settings Fragment -->
+    <string name="nav_menu_title_advanced">Advanced Settings</string>
+    <string name="settings_backup">Settings Backup</string>
+    <string name="btn_save_settings">Save</string>
+    <string name="btn_restore_settings">Restore</string>
+    <string name="rig_connection_control">Rig Connection</string>
+    <string name="btn_test_rig">Test Link</string>
+    <string name="btn_reconnect_rig">Reconnect</string>
+    <string name="logcat_export">Logcat Export</string>
+    <string name="btn_export_logcat">Export Logs</string>
 
 </resources>
