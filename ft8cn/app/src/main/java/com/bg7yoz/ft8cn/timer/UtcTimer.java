@@ -11,6 +11,7 @@ package com.bg7yoz.ft8cn.timer;
  */
 
 import android.annotation.SuppressLint;
+import android.util.Log;
 
 import com.bg7yoz.ft8cn.ui.ToastMessage;
 
@@ -270,25 +271,37 @@ public class UtcTimer {
             @Override
             public void run() {
                 NTPUDPClient timeClient = new NTPUDPClient();
-                InetAddress inetAddress = null;
-                TimeInfo timeInfo = null;
-                try {
-                    inetAddress = InetAddress.getByName("time.windows.com");
-                    timeInfo = timeClient.getTime(inetAddress);
-                    long serverTime = timeInfo.getMessage().getTransmitTimeStamp().getTime();
-                    int trueDelay = (int) ((serverTime - System.currentTimeMillis()));
-                    UtcTimer.delay = trueDelay % 15000;//延迟的周期
-                    if (afterSyncTime != null) {
-                        afterSyncTime.doAfterSyncTimer(trueDelay);
-                    }
-                } catch (IOException e) {
-                    if (afterSyncTime != null) {
-                        afterSyncTime.syncFailed(e);
+                timeClient.setDefaultTimeout(3000); // 3 секунды таймаут
+
+                // Сервера в порядке приоритета
+                String[] servers = {"time.windows.com", "ntp2.vniiftri.ru"};
+
+                for (String serverAddr : servers) {
+                    try {
+                        InetAddress inetAddress = InetAddress.getByName(serverAddr);
+                        TimeInfo timeInfo = timeClient.getTime(inetAddress);
+
+                        if (timeInfo != null && timeInfo.getMessage() != null) {
+                            long serverTime = timeInfo.getMessage().getTransmitTimeStamp().getTime();
+                            int trueDelay = (int) ((serverTime - System.currentTimeMillis()));
+                            UtcTimer.delay = trueDelay % 15000; //延迟的周期
+
+                            if (afterSyncTime != null) {
+                                afterSyncTime.doAfterSyncTimer(trueDelay);
+                            }
+                            // Успех - выходим из цикла
+                            return;
+                        }
+                    } catch (IOException e) {
+                        // Неудача, пробуем следующий сервер
+                        Log.w("UtcTimer", "NTP server " + serverAddr + " failed: " + e.getMessage());
                     }
                 }
 
-                //long localDeviceTime = timeInfo.getReturnTime();
-
+                // Все сервера недоступны
+                if (afterSyncTime != null) {
+                    afterSyncTime.syncFailed(new IOException("All NTP servers unavailable"));
+                }
             }
         }).start();
     }

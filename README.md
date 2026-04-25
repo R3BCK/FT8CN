@@ -2,8 +2,10 @@ This repository is a fork of the original [N0BOY/FT8CN](https://github.com/N0BOY
 
 1. The project now includes the original C++ source files, and you can choose whether to use the original `.so` libraries or build from source.
 2. The app now supports exporting and importing QSO logs directly from the application.
-3. The web server port can now be changed from the default 7050 to any other port in the range 1024 to 65535.
-
+3. The web server port can now be changed from the default 7050 to any other port in the range 1024 to 65535. 
+4. Time synchronization with a second NTP server, ntp2.vniiftri.ru, has been added. Automatic synchronization on startup has also been added, followed by synchronization every 5 minutes.
+5. Transmission is now blocked when the phone battery level drops below 1% to prevent the transceiver from hanging.
+6. When connected via USB, if only one device is available, it is connected automatically without showing a selection window.
 
 
 FT8CN — an app that runs FT8 natively on Android
