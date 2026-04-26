@@ -43,7 +43,7 @@ public class GeneralVariables {
     public static final int MIN_WEB_PORT = 1024;
     public static final int MAX_WEB_PORT = 65535;
     public static int webPort = DEFAULT_WEB_PORT;
-
+    public static boolean isManualOffsetMode = false; // true = пользователь зафиксировал смещение вручную
     public static int getWebPort() {
         return webPort;
     }

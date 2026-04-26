@@ -14,7 +14,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
-
+import android.widget.TextView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 
@@ -24,6 +24,10 @@ import com.bg7yoz.ft8cn.R;
 import com.bg7yoz.ft8cn.databinding.FragmentSpectrumBinding;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 /**
  * A simple {@link Fragment} subclass.
  * create an instance of this fragment.
@@ -32,7 +36,8 @@ public class SpectrumFragment extends Fragment {
     private static final String TAG = "SpectrumFragment";
     private FragmentSpectrumBinding binding;
     private MainViewModel mainViewModel;
-
+    private TextView spectrumLocTimeText;
+    private TextView spectrumOffsetText;
 
     private int frequencyLineTimeOut = 0;//画频率线的时间量
 
@@ -58,6 +63,12 @@ public class SpectrumFragment extends Fragment {
         binding.waterfallView.setDrawMessage(false);
         setDeNoiseSwitchState();
         setMarkMessageSwitchState();
+
+        // Инициализация TextView для локального времени и поправки
+        spectrumLocTimeText = binding.getRoot().findViewById(R.id.spectrumLocTimeText);
+        spectrumOffsetText = binding.getRoot().findViewById(R.id.spectrumOffsetText);
+        // Первичное обновление (пока таймер не начал тикать)
+        updateSpectrumTimeDisplay();
 
         binding.rulerFrequencyView.setFreq(Math.round(GeneralVariables.getBaseFrequency()));
         mainViewModel.currentMessages=null;
@@ -109,12 +120,16 @@ public class SpectrumFragment extends Fragment {
         });
 
 
-        //显示UTC时间
+        //显示UTC时间 + обновление локального времени и поправки
         mainViewModel.timerSec.observe(getViewLifecycleOwner(), new Observer<Long>() {
             @Override
-            public void onChanged(Long aLong) {
-                binding.timersTextView.setText(UtcTimer.getTimeStr(aLong));
+            public void onChanged(Long utcMillis) {
+                // UTC время
+                binding.timersTextView.setText(UtcTimer.getTimeStr(utcMillis));
                 binding.freqBandTextView.setText(GeneralVariables.getBandString());
+
+                // Локальное время и поправка (обновляются синхронно с UTC)
+                updateSpectrumTimeDisplay();
             }
         });
 
@@ -215,5 +230,27 @@ public class SpectrumFragment extends Fragment {
 
     public native void getFFTDataRaw(int[] data, int fftData[]);
     public native void getFFTDataRawFloat(float[] data,int fftData[]);
+
+    /**
+     * Обновление локального времени и поправки.
+     * Вызывается из observer timerSec, поэтому не требует runOnUiThread.
+     */
+    private void updateSpectrumTimeDisplay() {
+        if (spectrumLocTimeText == null || spectrumOffsetText == null) return;
+
+        // Локальное время
+        String loc = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
+        spectrumLocTimeText.setText("Loc: " + loc);
+
+        // Поправка (берём готовое значение из UtcTimer)
+        long offset = UtcTimer.delay;
+        spectrumOffsetText.setText(String.format("%+d ms", offset));
+
+        // Цвет по отклонению
+        int color = Math.abs(offset) <= 100
+                ? requireContext().getColor(R.color.spectrum_text_color)
+                : requireContext().getColor(R.color.text_view_error_color);
+        spectrumOffsetText.setTextColor(color);
+    }
 
 }

@@ -127,7 +127,7 @@ public class MainViewModel extends ViewModel {
     private static final int BATTERY_LOW_THRESHOLD_PERCENT = 1;
 
     // USB auto-connect receiver
-    private BroadcastReceiver usbReceiver;
+    private BroadcastReceiver usbReceiver; //unstable
 
 
     //public int decoded_counter = 0;//解码的总条数
@@ -293,7 +293,7 @@ public class MainViewModel extends ViewModel {
 
     /**
      * Auto-connect to USB if only one port available
-     */
+
     public void autoConnectUsbIfSingle(Context context) {
         ArrayList<CableSerialPort.SerialPort> ports = CableSerialPort.listSerialPorts(context);
 
@@ -306,7 +306,7 @@ public class MainViewModel extends ViewModel {
             Log.i(TAG, "Auto-connecting to single USB device");
             connectCableRig(context, ports.get(0));
         }
-    }
+    }/* unstable
 
     /**
      * MainViewModel 的构造函数主要完成一下事情：
@@ -596,7 +596,7 @@ public class MainViewModel extends ViewModel {
             Log.e(TAG, "http server error:" + e.getMessage());
         }
 
-        // === AUTO-CONNECT USB IF SINGLE DEVICE ===
+        /*/ === AUTO-CONNECT USB IF SINGLE DEVICE ===
         autoConnectUsbIfSingle(GeneralVariables.getMainContext());
 
         // === USB DEVICE CHANGE LISTENER ===
@@ -613,7 +613,7 @@ public class MainViewModel extends ViewModel {
                     }, 500);
                 }
             }
-        };
+        };*///unstable
 
         IntentFilter usbFilter = new IntentFilter();
         usbFilter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
@@ -625,13 +625,13 @@ public class MainViewModel extends ViewModel {
     protected void onCleared() {
         super.onCleared();
         // Unregister USB receiver
-        if (usbReceiver != null) {
+        /*if (usbReceiver != null) {
             try {
                 GeneralVariables.getMainContext().unregisterReceiver(usbReceiver);
             } catch (IllegalArgumentException e) {
                 // Already unregistered
             }
-        }
+        }/*///unstable
     }
 
     public void setTransmitIsFreeText(boolean isFreeText) {

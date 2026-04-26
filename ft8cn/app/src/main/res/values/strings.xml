@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">FT8CN</string>
     <string name="nav_menu_title_call_list">Content</string>
@@ -6,7 +7,6 @@
     <string name="nav_menu_title_history">QSO Logs</string>
     <string name="nav_menu_title_config">Settings</string>
     <string name="map_name" translatable="false">nightUSGS4Layer.sqlite</string>
-
 
     <string name="run_decode">Start decoding</string>
     <string name="db">dB</string>
@@ -35,7 +35,7 @@
     <string name="pl_trans_delay">Tx delay time (MS)</string>
     <string name="tran_delay">Tx delay</string>
 
-    <string name="timeOffset">Time offset</string>
+    <string name="timeOffset">Manual Time offset</string>
     <string name="help">Help</string>
     <string name="scroll_down">▾</string>
     <string name="about_me">About FT8CN</string>
@@ -76,64 +76,62 @@
     <string name="pl_select_bluetooth">Please select an available Bluetooth device</string>
     <string name="bluetooth_set">Bluetooth Settings</string>
     <string name="spp_device">Bluetooth spp device</string>
-    <string name="headset_device">Bluetooth headset</string>>
-    <string name="disconnect_rig">The rig connection is broken</string>>
-    <string name="connected_rig">Rig connection succeeded.</string>>
-    <string name="current_frequency">Current frequency :%s</string>>
-    <string name="radio_communication_error">Communication error with rig：%s</string>>
-    <string name="does_not_support_recording">Bluetooth device does not support recording</string>>
-    <string name="bluetooth_headset_mode">Enter Bluetooth headset mode</string>>
-    <string name="bluetooth_Headset_mode_cancelled">Exit Bluetooth headset mode</string>>
+    <string name="headset_device">Bluetooth headset</string>
+    <string name="disconnect_rig">The rig connection is broken</string>
+    <string name="connected_rig">Rig connection succeeded.</string>
+    <string name="current_frequency">Current frequency :%s</string>
+    <string name="radio_communication_error">Communication error with rig:%s</string>
+    <string name="does_not_support_recording">Bluetooth device does not support recording</string>
+    <string name="bluetooth_headset_mode">Enter Bluetooth headset mode</string>
+    <string name="bluetooth_Headset_mode_cancelled">Exit Bluetooth headset mode</string>
 
-    <string name="version_info">FT8CN Ver %s\nBG7YOZ\n%s</string>>
+    <string name="version_info">FT8CN Ver %s\nBG7YOZ\n%s</string>
 
+    <string name="exit">Exit</string>
+    <string name="cancel">Cancel</string>
+    <string name="exit_confirmation">Are you sure you want to exit ?</string>
 
-    <string name="exit">Exit</string>>
-    <string name="cancel">Cancel</string>>
-    <string name="exit_confirmation">Are you sure you want to exit ?</string>>
+    <!-- FT8Message -->
+    <string name="std_msg">Std Msg</string>
+    <string name="none_std_msg">NonStd Call</string>
+    <string name="free_text">Free Text</string>
+    <string name="dXpedition">DXpedition</string>
+    <string name="field_day">Field Day</string>
+    <string name="telemetry">Telemetry</string>
+    <string name="rtty_ru_msg">RTTY RU</string>
 
-    <!--   FT8Message-->
-    <string name="std_msg">Std Msg</string>>
-    <string name="none_std_msg">NonStd Call</string>>
-    <string name="free_text">Free Text</string>>
-    <string name="dXpedition">DXpedition</string>>
-    <string name="field_day">Field Day</string>>
-    <string name="telemetry">Telemetry</string>>
-    <string name="rtty_ru_msg">RTTY RU</string>>
+    <!-- Config bar -->
+    <string name="offset_time_sec">%.1f Secs</string>
 
-
-    <!--   配置栏-->
-    <string name="offset_time_sec">%.1f Secs</string>>
-
-    <!--   频谱图-->
-    <string name="decoding_takes_milliseconds">Decoded : %d ms</string>>
-    <string name="sound_frequency_is_set_to">The sound frequency is %d Hz</string>>
+    <!-- Spectrum -->
+    <string name="decoding_takes_milliseconds">Decoded : %d ms</string>
+    <string name="sound_frequency_is_set_to">The sound frequency is %d Hz</string>
     <string name="de_noise">DeNoise</string>
     <string name="raw_spectrum_data">Original</string>
     <string name="markMessage">Show Msg</string>
     <string name="unMarkMessage">Hide Msg</string>
 
-    <!--   选择蓝牙设备对话框-->
+    <!-- Bluetooth device dialog -->
     <string name="select_bluetooth_device">Select Bluetooth device : %s</string>
 
-    <!--   PTT延迟毫秒数-->
+    <!-- PTT delay milliseconds -->
     <string name="milliseconds">%d ms</string>
-    <!--   不回复次数-->
+    <!-- No reply count -->
     <string name="ignore">Ignore</string>
     <string name="times">%d calls</string>
 
-    <!--   呼叫栏-->
+    <!-- Calling bar -->
     <string name="sound_frequency_is">Freq : %.0f Hz</string>
     <string name="target_callsign">Target : %s</string>
     <string name="transmission_sequence">Sequential : %d</string>
     <string name="message_count">Messages(%d)</string>
 
-    <!--   日志导出栏栏-->
+    <!-- Log export bar -->
     <string name="export_info">Please use the web browser of other devices to export from the background under the same LAN as this device.\nEnter the URL in the browser:\nhttp://%s:%d</string>
-    <!--   发射监管-->
+    <!-- TX watchdog -->
     <string name="minutes">%d Mins</string>
 
-    <!--   发射监管-->
+    <!-- TX watchdog -->
     <string name="freq_syn">Lockd TX=RX</string>
     <string name="freq_asyn">Tx/Rx Split</string>
     <string name="auto_follow_cq">Auto track CQ</string>
@@ -141,22 +139,22 @@
     <string name="automatic_call_following">Auto call tracked</string>
     <string name="do_not_call_the_following_callsign">No call tracked</string>
 
-    <!--   解码栏-->
+    <!-- Decode bar -->
     <string name="message_count_count">Messages(%d/%d)</string>
     <string name="average_offset_seconds">Offset Avg : %.2f Sec</string>
     <string name="my_grid">Grid : %s</string>
 
-    <!--   解码列表-->
+    <!-- Decode list -->
     <string name="tracking_receiver">Tracking receiver %s(%s)</string>
     <string name="calling_receiver">Call receiver %s(%s)</string>
     <string name="reply_to">Reply %s(%s)</string>
     <string name="tracking">Tracking %s(%s)</string>
     <string name="calling">Call %s(%s)</string>
 
-    <!--   网格距离计算-->
+    <!-- Grid distance calculation -->
     <string name="distance">%.0f km</string>
 
-    <!--   日志列表-->
+    <!-- Log list -->
     <string name="confirmed">Confirmed</string>
     <string name="unconfirmed">Unconfirmed</string>
     <string name="lotw_confirmation">LoTW confirmed</string>
@@ -169,7 +167,7 @@
     <string name="log_cancel_confirmation">Cancel confirmation (%s)</string>
     <string name="log_manual_confirmation">Manual confirmation (%s)</string>
 
-    <!--   QSL日志列表-->
+    <!-- QSL log list -->
     <string name="qsl_grid">Grid:%s</string>
     <string name="qsl_start_time">Start time : %s</string>
     <string name="qsl_end_time">End time : %s</string>
@@ -187,10 +185,10 @@
     <string name="qsl_manual_confirmation_s">Manual confirmation (%s)</string>
     <string name="qsl_qrz_confirmation_s">QRZ (%s)</string>
 
-    <!--   QSL record-->
+    <!-- QSL record -->
     <string name="qsl_record_import_time">Import time:%s</string>
 
-    <!--   HTML -->
+    <!-- HTML -->
     <string name="html_track_operation_information">Monitoring operation information</string>
     <string name="html_track_callsign_hash_table">Monitor callsign hash table</string>
     <string name="html_trace_parsed_messages">Monitor parsed messages</string>
@@ -207,7 +205,6 @@
     <string name="html_from_jtdx_lotw">Export logs (used for backup, uploading logs to a third-party platform for confirmation, synchronizing JTDX logs and synchronizing LoTW for confirmation. It is recommended to use ADI data of JTDX, LoTW, Log32 and N1mm for synchronization)</string>
     <string name="html_return">Return</string>
 
-
     <string name="html_import_count">There are %d records in the ADI file and %d imported records . The format of %d logs is incorrect .</string>
     <string name="html_import_failed">Import failed! %s</string>
     <string name="html_illegal_command">Illegal command, upload failed!</string>
@@ -223,7 +220,7 @@
     <string name="html_qsl_band">Band</string>
     <string name="html_qsl_freq">Freq</string>
     <string name="html_qsl_manual_confirmation">Manually confirmed</string>
-    <string name="html_qsl_lotw_confirmation">LoTW确认</string>
+    <string name="html_qsl_lotw_confirmation">LoTW confirmed</string>
     <string name="html_qsl_data_source">Data source</string>
     <string name="html_qsl_import_data_from_external">From external</string>
     <string name="html_qsl_native_data">Native</string>
@@ -258,7 +255,6 @@
     <string name="html_instruction_set">Instruction Set</string>
     <string name="html_target_callsign">Target callsign</string>
     <string name="html_sequential">Sequential</string>
-
 
     <string name="html_carrier_frequency_band">Band</string>
     <string name="html_radio_frequency">Rig frequency</string>
@@ -558,16 +554,7 @@
     <string name="web_port">Web port</string>
     <string name="pl_web_port">7050</string>
     <string name="faq_web_port">HTTP server port for web interface. Default is 7050. Change if port is busy. Range: 1024-65535.</string>
-    <string name="btn_advanced_settings">Advanced Settings</string>
-    <!-- Advanced Settings Fragment -->
-    <string name="nav_menu_title_advanced">Advanced Settings</string>
-    <string name="settings_backup">Settings Backup</string>
-    <string name="btn_save_settings">Save</string>
-    <string name="btn_restore_settings">Restore</string>
-    <string name="rig_connection_control">Rig Connection</string>
-    <string name="btn_test_rig">Test Link</string>
-    <string name="btn_reconnect_rig">Reconnect</string>
-    <string name="logcat_export">Logcat Export</string>
-    <string name="btn_export_logcat">Export Logs</string>
+
+
 
 </resources>

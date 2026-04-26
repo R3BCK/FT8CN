@@ -1,3 +1,9 @@
+About audio output settings
+
+Bit depth: also called sampling precision. In FT8CN, only 16-bit integer and 32-bit floating-point options are available. Bit depth describes how finely sound amplitude is quantized; the higher the value, the higher the resolution of amplitude variations and the stronger the system’s ability to reproduce sound accurately.
+
+Sample rate: also called sampling frequency. It refers to the number of sound samples taken per second. The higher the sampling rate, the better the sound quality, but the more resources it consumes.
+
 关于音频输出设置
 
 采样位深：也称采样精度，FT8CN只有16位整型和32位浮点可选。采样位数是表示声音强度量化后的精细程度，它的数值越大，波动幅度的分辨率也就越高，所发出声音的能力越强。

@@ -44,8 +44,39 @@
             app:layout_constraintTop_toTopOf="@+id/columnarView"
             tools:ignore="SmallSp"
             tools:text="UTC TIMER"
-
             tools:visibility="visible" />
+        <!-- Local time display -->
+        <!-- Local time display (вставляем ПОСЛЕ timersTextView) -->
+        <TextView
+            android:id="@+id/spectrumLocTimeText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/spectrum_text_back_ground"
+            android:fontFamily="monospace"
+            android:text="Loc: --:--:--"
+            android:textColor="@color/spectrum_text_color"
+            android:textSize="10sp"
+            app:layout_constraintBottom_toBottomOf="@id/timersTextView"
+            app:layout_constraintStart_toEndOf="@id/timersTextView"
+            app:layout_constraintTop_toTopOf="@id/timersTextView"
+            tools:ignore="SmallSp" />
+
+        <!-- Offset display -->
+        <TextView
+            android:id="@+id/spectrumOffsetText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/spectrum_text_back_ground"
+            android:fontFamily="monospace"
+            android:text="+0 ms"
+            android:textColor="@color/spectrum_text_color"
+            android:textSize="10sp"
+            app:layout_constraintBottom_toBottomOf="@id/timersTextView"
+            app:layout_constraintStart_toEndOf="@id/spectrumLocTimeText"
+            app:layout_constraintTop_toTopOf="@id/timersTextView"
+            tools:ignore="SmallSp" />
 
         <com.bg7yoz.ft8cn.ui.RulerFrequencyView
             android:id="@+id/rulerFrequencyView"

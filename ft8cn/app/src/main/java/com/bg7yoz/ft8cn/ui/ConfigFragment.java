@@ -7,7 +7,10 @@ package com.bg7yoz.ft8cn.ui;
  */
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -41,7 +44,14 @@ import com.bg7yoz.ft8cn.maidenhead.MaidenheadGrid;
 import com.bg7yoz.ft8cn.rigs.InstructionSet;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
 
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -52,6 +62,11 @@ public class ConfigFragment extends Fragment {
     private static final int DEFAULT_WEB_PORT = 7050;
     private static final int MIN_WEB_PORT = 1024;
     private static final int MAX_WEB_PORT = 65535;
+
+    // Request codes for file operations
+    private static final int REQUEST_SAVE_CONF = 1001;
+    private static final int REQUEST_LOAD_CONF = 1002;
+    private static final int REQUEST_EXPORT_LOGCAT = 1003;
 
     private MainViewModel mainViewModel;
     private FragmentConfigBinding binding;
@@ -65,6 +80,9 @@ public class ConfigFragment extends Fragment {
     private PttDelaySpinnerAdapter pttDelaySpinnerAdapter;
     private NoReplyLimitSpinnerAdapter noReplyLimitSpinnerAdapter;
 
+    // Флаг: использовать ли авто-режим (0.0 в спинере)
+    private boolean isAutoOffsetMode = true;
+
     public ConfigFragment() {
         // Required empty public constructor
     }
@@ -72,6 +90,25 @@ public class ConfigFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != Activity.RESULT_OK || data == null || data.getData() == null) return;
+
+        Uri uri = data.getData();
+        try {
+            if (requestCode == REQUEST_SAVE_CONF) {
+                handleSaveConf(uri);
+            } else if (requestCode == REQUEST_LOAD_CONF) {
+                handleLoadConf(uri);
+            } else if (requestCode == REQUEST_EXPORT_LOGCAT) {
+                handleExportLogcat(uri);
+            }
+        } catch (Exception e) {
+            Toast.makeText(requireContext(), "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     // Web port input watcher
@@ -86,7 +123,7 @@ public class ConfigFragment extends Fragment {
                 int port = Integer.parseInt(editable.toString().trim());
                 if (port >= GeneralVariables.MIN_WEB_PORT && port <= GeneralVariables.MAX_WEB_PORT) {
                     binding.inputWebPortEdit.setTextColor(requireContext().getColor(R.color.text_view_color));
-                    writeConfig("webPort", String.valueOf(port));  // <-- Сохранение в базу
+                    writeConfig("webPort", String.valueOf(port));
                     GeneralVariables.webPort = port;
                     if (mainViewModel != null) {
                         mainViewModel.restartHttpServer(port);
@@ -104,10 +141,8 @@ public class ConfigFragment extends Fragment {
     private final TextWatcher onGridEditorChanged = new TextWatcher() {
         @Override
         public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-
         @Override
         public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-
         @Override
         public void afterTextChanged(Editable editable) {
             StringBuilder s = new StringBuilder();
@@ -127,10 +162,8 @@ public class ConfigFragment extends Fragment {
     private final TextWatcher onMyCallEditorChanged = new TextWatcher() {
         @Override
         public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-
         @Override
         public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-
         @Override
         public void afterTextChanged(Editable editable) {
             writeConfig("callsign", editable.toString().toUpperCase().trim());
@@ -148,10 +181,8 @@ public class ConfigFragment extends Fragment {
     private final TextWatcher onFreqEditorChanged = new TextWatcher() {
         @Override
         public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-
         @Override
         public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-
         @Override
         public void afterTextChanged(Editable editable) {
             setfreq(editable.toString());
@@ -162,10 +193,8 @@ public class ConfigFragment extends Fragment {
     private final TextWatcher onTransDelayEditorChanged = new TextWatcher() {
         @Override
         public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-
         @Override
         public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-
         @Override
         public void afterTextChanged(Editable editable) {
             int transDelay = 1000;
@@ -308,6 +337,10 @@ public class ConfigFragment extends Fragment {
         mainViewModel = MainViewModel.getInstance(this);
         binding = FragmentConfigBinding.inflate(inflater, container, false);
 
+        // Инициализация: определяем режим (авто или ручной)
+        isAutoOffsetMode = (UtcTimer.delay == 0);
+        updateOffsetDisplay(); // Показать текущее значение при входе
+
         // Set UTC time offset spinner
         setUtcTimeOffsetSpinner();
         // Set PTT delay spinner
@@ -368,9 +401,44 @@ public class ConfigFragment extends Fragment {
             }
         });
 
+        // === Bottom buttons: Save Conf, Load Conf, LogCat, About ===
+        if (binding.btnSaveConf != null) {
+            binding.btnSaveConf.setOnClickListener(v -> {
+                Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("application/json");
+                intent.putExtra(Intent.EXTRA_TITLE, "FT8CN_Settings.json");
+                startActivityForResult(intent, REQUEST_SAVE_CONF);
+            });
+        }
+
+        if (binding.btnLoadConf != null) {
+            binding.btnLoadConf.setOnClickListener(v -> {
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("application/json");
+                startActivityForResult(intent, REQUEST_LOAD_CONF);
+            });
+        }
+
+        if (binding.btnLogcat != null) {
+            binding.btnLogcat.setOnClickListener(v -> {
+                Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("text/plain");
+                intent.putExtra(Intent.EXTRA_TITLE, "ft8cn_logcat.txt");
+                startActivityForResult(intent, REQUEST_EXPORT_LOGCAT);
+            });
+        }
+
+        if (binding.aboutButton != null) {
+            binding.aboutButton.setText("About");
+        }
+        // ===================================================
+
         // === Web Port Configuration ===
         // Load saved web port or use default
-        int savedWebPort = GeneralVariables.getWebPort(); // Assuming this method exists, or use config DB
+        int savedWebPort = GeneralVariables.getWebPort();
         if (savedWebPort <= 0) savedWebPort = DEFAULT_WEB_PORT;
         binding.inputWebPortEdit.removeTextChangedListener(onWebPortEditorChanged);
         binding.inputWebPortEdit.setText(String.valueOf(savedWebPort));
@@ -645,6 +713,90 @@ public class ConfigFragment extends Fragment {
     }
 
     /**
+     * Handle save settings to JSON file
+     */
+    private void handleSaveConf(Uri uri) throws Exception {
+        OutputStream os = requireContext().getContentResolver().openOutputStream(uri);
+        if (os == null) throw new IOException("Cannot open output stream");
+
+        Cursor cursor = mainViewModel.databaseOpr.getDb().rawQuery("SELECT KeyName, Value FROM config", null);
+        JSONObject json = new JSONObject();
+        while (cursor.moveToNext()) {
+            json.put(cursor.getString(0), cursor.getString(1));
+        }
+        cursor.close();
+
+        os.write(json.toString(2).getBytes(StandardCharsets.UTF_8));
+        os.close();
+        Toast.makeText(requireContext(), "Settings saved", Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * Handle load settings from JSON file
+     */
+    private void handleLoadConf(Uri uri) throws Exception {
+        InputStream is = requireContext().getContentResolver().openInputStream(uri);
+        if (is == null) throw new IOException("Cannot open input stream");
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder content = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) content.append(line);
+        reader.close();
+        is.close();
+
+        JSONObject json = new JSONObject(content.toString());
+        int count = 0;
+        // FIX: JSONObject в Android не имеет keySet(), используем names()
+        org.json.JSONArray names = json.names();
+        if (names != null) {
+            for (int i = 0; i < names.length(); i++) {
+                String key = names.getString(i);
+                mainViewModel.databaseOpr.writeConfig(key, json.getString(key), null);
+                count++;
+            }
+        }
+
+        Toast.makeText(requireContext(), "Loaded " + count + " settings", Toast.LENGTH_SHORT).show();
+
+        new android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Restart Required")
+                .setMessage("Restart application to apply settings?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    Intent intent = requireActivity().getPackageManager()
+                            .getLaunchIntentForPackage(requireContext().getPackageName());
+                    if (intent != null) {
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        requireActivity().startActivity(intent);
+                        requireActivity().finish();
+                    }
+                })
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+    /**
+     * Handle export logcat to text file
+     */
+    private void handleExportLogcat(Uri uri) throws Exception {
+        OutputStream os = requireContext().getContentResolver().openOutputStream(uri);
+        if (os == null) throw new IOException("Cannot open output stream");
+
+        Process process = Runtime.getRuntime().exec(
+                new String[]{"logcat", "-d", "-v", "threadtime", "com.bg7yoz.ft8cn"});
+        InputStream is = process.getInputStream();
+
+        byte[] buffer = new byte[4096];
+        int len;
+        while ((len = is.read(buffer)) != -1) {
+            os.write(buffer, 0, len);
+        }
+        is.close();
+        os.close();
+        Toast.makeText(requireContext(), "Logcat exported", Toast.LENGTH_SHORT).show();
+    }
+
+    /**
      * Set spinner OnItemSelected events to prevent duplicate writes to database on startup
      */
     private void setSpinnerOnItemSelected() {
@@ -838,26 +990,43 @@ public class ConfigFragment extends Fragment {
         }
     }
 
-    /**
-     * Set UTC time offset spinner
-     */
     private void setUtcTimeOffsetSpinner() {
         UtcOffsetSpinnerAdapter adapter = new UtcOffsetSpinnerAdapter(requireContext());
+
         requireActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                // === ШАГ 1: Отключаем слушатель ПОЛНОСТЬЮ ===
+                binding.utcTimeOffsetSpinner.setOnItemSelectedListener(null);
+
+                // Устанавливаем адаптер (без слушателя — ничего не сработает)
                 binding.utcTimeOffsetSpinner.setAdapter(adapter);
                 adapter.notifyDataSetChanged();
-                binding.utcTimeOffsetSpinner.setSelection((UtcTimer.delay / 100 + 75) / 5);
+
+                // Вычисляем и устанавливаем индекс
+                int initialIndex = (UtcTimer.delay / 100 + 75) / 5;
+                initialIndex = Math.max(0, Math.min(30, initialIndex));
+                binding.utcTimeOffsetSpinner.setSelection(initialIndex);
+
+                // === ШАГ 2: Включаем слушатель ТОЛЬКО через задержку ===
+                // 200 мс — достаточно, чтобы все системные onItemSelected() отработали "вхолостую"
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        // Теперь включаем слушатель — дальше только ручные выборы пользователя
+                        binding.utcTimeOffsetSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                                // Эта строка выполнится ТОЛЬКО когда пользователь вручную выбрал значение
+                                UtcTimer.delay = i * 500 - 7500; // 设置延迟
+                                writeConfig("timeOffsetSec", String.valueOf(UtcTimer.delay));
+                            }
+                            @Override
+                            public void onNothingSelected(AdapterView<?> adapterView) {}
+                        });
+                    }
+                }, 200); // 200 мс задержки
             }
-        });
-        binding.utcTimeOffsetSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                UtcTimer.delay = i * 500 - 7500;
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {}
         });
     }
 
@@ -1549,7 +1718,13 @@ public class ConfigFragment extends Fragment {
                 UtcTimer.syncTime(new UtcTimer.AfterSyncTime() {
                     @Override
                     public void doAfterSyncTimer(int secTime) {
-                        setUtcTimeOffsetSpinner();
+                        requireActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                setUtcTimeOffsetSpinner();
+                                updateOffsetDisplay(); //  Безопасное обновление UI
+                            }
+                        });
                         if (secTime > 100) {
                             ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.utc_time_sync_delay_slow), secTime));
                         } else if (secTime < -100) {
@@ -1557,6 +1732,7 @@ public class ConfigFragment extends Fragment {
                         } else {
                             ToastMessage.show(GeneralVariables.getStringFromResource(R.string.config_clock_is_accurate));
                         }
+
                     }
                     @Override
                     public void syncFailed(IOException e) {
@@ -1583,4 +1759,52 @@ public class ConfigFragment extends Fragment {
             binding.configScrollDownImageView.setVisibility(View.GONE);
         }
     }
+
+    /**
+     * Обновляет текст поправки.
+     * Логика:
+     * - Если в спинере 0.0 сек (авто-режим) — показываем точный рассчитанный offset из UtcTimer
+     * - Если в спинере другое значение — показываем фиксированное значение из спинера
+     * Обновление происходит только вне интервалов передачи
+     */
+    /**
+     * Обновляет текст поправки.
+     * Логика:
+     * - Если в спинере 0.0 сек (авто-режим) — показываем точный рассчитанный offset из UtcTimer
+     * - Если в спинере другое значение — показываем фиксированное значение, которое было выбрано
+     * Обновление происходит только вне интервалов передачи
+     */
+    private void updateOffsetDisplay() {
+        if (binding.utcCalculatedOffsetText == null) return;
+
+        // Не обновляем во время передачи, чтобы не мешать работе
+        if (mainViewModel != null && mainViewModel.ft8TransmitSignal != null
+                && mainViewModel.ft8TransmitSignal.isTransmitting()) {
+            return;
+        }
+
+        long displayOffset;
+        if (isAutoOffsetMode) {
+            // Авто-режим: показываем точное рассчитанное значение
+            displayOffset = UtcTimer.delay;
+        } else {
+            // Ручной режим: показываем то значение, которое сейчас установлено в UtcTimer.delay
+            // (оно было установлено при выборе в спинере и сохранено в базе)
+            displayOffset = UtcTimer.delay;
+        }
+
+        binding.utcCalculatedOffsetText.setText(String.format("%+d ms", displayOffset));
+
+        // Цвет: зелёный если в пределах 100 мс, красный если больше (только в авто-режиме)
+        if (isAutoOffsetMode) {
+            int color = Math.abs(displayOffset) <= 100
+                    ? requireContext().getColor(R.color.text_view_color)
+                    : requireContext().getColor(R.color.text_view_error_color);
+            binding.utcCalculatedOffsetText.setTextColor(color);
+        } else {
+            // В ручном режиме — нейтральный цвет
+            binding.utcCalculatedOffsetText.setTextColor(requireContext().getColor(R.color.text_view_color));
+        }
+    }
+
 }

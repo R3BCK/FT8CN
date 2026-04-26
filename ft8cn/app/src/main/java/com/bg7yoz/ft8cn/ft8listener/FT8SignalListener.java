@@ -61,7 +61,7 @@ public class FT8SignalListener {
 
             @Override
             public void doOnSecTimer(long utc) {//当指定间隔时触发时
-                Log.d(TAG, String.format("Trigger recording,%d", utc));
+                Log.d(TAG, String.format("触发录音,%d", utc));
                 runRecorde(utc);
             }
         });
@@ -95,7 +95,7 @@ public class FT8SignalListener {
      * @param utc 当前解码的UTC时间
      */
     private void runRecorde(long utc) {
-        Log.d(TAG, "Start recording...");
+        Log.d(TAG, "开始录音...");
 
         if (onWaveDataListener != null) {
             onWaveDataListener.getVoiceData(FT8Common.FT8_SLOT_TIME_MILLISECOND, true
