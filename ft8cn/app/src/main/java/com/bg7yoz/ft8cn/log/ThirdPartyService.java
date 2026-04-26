@@ -16,6 +16,7 @@ import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Locale;
 
 enum ServiceType{
     Cloudlog,
@@ -112,14 +113,14 @@ public class ThirdPartyService {
         String comment = qslRecord.getComment();
 
         //<comment:15>Distance: 99 km <eor>
-        //在写库的时候，一定要加" km"
+        //в записи в базу обязательно добавить " km"
         logStr.append(String.format("<comment:%d>%s <eor>\n"
                 , comment.length()
                 , comment));
         return logStr.toString();
     }
     public static void UploadToCloudLog(QSLRecord qslRecord){
-        // 转换为adif格式
+        // преобразовать в формат ADIF
         String logStr = QSLRecordToADIF(qslRecord,ServiceType.Cloudlog);
         Log.d(TAG,logStr);
         String address = GeneralVariables.getCloudlogServerAddress();
@@ -145,7 +146,7 @@ public class ThirdPartyService {
     public static boolean CheckCloudlogConnection(){
         String address = GeneralVariables.getCloudlogServerAddress();
         String apiKey = GeneralVariables.getCloudlogServerApiKey();
-        // 检查地址末尾是否含有 /
+        // проверить, заканчивается ли адрес на /
         if (!address.endsWith("/")){
             address+="/";
         }
@@ -188,7 +189,7 @@ public class ThirdPartyService {
     }
 
     public static void UploadToQRZ(QSLRecord qslRecord){
-        // 转换为adif格式
+        // преобразовать в формат ADIF
         String logStr = QSLRecordToADIF(qslRecord, ServiceType.QRZ);
         Log.d(TAG,logStr);
         String apikey = GeneralVariables.getQrzApiKey();
@@ -212,19 +213,19 @@ public class ThirdPartyService {
             URL urlObj = new URL(url);
             conn = (HttpURLConnection) urlObj.openConnection();
 
-            // 设置请求方法为POST
+            // установить метод запроса POST
             conn.setRequestMethod("POST");
-            // 设置请求的头部信息
+            // установить заголовки запроса
             conn.setRequestProperty("Content-Type", "application/json");
 
-            // 获取OutputStream，将请求的数据写入流中
+            // получить OutputStream, записать данные запроса в поток
             OutputStream os = conn.getOutputStream();
             os.write(json.getBytes());
             os.flush();
 
-            // 获取服务器的响应结果
+            // получить ответ сервера
             int responseCode = conn.getResponseCode();
-            // cloudlog使用HTTP_CREATED作为创建记录成功的响应
+            // cloudlog использует HTTP_CREATED как ответ об успешном создании записи
             if (responseCode == HttpURLConnection.HTTP_OK || responseCode==HttpURLConnection.HTTP_CREATED) {
                 reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 StringBuilder response = new StringBuilder();
@@ -253,12 +254,12 @@ public class ThirdPartyService {
             URL urlObj = new URL(url);
             conn = (HttpURLConnection) urlObj.openConnection();
 
-            // 设置请求方法为POST
+            // установить метод запроса GET
             conn.setRequestMethod("GET");
-            // 设置请求的头部信息
+            // установить заголовки запроса
             conn.setRequestProperty("Content-Type", "application/json");
 
-            // 获取服务器的响应结果
+            // получить ответ сервера
             int responseCode = conn.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -278,5 +279,107 @@ public class ThirdPartyService {
             }
         }
         return null;
+    }
+
+    /**
+     * Проверка соединения с HRDLog.net
+     * @return true если успешно
+     */
+    public static boolean CheckHrdlogConnection() {
+        try {
+            String apiKey = GeneralVariables.getHrdlogApiKey();
+            if (apiKey.isEmpty()) return false;
+
+            // HRDLog использует простой GET-запрос для проверки авторизации
+            String url = "https://www.hrdlog.net/Api.ashx?key=" + apiKey + "&action=status";
+
+            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+            conn.setRequestMethod("GET");
+            conn.setConnectTimeout(10000);
+            conn.setReadTimeout(10000);
+
+            int responseCode = conn.getResponseCode();
+
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = in.readLine()) != null) {
+                    response.append(line);
+                }
+                in.close();
+
+                // HRDLog возвращает "OK" при успешной авторизации
+                return response.toString().trim().equalsIgnoreCase("OK");
+            }
+
+            conn.disconnect();
+            return false;
+        } catch (Exception e) {
+            Log.e("HRDLog", "Connection check failed: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Загрузка QSO в HRDLog.net
+     * @param record запись для отправки
+     * @return true если успешно
+     */
+    public static boolean UploadToHrdlog(QSLRecord record) {
+        if (!GeneralVariables.enableHrdlog) return false;
+
+        try {
+            String apiKey = GeneralVariables.getHrdlogApiKey();
+            if (apiKey.isEmpty()) return false;
+
+            // Преобразуем запись в ADIF-формат (используем тот же метод, что для Cloudlog)
+            String adifLog = QSLRecordToADIF(record, ServiceType.Cloudlog);
+            Log.d("HRDLog", "ADIF payload: " + adifLog);
+
+            // HRDLog API endpoint для загрузки логов
+            String uploadUrl = "https://www.hrdlog.net/Api.ashx";
+
+            // Формируем URL с параметрами
+            String fullUrl = String.format(Locale.US,
+                    "%s?key=%s&action=upload&adif=%s",
+                    uploadUrl,
+                    apiKey,
+                    java.net.URLEncoder.encode(adifLog, "UTF-8")
+            );
+
+            HttpURLConnection conn = (HttpURLConnection) new URL(fullUrl).openConnection();
+            conn.setRequestMethod("GET"); // HRDLog использует GET для ADIF upload
+            conn.setConnectTimeout(15000);
+            conn.setReadTimeout(15000);
+            conn.setRequestProperty("User-Agent", "FT8CN/1.0");
+
+            int responseCode = conn.getResponseCode();
+            Log.d("HRDLog", "Upload response code: " + responseCode);
+
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = in.readLine()) != null) {
+                    response.append(line);
+                }
+                in.close();
+
+                String result = response.toString().trim();
+                Log.d("HRDLog", "Server response: " + result);
+
+                // HRDLog возвращает "OK" или "Record added" при успехе
+                conn.disconnect();
+                return result.equalsIgnoreCase("OK") || result.contains("Record added") || result.contains("success");
+            }
+
+            conn.disconnect();
+            return false;
+
+        } catch (Exception e) {
+            Log.e("HRDLog", "Upload failed: " + e.getMessage());
+            return false;
+        }
     }
 }

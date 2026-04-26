@@ -38,6 +38,22 @@ public class GeneralVariables {
     public static boolean saveSWL_QSO = false;//保存解码消息消息中的QSO开关
     public static boolean enableCloudlog = false;//是否启用Cloudlog自动同步
     public static boolean enableQRZ = false;//是否启用qrz自动同步
+
+    // === HRDLog.net Settings ===
+    public static boolean enableHrdlog = false;
+    public static String hrdlogUrl = "https://api.hrdlog.net";
+    public static String hrdlogApiKey = "";
+    public static String hrdlogUsername = "";
+    public static String hrdlogPassword = "";
+    public static String hrdlogCallsign = "";
+
+    public static String getHrdlogUrl() { return hrdlogUrl; }
+    public static String getHrdlogApiKey() { return hrdlogApiKey; }
+    public static String getHrdlogUsername() { return hrdlogUsername; }
+    public static String getHrdlogPassword() { return hrdlogPassword; }
+    public static String getHrdlogCallsign() { return hrdlogCallsign; }
+    // =========================
+
     // Web server port configuration
     public static final int DEFAULT_WEB_PORT = 7050;
     public static final int MIN_WEB_PORT = 1024;

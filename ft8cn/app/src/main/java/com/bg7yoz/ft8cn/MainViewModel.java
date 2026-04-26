@@ -152,6 +152,10 @@ public class MainViewModel extends ViewModel {
     public MutableLiveData<Boolean> mutableIsFlexRadio = new MutableLiveData<>();//是不是 flex 电台
     public MutableLiveData<Boolean> mutableIsXieguRadio = new MutableLiveData<>();//是不是 flex 电台
 
+    // === НОВОЕ: Статус подключения к ригу ===
+    public MutableLiveData<String> rigStatusText = new MutableLiveData<>("Disconnected");
+    // =========================================
+
     private final ExecutorService getQTHThreadPool = Executors.newCachedThreadPool();
     private final ExecutorService sendWaveDataThreadPool = Executors.newCachedThreadPool();
     private final GetQTHRunnable getQTHRunnable = new GetQTHRunnable(this);
@@ -187,12 +191,14 @@ public class MainViewModel extends ViewModel {
         public void onDisconnected() {
             //与电台连接中断
             ToastMessage.show(getStringFromResource(R.string.disconnect_rig));
+            updateRigStatus(); // === НОВОЕ: Обновляем статус ===
         }
 
         @Override
         public void onConnected() {
             //与电台建立连接
             ToastMessage.show(getStringFromResource(R.string.connected_rig));
+            updateRigStatus(); // === НОВОЕ: Обновляем статус ===
         }
 
         @Override
@@ -294,21 +300,21 @@ public class MainViewModel extends ViewModel {
     /**
      * Auto-connect to USB if only one port available
 
-    public void autoConnectUsbIfSingle(Context context) {
-        ArrayList<CableSerialPort.SerialPort> ports = CableSerialPort.listSerialPorts(context);
+     public void autoConnectUsbIfSingle(Context context) {
+     ArrayList<CableSerialPort.SerialPort> ports = CableSerialPort.listSerialPorts(context);
 
-        if (ports == null || ports.isEmpty()) {
-            return;
-        }
+     if (ports == null || ports.isEmpty()) {
+     return;
+     }
 
-        // If only one port found, auto-connect
-        if (ports.size() == 1) {
-            Log.i(TAG, "Auto-connecting to single USB device");
-            connectCableRig(context, ports.get(0));
-        }
-    }/* unstable
+     // If only one port found, auto-connect
+     if (ports.size() == 1) {
+     Log.i(TAG, "Auto-connecting to single USB device");
+     connectCableRig(context, ports.get(0));
+     }
+     }/* unstable
 
-    /**
+     /**
      * MainViewModel 的构造函数主要完成一下事情：
      * 1.创建与 UTC 同步的时钟，时钟是 UtcTimer 类，内核是用 Timer 和 TimerTask 实现的。回调函数是多线程的，要考虑线程安全的问题。
      * 2.创建 Mutable 型的解码消息列表。
@@ -552,6 +558,11 @@ public class MainViewModel extends ViewModel {
                         if (GeneralVariables.enableQRZ){
                             ThirdPartyService.UploadToQRZ(qslRecord);
                         }
+                        // === HRDLog.net ===
+                        if (GeneralVariables.enableHrdlog){
+                            ThirdPartyService.UploadToHrdlog(qslRecord);
+                        }
+                        // =================
                     }
                 }).start();
 
@@ -619,6 +630,10 @@ public class MainViewModel extends ViewModel {
         usbFilter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
         usbFilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
         GeneralVariables.getMainContext().registerReceiver(usbReceiver, usbFilter);
+
+        // === НОВОЕ: Первоначальное обновление статуса ===
+        updateRigStatus();
+        // =========================================
     }
 
     @Override
@@ -1110,6 +1125,34 @@ public class MainViewModel extends ViewModel {
         }
     }
 
+    // === НОВОЕ: Метод обновления статуса подключения ===
+    /** Обновляет текст статуса на основе текущего режима и состояния */
+    public void updateRigStatus() {
+        if (GeneralVariables.controlMode == ControlMode.VOX) {
+            rigStatusText.postValue("VOX Mode (Audio PTT)");
+            return;
+        }
+        if (baseRig == null || !baseRig.isConnected()) {
+            rigStatusText.postValue("Disconnected");
+            return;
+        }
+
+        switch (GeneralVariables.connectMode) {
+            case ConnectMode.USB_CABLE:
+                rigStatusText.postValue("Connected: USB Cable");
+                break;
+            case ConnectMode.BLUE_TOOTH:
+                rigStatusText.postValue("Connected: Bluetooth");
+                break;
+            case ConnectMode.NETWORK:
+                rigStatusText.postValue("Connected: Network");
+                break;
+            default:
+                rigStatusText.postValue("Connected: CAT");
+        }
+    }
+    // =========================================
+
     /**
      * 获取串口设备列表
      */
@@ -1243,5 +1286,45 @@ public class MainViewModel extends ViewModel {
             httpServer.restartServer(newPort);
         }
     }
+
+    // === НОВОЕ: Универсальный метод переключения подключения ===
+    /**
+     * Универсальное переключение подключения к ригу
+     * @param context Android context
+     */
+    public void toggleRigConnection(Context context) {
+        if (GeneralVariables.controlMode == ControlMode.VOX) {
+            ToastMessage.show("VOX mode does not use CAT connection");
+            return;
+        }
+
+        if (isRigConnected()) {
+            // Отключаем
+            if (baseRig != null && baseRig.getConnector() != null) {
+                baseRig.getConnector().disconnect();
+                baseRig = null;
+                updateRigStatus();
+                ToastMessage.show("Disconnected");
+            }
+            return;
+        }
+
+        // Подключаем в зависимости от режима
+        switch (GeneralVariables.connectMode) {
+            case ConnectMode.USB_CABLE:
+                getUsbDevice(); // Обновит список, пользователь выберет
+                break;
+            case ConnectMode.BLUE_TOOTH:
+                // Для полного автоподключения нужно сохранять MAC и вызывать connectBluetoothRig
+                // Сейчас просто показываем подсказку
+                ToastMessage.show("Open BT settings to select device");
+                break;
+            case ConnectMode.NETWORK:
+                // Для полного автоподключения нужно сохранять IP/Port и вызывать connectWifiRig
+                ToastMessage.show("Open Network settings to enter IP/Port");
+                break;
+        }
+    }
+    // =========================================
 
 }

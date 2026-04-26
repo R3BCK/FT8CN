@@ -20,7 +20,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -80,6 +82,11 @@ public class ConfigFragment extends Fragment {
     private PttDelaySpinnerAdapter pttDelaySpinnerAdapter;
     private NoReplyLimitSpinnerAdapter noReplyLimitSpinnerAdapter;
 
+    // === НОВОЕ: Поля для статуса подключения к ригу ===
+    private TextView tvRigConnectionStatus;
+    private Button btnConnectRig;
+    // =================================================
+
     // Флаг: использовать ли авто-режим (0.0 в спинере)
     private boolean isAutoOffsetMode = true;
 
@@ -134,6 +141,56 @@ public class ConfigFragment extends Fragment {
             } catch (NumberFormatException e) {
                 binding.inputWebPortEdit.setTextColor(requireContext().getColor(R.color.text_view_error_color));
             }
+        }
+    };
+
+    // HRDLog URL
+    private final TextWatcher onHrdlogUrlChanged = new TextWatcher() {
+        @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+        @Override public void afterTextChanged(Editable s) {
+            GeneralVariables.hrdlogUrl = s.toString().trim();
+            writeConfig("hrdlogUrl", GeneralVariables.hrdlogUrl);
+        }
+    };
+
+    // HRDLog API Key
+    private final TextWatcher onHrdlogApiKeyChanged = new TextWatcher() {
+        @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+        @Override public void afterTextChanged(Editable s) {
+            GeneralVariables.hrdlogApiKey = s.toString().trim();
+            writeConfig("hrdlogApiKey", GeneralVariables.hrdlogApiKey);
+        }
+    };
+
+    // HRDLog Username
+    private final TextWatcher onHrdlogUsernameChanged = new TextWatcher() {
+        @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+        @Override public void afterTextChanged(Editable s) {
+            GeneralVariables.hrdlogUsername = s.toString().trim();
+            writeConfig("hrdlogUsername", GeneralVariables.hrdlogUsername);
+        }
+    };
+
+    // HRDLog Password
+    private final TextWatcher onHrdlogPasswordChanged = new TextWatcher() {
+        @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+        @Override public void afterTextChanged(Editable s) {
+            GeneralVariables.hrdlogPassword = s.toString();
+            writeConfig("hrdlogPassword", GeneralVariables.hrdlogPassword);
+        }
+    };
+
+    // HRDLog Callsign
+    private final TextWatcher onHrdlogCallsignChanged = new TextWatcher() {
+        @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+        @Override public void afterTextChanged(Editable s) {
+            GeneralVariables.hrdlogCallsign = s.toString().toUpperCase().trim();
+            writeConfig("hrdlogCallsign", GeneralVariables.hrdlogCallsign);
         }
     };
 
@@ -337,6 +394,43 @@ public class ConfigFragment extends Fragment {
         mainViewModel = MainViewModel.getInstance(this);
         binding = FragmentConfigBinding.inflate(inflater, container, false);
 
+        // === НОВОЕ: Инициализация полей статуса подключения ===
+        tvRigConnectionStatus = binding.getRoot().findViewById(R.id.tvRigConnectionStatus);
+        btnConnectRig = binding.getRoot().findViewById(R.id.btnConnectRig);
+
+        // Наблюдатель за статусом подключения
+        if (mainViewModel.rigStatusText != null) {
+            mainViewModel.rigStatusText.observe(getViewLifecycleOwner(), new Observer<String>() {
+                @Override
+                public void onChanged(String status) {
+                    if (tvRigConnectionStatus != null) {
+                        tvRigConnectionStatus.setText(status);
+                        // Цвет: зелёный если подключено, серый если нет
+                        int color = status.startsWith("Connected") || status.startsWith("VOX")
+                                ? requireContext().getColor(R.color.text_view_color)
+                                : requireContext().getColor(android.R.color.darker_gray);
+                        tvRigConnectionStatus.setTextColor(color);
+                    }
+                    // Обновляем текст кнопки
+                    if (btnConnectRig != null) {
+                        btnConnectRig.setText(mainViewModel.isRigConnected() ? "Disconnect" : "Connect");
+                        // Блокируем кнопку в режиме VOX
+                        btnConnectRig.setEnabled(GeneralVariables.controlMode != ControlMode.VOX);
+                    }
+                }
+            });
+        }
+
+        // Обработчик кнопки Connect/Disconnect
+        if (btnConnectRig != null) {
+            btnConnectRig.setOnClickListener(v -> {
+                if (mainViewModel != null) {
+                    mainViewModel.toggleRigConnection(requireContext());
+                }
+            });
+        }
+        // =================================================
+
         // Инициализация: определяем режим (авто или ручной)
         isAutoOffsetMode = (UtcTimer.delay == 0);
         updateOffsetDisplay(); // Показать текущее значение при входе
@@ -377,6 +471,12 @@ public class ConfigFragment extends Fragment {
         setNoReplyLimitSpinner();
         // Set spinner OnItemSelected events
         setSpinnerOnItemSelected();
+
+        // === НОВОЕ: Первоначальное обновление статуса ===
+        if (mainViewModel != null) {
+            mainViewModel.updateRigStatus();
+        }
+        // =================================================
 
         // Show scroll arrows after delay
         new Handler().postDelayed(new Runnable() {
@@ -690,6 +790,38 @@ public class ConfigFragment extends Fragment {
                 }
             }
         });
+
+        // === HRDLog.net Configuration ===
+        binding.enableHrdlogSwitch.setOnCheckedChangeListener(null);
+        binding.enableHrdlogSwitch.setChecked(GeneralVariables.enableHrdlog);
+        binding.enableHrdlogSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                GeneralVariables.enableHrdlog = isChecked;
+                writeConfig("enableHrdlog", isChecked ? "1" : "0");
+            }
+        });
+
+        binding.hrdlogUrlEdit.removeTextChangedListener(onHrdlogUrlChanged);
+        binding.hrdlogUrlEdit.setText(GeneralVariables.hrdlogUrl);
+        binding.hrdlogUrlEdit.addTextChangedListener(onHrdlogUrlChanged);
+
+        binding.hrdlogApiKeyEdit.removeTextChangedListener(onHrdlogApiKeyChanged);
+        binding.hrdlogApiKeyEdit.setText(GeneralVariables.hrdlogApiKey);
+        binding.hrdlogApiKeyEdit.addTextChangedListener(onHrdlogApiKeyChanged);
+
+        binding.hrdlogUsernameEdit.removeTextChangedListener(onHrdlogUsernameChanged);
+        binding.hrdlogUsernameEdit.setText(GeneralVariables.hrdlogUsername);
+        binding.hrdlogUsernameEdit.addTextChangedListener(onHrdlogUsernameChanged);
+
+        binding.hrdlogPasswordEdit.removeTextChangedListener(onHrdlogPasswordChanged);
+        binding.hrdlogPasswordEdit.setText(GeneralVariables.hrdlogPassword);
+        binding.hrdlogPasswordEdit.addTextChangedListener(onHrdlogPasswordChanged);
+
+        binding.hrdlogCallsignEdit.removeTextChangedListener(onHrdlogCallsignChanged);
+        binding.hrdlogCallsignEdit.setText(GeneralVariables.hrdlogCallsign);
+        binding.hrdlogCallsignEdit.addTextChangedListener(onHrdlogCallsignChanged);
+        // === End HRDLog.net Configuration ===
 
         // Serial default values reset button
         binding.serialDefaultButton.setOnClickListener(new View.OnClickListener() {
@@ -1391,6 +1523,19 @@ public class ConfigFragment extends Fragment {
             }
         });
 
+        // HRDLog help
+        binding.hrdlogSettingsImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new HelpDialog(requireContext(), requireActivity()
+                        , "HRDLog.net API integration:\n\n" +
+                        "• API URL: https://api.hrdlog.net\n" +
+                        "• Get API Key from your HRDLog profile\n" +
+                        "• Username/Password: your HRDLog account\n" +
+                        "• Callsign: your operating callsign", true).show();
+            }
+        });
+
         // Maidenhead grid help
         binding.maidenGridImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -1672,6 +1817,40 @@ public class ConfigFragment extends Fragment {
             }
         });
 
+        // HRDLog test
+        binding.testHrdlogButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                binding.testHrdlogButton.setEnabled(false);
+                binding.testHrdlogButton.setText("Testing...");
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        boolean result = ThirdPartyService.CheckHrdlogConnection();
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (result) {
+                                    binding.testHrdlogButton.setText("OK");
+                                    ToastMessage.show("HRDLog connection successful");
+                                } else {
+                                    binding.testHrdlogButton.setText("Fail");
+                                    ToastMessage.show("HRDLog connection failed");
+                                }
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        binding.testHrdlogButton.setEnabled(true);
+                                        binding.testHrdlogButton.setText("Test");
+                                    }
+                                }, 2000);
+                            }
+                        });
+                    }
+                }).start();
+            }
+        });
+
         binding.clearFollowButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -1760,13 +1939,6 @@ public class ConfigFragment extends Fragment {
         }
     }
 
-    /**
-     * Обновляет текст поправки.
-     * Логика:
-     * - Если в спинере 0.0 сек (авто-режим) — показываем точный рассчитанный offset из UtcTimer
-     * - Если в спинере другое значение — показываем фиксированное значение из спинера
-     * Обновление происходит только вне интервалов передачи
-     */
     /**
      * Обновляет текст поправки.
      * Логика:
