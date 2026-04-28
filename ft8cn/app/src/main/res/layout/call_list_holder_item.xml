@@ -15,16 +15,20 @@
     android:foreground="?attr/selectableItemBackground"
     tools:ignore="TouchTargetSizeCheck">
 
+    <!-- Sequence (leftmost, fixed width) -->
     <TextView
-        android:id="@+id/callListMessageTextView"
-        android:layout_width="0dp"
+        android:id="@+id/callingListSequenceTextView"
+        android:layout_width="15dp"
         android:layout_height="wrap_content"
-        android:textSize="13sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/guideline2"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="CQ BG7YOY BG7YOZ" />
+        android:layout_marginStart="4dp"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@+id/callListMessageTextView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/callListMessageTextView"
+        tools:ignore="TextContrastCheck"
+        tools:text="0" />
 
+    <!-- dB (fixed position via guideline) -->
     <TextView
         android:id="@+id/callingListIdBTextView"
         android:layout_width="wrap_content"
@@ -36,6 +40,7 @@
         app:layout_constraintTop_toTopOf="@+id/callListMessageTextView"
         tools:text="-12" />
 
+    <!-- dt (fixed position via guideline) -->
     <TextView
         android:id="@+id/callListDtTextView"
         android:layout_width="wrap_content"
@@ -47,6 +52,7 @@
         app:layout_constraintTop_toTopOf="@+id/callListMessageTextView"
         tools:text="-1.2" />
 
+    <!-- Freq (between dt and Message) -->
     <TextView
         android:id="@+id/callingListFreqTextView"
         android:layout_width="wrap_content"
@@ -58,6 +64,54 @@
         app:layout_constraintTop_toTopOf="@+id/callListMessageTextView"
         tools:text="1234" />
 
+    <!-- Message (stretchable, between Freq and Azimuth) -->
+    <TextView
+        android:id="@+id/callListMessageTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="4dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textSize="13sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/callingListAzimuthTextView"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="CQ BG7YOY BG7YOZ" />
+
+    <!-- Azimuth (fixed width, between Message and Distance) -->
+    <TextView
+        android:id="@+id/callingListAzimuthTextView"
+        android:layout_width="36dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="4dp"
+        android:gravity="end"
+        android:text="--"
+        android:textColor="@color/text_view_color"
+        android:textSize="12sp"
+        android:fontFamily="monospace"
+        app:layout_constraintBottom_toBottomOf="@+id/callListMessageTextView"
+        app:layout_constraintEnd_toStartOf="@+id/callingListDistTextView"
+        app:layout_constraintStart_toEndOf="@+id/callListMessageTextView"
+        app:layout_constraintTop_toTopOf="@+id/callListMessageTextView" />
+
+    <!-- Distance (fixed width, right-aligned, rightmost) -->
+    <TextView
+        android:id="@+id/callingListDistTextView"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="2dp"
+        android:gravity="end"
+        android:textSize="9sp"
+        app:layout_constraintBottom_toBottomOf="@+id/callListMessageTextView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/callingListAzimuthTextView"
+        app:layout_constraintTop_toTopOf="@+id/callListMessageTextView"
+        tools:ignore="SmallSp"
+        tools:text="12345 km" />
+
+    <!-- Band (small font, below Distance) -->
     <TextView
         android:id="@+id/bandItemTextView"
         android:layout_width="wrap_content"
@@ -68,38 +122,15 @@
         app:layout_constraintBottom_toBottomOf="@+id/callListMessageTextView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/callListMessageTextView"
-        tools:text="14.074Hz" />
+        tools:text="14.074 MHz" />
 
-    <TextView
-        android:id="@+id/callingListDistTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="1dp"
-        android:textSize="9sp"
-        app:layout_constraintBottom_toBottomOf="@+id/linearLayout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/linearLayout"
-        tools:ignore="SmallSp"
-        tools:text="12345公里" />
-
+    <!-- Guidelines (unchanged) -->
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintGuide_begin="105dp" />
-
-    <TextView
-        android:id="@+id/callingListSequenceTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:textSize="12sp"
-        app:layout_constraintBottom_toBottomOf="@+id/callListMessageTextView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/callListMessageTextView"
-        tools:ignore="TextContrastCheck"
-        tools:text="0" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline4"
@@ -108,6 +139,21 @@
         android:orientation="vertical"
         app:layout_constraintGuide_end="55dp" />
 
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline7"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="70dp" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline9"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="28dp" />
+
+    <!-- Bottom row: UTC time, command info, callsigns -->
     <TextView
         android:id="@+id/callingUtcTextView"
         android:layout_width="wrap_content"
@@ -130,21 +176,7 @@
         app:layout_constraintStart_toEndOf="@+id/callingUtcTextView"
         app:layout_constraintTop_toTopOf="@+id/callingUtcTextView"
         tools:ignore="SmallSp"
-        tools:text="4.0:非标准消息" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline7"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_begin="70dp" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline9"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_begin="28dp" />
+        tools:text="4.0:non-standard" />
 
     <LinearLayout
         android:id="@+id/linearLayout"
@@ -182,12 +214,13 @@
 
     </LinearLayout>
 
+    <!-- DXCC/ITU/CQ icons for TO station -->
     <ImageView
         android:id="@+id/dxccToImageView"
         android:layout_width="12dp"
         android:layout_height="12dp"
         android:layout_marginStart="1dp"
-        android:contentDescription="@string/dxcc_image"
+        android:contentDescription="dxcc"
         app:layout_constraintBottom_toBottomOf="@+id/callingListCommandIInfoTextView"
         app:layout_constraintStart_toStartOf="@+id/guideline2"
         app:layout_constraintTop_toTopOf="@+id/callingListCommandIInfoTextView"
@@ -198,7 +231,7 @@
         android:layout_width="12dp"
         android:layout_height="12dp"
         android:layout_marginStart="2dp"
-        android:contentDescription="@string/count_dxcc_proportion"
+        android:contentDescription="itu"
         app:layout_constraintBottom_toBottomOf="@+id/dxccToImageView"
         app:layout_constraintStart_toEndOf="@+id/dxccToImageView"
         app:layout_constraintTop_toTopOf="@+id/dxccToImageView"
@@ -209,18 +242,19 @@
         android:layout_width="12dp"
         android:layout_height="12dp"
         android:layout_marginStart="2dp"
-        android:contentDescription="@string/cqzone"
+        android:contentDescription="cqzone"
         app:layout_constraintBottom_toBottomOf="@+id/ituToImageView"
         app:layout_constraintStart_toEndOf="@+id/ituToImageView"
         app:layout_constraintTop_toTopOf="@+id/ituToImageView"
         app:srcCompat="@drawable/cqzone" />
 
+    <!-- DXCC/ITU/CQ icons for FROM station -->
     <ImageView
         android:id="@+id/cqFromImageView"
         android:layout_width="12dp"
         android:layout_height="12dp"
         android:layout_marginEnd="1dp"
-        android:contentDescription="@string/cqzone"
+        android:contentDescription="cqzone"
         app:layout_constraintBottom_toBottomOf="@+id/callingListDistTextView"
         app:layout_constraintEnd_toStartOf="@+id/guideline4"
         app:layout_constraintTop_toTopOf="@+id/callingListDistTextView"
@@ -231,7 +265,7 @@
         android:layout_width="12dp"
         android:layout_height="12dp"
         android:layout_marginEnd="2dp"
-        android:contentDescription="@string/itu_image"
+        android:contentDescription="itu"
         app:layout_constraintBottom_toBottomOf="@+id/cqFromImageView"
         app:layout_constraintEnd_toStartOf="@+id/cqFromImageView"
         app:layout_constraintTop_toTopOf="@+id/cqFromImageView"
@@ -242,12 +276,13 @@
         android:layout_width="12dp"
         android:layout_height="12dp"
         android:layout_marginEnd="2dp"
-        android:contentDescription="@string/dxcc_image"
+        android:contentDescription="dxcc"
         app:layout_constraintBottom_toBottomOf="@+id/ituFromImageView"
         app:layout_constraintEnd_toStartOf="@+id/ituFromImageView"
         app:layout_constraintTop_toTopOf="@+id/ituFromImageView"
         app:srcCompat="@drawable/dxcc" />
 
+    <!-- Weak signal indicator -->
     <ImageView
         android:id="@+id/isWeakSignalImageView"
         android:layout_width="10dp"

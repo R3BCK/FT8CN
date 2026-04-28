@@ -554,7 +554,11 @@
     <string name="web_port">Web port</string>
     <string name="pl_web_port">7050</string>
     <string name="faq_web_port">HTTP server port for web interface. Default is 7050. Change if port is busy. Range: 1024-65535.</string>
-
+    <string name="bearing">Bearing</string>
+    <string name="send_tune_on_freq_change">Send TUNE on Freq Change</string>
+    <string name="tune_command_label">TUNE command 1C 01 02</string>
+    <string name="switch_on">ON</string>
+    <string name="switch_off">OFF</string>
 
 
 </resources>

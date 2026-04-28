@@ -52,8 +52,9 @@ public class GeneralVariables {
     public static String getHrdlogUsername() { return hrdlogUsername; }
     public static String getHrdlogPassword() { return hrdlogPassword; }
     public static String getHrdlogCallsign() { return hrdlogCallsign; }
-    // =========================
-
+    // === TUNE on Freq Change Setting ===
+    public static boolean sendTuneOnFreqChange = false;
+    // ================================
     // Web server port configuration
     public static final int DEFAULT_WEB_PORT = 7050;
     public static final int MIN_WEB_PORT = 1024;
@@ -69,6 +70,19 @@ public class GeneralVariables {
             webPort = port;
         }
     }
+
+    // === Network Rig Settings ===
+    // === Network Rig Settings ===
+    public static String networkRigIp = "";
+    public static int networkRigPort = 50001;      // Handshake port
+    public static int networkCivPort = 50002;      // CI-V commands port
+    public static String networkUsername = "";
+    public static String networkPassword = "";
+
+    public static String getNetworkRigIp() { return networkRigIp; }
+    public static int getNetworkRigPort() { return networkRigPort; }
+    public static int getNetworkCivPort() { return networkCivPort; }  // ← ДОБАВИТЬ ЭТО
+    // ============================
 
     public static boolean deepDecodeMode = false;//是否开启深度解码
 

@@ -63,8 +63,15 @@ public class IcomRigConstant {
     public static final byte CMD_CONNECTORS_DATA_MODE = 0x05;//Connector设置，读取
     public static final int CMD_CONNECTORS_DATA_WLAN_LEVEL = 0x050117;//Connector设置，读取
 
-
-
+    // === TUNE Command Constants for Icom (IC-7300 and similar) ===
+    // Main command for tuner control
+    public static final byte CMD_TUNER_CONTROL = 0x1C;
+    // Subcommand: tuner operation
+    public static final byte SUBCMD_TUNER_OPERATION = 0x01;
+    // Parameters for tuner operation
+    public static final byte TUNER_OFF = 0x00;      // Turn tuner OFF
+    public static final byte TUNER_ON = 0x01;       // Turn tuner ON (standby)
+    public static final byte TUNER_START = 0x02;    // Start tuning process
 
 
     public static final byte CMD_COMMENT_1A = 0x1A;//1A指令
@@ -281,4 +288,26 @@ public class IcomRigConstant {
                 + ((int) (data[1] >> 4) & 0xf) * 1000;//千位
 
     }
+    /**
+     * Build TUNE command packet for Icom radios (CI-V format)
+     * Frame: FE FE <rigAddr> <ctrAddr> 1C 01 <param> FD
+     *
+     * @param ctrAddr Controller address (usually 0xE0 for PC)
+     * @param rigAddr Rig address (from GeneralVariables.civAddress, e.g. 0x94 for IC-7300)
+     * @param action One of: TUNER_OFF, TUNER_ON, TUNER_START
+     * @return Complete CI-V frame as byte array
+     */
+    public static byte[] setTuneCommand(int ctrAddr, int rigAddr, byte action) {
+        byte[] data = new byte[8];
+        data[0] = (byte) 0xFE;  // Sync byte 1
+        data[1] = (byte) 0xFE;  // Sync byte 2
+        data[2] = (byte) rigAddr; // Rig address (e.g. 0x94)
+        data[3] = (byte) ctrAddr; // Controller address (0xE0)
+        data[4] = (byte) CMD_TUNER_CONTROL;    // 0x1C
+        data[5] = (byte) SUBCMD_TUNER_OPERATION; // 0x01
+        data[6] = (byte) action;  // 0x00, 0x01, or 0x02
+        data[7] = (byte) 0xFD;    // End of frame
+        return data;
+    }
+
 }

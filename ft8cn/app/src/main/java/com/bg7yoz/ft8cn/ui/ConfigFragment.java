@@ -24,8 +24,10 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.activity.OnBackPressedCallback;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 
@@ -82,12 +84,12 @@ public class ConfigFragment extends Fragment {
     private PttDelaySpinnerAdapter pttDelaySpinnerAdapter;
     private NoReplyLimitSpinnerAdapter noReplyLimitSpinnerAdapter;
 
-    // === НОВОЕ: Поля для статуса подключения к ригу ===
+    // === Rig connection status fields ===
     private TextView tvRigConnectionStatus;
     private Button btnConnectRig;
     // =================================================
 
-    // Флаг: использовать ли авто-режим (0.0 в спинере)
+    // Flag: use auto mode (0.0 in spinner)
     private boolean isAutoOffsetMode = true;
 
     public ConfigFragment() {
@@ -394,46 +396,58 @@ public class ConfigFragment extends Fragment {
         mainViewModel = MainViewModel.getInstance(this);
         binding = FragmentConfigBinding.inflate(inflater, container, false);
 
-        // === НОВОЕ: Инициализация полей статуса подключения ===
+        // === Initialize rig connection status fields ===
         tvRigConnectionStatus = binding.getRoot().findViewById(R.id.tvRigConnectionStatus);
         btnConnectRig = binding.getRoot().findViewById(R.id.btnConnectRig);
 
-        // Наблюдатель за статусом подключения
+        // Observer for connection status
         if (mainViewModel.rigStatusText != null) {
             mainViewModel.rigStatusText.observe(getViewLifecycleOwner(), new Observer<String>() {
                 @Override
                 public void onChanged(String status) {
                     if (tvRigConnectionStatus != null) {
                         tvRigConnectionStatus.setText(status);
-                        // Цвет: зелёный если подключено, серый если нет
                         int color = status.startsWith("Connected") || status.startsWith("VOX")
                                 ? requireContext().getColor(R.color.text_view_color)
                                 : requireContext().getColor(android.R.color.darker_gray);
                         tvRigConnectionStatus.setTextColor(color);
                     }
-                    // Обновляем текст кнопки
                     if (btnConnectRig != null) {
                         btnConnectRig.setText(mainViewModel.isRigConnected() ? "Disconnect" : "Connect");
-                        // Блокируем кнопку в режиме VOX
                         btnConnectRig.setEnabled(GeneralVariables.controlMode != ControlMode.VOX);
                     }
                 }
             });
         }
 
-        // Обработчик кнопки Connect/Disconnect
+        // Connect/Disconnect button handler
         if (btnConnectRig != null) {
             btnConnectRig.setOnClickListener(v -> {
                 if (mainViewModel != null) {
+                    boolean isConnected = mainViewModel.isRigConnected();
+                    Log.d("RigConnectBtn", "Clicked. State: " + (isConnected ? "CONNECTED" : "DISCONNECTED"));
+
+                    // Check if network mode has valid settings
+                    if (!isConnected && GeneralVariables.connectMode == ConnectMode.NETWORK) {
+                        String savedIp = GeneralVariables.getNetworkRigIp();
+                        int savedPort = GeneralVariables.getNetworkRigPort();
+                        if (savedIp == null || savedIp.isEmpty() || savedPort <= 0) {
+                            ToastMessage.show("Enter IP/Port in Network settings first");
+                            new LoginIcomRadioDialog(requireContext(), mainViewModel).show();
+                            return;
+                        }
+                    }
+
+                    ToastMessage.show(isConnected ? "Disconnect rig..." : "Connect to rig...");
                     mainViewModel.toggleRigConnection(requireContext());
                 }
             });
         }
         // =================================================
 
-        // Инициализация: определяем режим (авто или ручной)
+        // Initialize: determine mode (auto or manual)
         isAutoOffsetMode = (UtcTimer.delay == 0);
-        updateOffsetDisplay(); // Показать текущее значение при входе
+        updateOffsetDisplay();
 
         // Set UTC time offset spinner
         setUtcTimeOffsetSpinner();
@@ -472,7 +486,7 @@ public class ConfigFragment extends Fragment {
         // Set spinner OnItemSelected events
         setSpinnerOnItemSelected();
 
-        // === НОВОЕ: Первоначальное обновление статуса ===
+        // === Initial rig status update ===
         if (mainViewModel != null) {
             mainViewModel.updateRigStatus();
         }
@@ -537,13 +551,11 @@ public class ConfigFragment extends Fragment {
         // ===================================================
 
         // === Web Port Configuration ===
-        // Load saved web port or use default
         int savedWebPort = GeneralVariables.getWebPort();
         if (savedWebPort <= 0) savedWebPort = DEFAULT_WEB_PORT;
         binding.inputWebPortEdit.removeTextChangedListener(onWebPortEditorChanged);
         binding.inputWebPortEdit.setText(String.valueOf(savedWebPort));
         binding.inputWebPortEdit.addTextChangedListener(onWebPortEditorChanged);
-        // Set initial text color based on validity
         if (savedWebPort >= MIN_WEB_PORT && savedWebPort <= MAX_WEB_PORT) {
             binding.inputWebPortEdit.setTextColor(requireContext().getColor(R.color.text_view_color));
         } else {
@@ -575,6 +587,23 @@ public class ConfigFragment extends Fragment {
         binding.civAddressEdit.removeTextChangedListener(onCIVAddressEditorChanged);
         binding.civAddressEdit.setText(GeneralVariables.getCivAddressStr());
         binding.civAddressEdit.addTextChangedListener(onCIVAddressEditorChanged);
+
+        // === TUNE Command Configuration ===
+        binding.sendTuneOnFreqChangeSwitch.setOnCheckedChangeListener(null);
+        binding.sendTuneOnFreqChangeSwitch.setChecked(GeneralVariables.sendTuneOnFreqChange);
+        binding.sendTuneOnFreqChangeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                GeneralVariables.sendTuneOnFreqChange = isChecked;
+                buttonView.setText(isChecked ?
+                        GeneralVariables.getStringFromResource(R.string.switch_on) :
+                        GeneralVariables.getStringFromResource(R.string.switch_off));
+                writeConfig("sendTuneOnFreqChange", isChecked ? "1" : "0");
+            }
+        });
+        binding.sendTuneOnFreqChangeSwitch.setText(GeneralVariables.sendTuneOnFreqChange ?
+                GeneralVariables.getStringFromResource(R.string.switch_on) :
+                GeneralVariables.getStringFromResource(R.string.switch_off));
 
         // Transmit delay
         binding.inputTransDelayEdit.removeTextChangedListener(onTransDelayEditorChanged);
@@ -841,6 +870,29 @@ public class ConfigFragment extends Fragment {
             }
         });
 
+        // === BACK PRESS HANDLER: Save connectMode before exit ===
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(),
+                new OnBackPressedCallback(true) {
+                    @Override
+                    public void handleOnBackPressed() {
+                        // Save current connect mode selection
+                        int buttonId = binding.connectModeRadioGroup.getCheckedRadioButtonId();
+                        if (buttonId == binding.cableConnectRadioButton.getId()) {
+                            GeneralVariables.connectMode = ConnectMode.USB_CABLE;
+                        } else if (buttonId == binding.bluetoothConnectRadioButton.getId()) {
+                            GeneralVariables.connectMode = ConnectMode.BLUE_TOOTH;
+                        } else if (buttonId == binding.networkConnectRadioButton.getId()) {
+                            GeneralVariables.connectMode = ConnectMode.NETWORK;
+                        }
+                        writeConfig("connectMode", String.valueOf(GeneralVariables.connectMode));
+
+                        // Allow default back behavior
+                        setEnabled(false);
+                        requireActivity().onBackPressed();
+                    }
+                });
+        // ==================================================
+
         return binding.getRoot();
     }
 
@@ -879,7 +931,6 @@ public class ConfigFragment extends Fragment {
 
         JSONObject json = new JSONObject(content.toString());
         int count = 0;
-        // FIX: JSONObject в Android не имеет keySet(), используем names()
         org.json.JSONArray names = json.names();
         if (names != null) {
             for (int i = 0; i < names.length(); i++) {
@@ -1128,36 +1179,28 @@ public class ConfigFragment extends Fragment {
         requireActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                // === ШАГ 1: Отключаем слушатель ПОЛНОСТЬЮ ===
                 binding.utcTimeOffsetSpinner.setOnItemSelectedListener(null);
-
-                // Устанавливаем адаптер (без слушателя — ничего не сработает)
                 binding.utcTimeOffsetSpinner.setAdapter(adapter);
                 adapter.notifyDataSetChanged();
 
-                // Вычисляем и устанавливаем индекс
                 int initialIndex = (UtcTimer.delay / 100 + 75) / 5;
                 initialIndex = Math.max(0, Math.min(30, initialIndex));
                 binding.utcTimeOffsetSpinner.setSelection(initialIndex);
 
-                // === ШАГ 2: Включаем слушатель ТОЛЬКО через задержку ===
-                // 200 мс — достаточно, чтобы все системные onItemSelected() отработали "вхолостую"
                 new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        // Теперь включаем слушатель — дальше только ручные выборы пользователя
                         binding.utcTimeOffsetSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                             @Override
                             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                                // Эта строка выполнится ТОЛЬКО когда пользователь вручную выбрал значение
-                                UtcTimer.delay = i * 500 - 7500; // 设置延迟
+                                UtcTimer.delay = i * 500 - 7500;
                                 writeConfig("timeOffsetSec", String.valueOf(UtcTimer.delay));
                             }
                             @Override
                             public void onNothingSelected(AdapterView<?> adapterView) {}
                         });
                     }
-                }, 200); // 200 мс задержки
+                }, 200);
             }
         });
     }
@@ -1437,8 +1480,11 @@ public class ConfigFragment extends Fragment {
             binding.connectModeLayout.setVisibility(View.GONE);
             binding.serialLayout.setVisibility(View.GONE);
         }
+
+        // === Restore saved connect mode ===
         binding.connectModeRadioGroup.clearCheck();
-        switch (GeneralVariables.connectMode) {
+        int savedConnectMode = GeneralVariables.connectMode;
+        switch (savedConnectMode) {
             case ConnectMode.USB_CABLE:
                 binding.cableConnectRadioButton.setChecked(true);
                 break;
@@ -1449,6 +1495,8 @@ public class ConfigFragment extends Fragment {
                 binding.networkConnectRadioButton.setChecked(true);
                 break;
         }
+        // ==================================
+
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -1460,6 +1508,11 @@ public class ConfigFragment extends Fragment {
                 } else if (buttonId == binding.networkConnectRadioButton.getId()) {
                     GeneralVariables.connectMode = ConnectMode.NETWORK;
                 }
+
+                // === Save to database immediately ===
+                writeConfig("connectMode", String.valueOf(GeneralVariables.connectMode));
+                // ====================================
+
                 if (GeneralVariables.connectMode == ConnectMode.BLUE_TOOTH) {
                     new SelectBluetoothDialog(requireContext(), mainViewModel).show();
                 }
@@ -1901,7 +1954,7 @@ public class ConfigFragment extends Fragment {
                             @Override
                             public void run() {
                                 setUtcTimeOffsetSpinner();
-                                updateOffsetDisplay(); //  Безопасное обновление UI
+                                updateOffsetDisplay();
                             }
                         });
                         if (secTime > 100) {
@@ -1940,16 +1993,15 @@ public class ConfigFragment extends Fragment {
     }
 
     /**
-     * Обновляет текст поправки.
-     * Логика:
-     * - Если в спинере 0.0 сек (авто-режим) — показываем точный рассчитанный offset из UtcTimer
-     * - Если в спинере другое значение — показываем фиксированное значение, которое было выбрано
-     * Обновление происходит только вне интервалов передачи
+     * Updates the offset display text.
+     * Logic:
+     * - If spinner shows 0.0 sec (auto mode) - show exact calculated offset from UtcTimer
+     * - If spinner shows other value - show fixed value that was selected
+     * Update only outside transmit intervals
      */
     private void updateOffsetDisplay() {
         if (binding.utcCalculatedOffsetText == null) return;
 
-        // Не обновляем во время передачи, чтобы не мешать работе
         if (mainViewModel != null && mainViewModel.ft8TransmitSignal != null
                 && mainViewModel.ft8TransmitSignal.isTransmitting()) {
             return;
@@ -1957,24 +2009,19 @@ public class ConfigFragment extends Fragment {
 
         long displayOffset;
         if (isAutoOffsetMode) {
-            // Авто-режим: показываем точное рассчитанное значение
             displayOffset = UtcTimer.delay;
         } else {
-            // Ручной режим: показываем то значение, которое сейчас установлено в UtcTimer.delay
-            // (оно было установлено при выборе в спинере и сохранено в базе)
             displayOffset = UtcTimer.delay;
         }
 
         binding.utcCalculatedOffsetText.setText(String.format("%+d ms", displayOffset));
 
-        // Цвет: зелёный если в пределах 100 мс, красный если больше (только в авто-режиме)
         if (isAutoOffsetMode) {
             int color = Math.abs(displayOffset) <= 100
                     ? requireContext().getColor(R.color.text_view_color)
                     : requireContext().getColor(R.color.text_view_error_color);
             binding.utcCalculatedOffsetText.setTextColor(color);
         } else {
-            // В ручном режиме — нейтральный цвет
             binding.utcCalculatedOffsetText.setTextColor(requireContext().getColor(R.color.text_view_color));
         }
     }

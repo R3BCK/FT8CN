@@ -264,7 +264,6 @@
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintStart_toEndOf="@+id/utcTimeOffsetSpinner"
                             app:layout_constraintTop_toTopOf="parent" />
-                        <!-- ÐžÑ‚Ð¾Ð±Ñ€Ð°Ð¶ÐµÐ½Ð¸Ðµ Ð³Ð¾Ñ‚Ð¾Ð²Ð¾Ð¹ Ð¿Ð¾Ð¿Ñ€Ð°Ð²ÐºÐ¸ Ð²Ñ€ÐµÐ¼ÐµÐ½Ð¸ -->
                         <TextView
                             android:id="@+id/utcCalculatedOffsetText"
                             android:layout_width="wrap_content"
@@ -1622,7 +1621,8 @@
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck,DuplicateSpeakableTextCheck" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
-                    <!-- Rig Name Section -->
+
+                    <!-- Rig Name Section (ПЕРЕМЕЩЕНО ВВЕРХ) -->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/rigNameLayout"
                         android:layout_width="0dp"
@@ -1677,7 +1677,68 @@
                             tools:ignore="TouchTargetSizeCheck" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
-                    <!-- ДОБАВЛЕНО: Поле статуса подключения к Rig -->
+                    <!-- TUNE Command Section (ПЕРЕМЕЩЕНО ВНИЗ) -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/tuneCommandLayout"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/rigNameLayout">
+
+                        <!-- Label: "Send TUNE on Freq Change" -->
+                        <TextView
+                            android:id="@+id/tuneCommandLabel"
+                            android:layout_width="75dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/send_tune_on_freq_change"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="@+id/sendTuneOnFreqChangeSwitch"
+                            app:layout_constraintEnd_toStartOf="@+id/sendTuneOnFreqChangeSwitch"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <!-- Switch: ON/OFF -->
+                        <Switch
+                            android:id="@+id/sendTuneOnFreqChangeSwitch"
+                            android:layout_width="100dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="4dp"
+                            android:layout_marginBottom="4dp"
+                            android:checked="false"
+                            android:text="OFF"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            android:thumbTint="?attr/colorPrimary"
+                            android:trackTint="@color/button_start_color"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/tuneCommandLabel"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
+
+                        <!-- Help button -->
+                        <ImageButton
+                            android:id="@+id/tuneCommandHelpButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/imagebutton_transparent_style"
+                            android:contentDescription="@string/help"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:srcCompat="@drawable/ic_baseline_info_32"
+                            tools:ignore="TouchTargetSizeCheck" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- Rig Connection Status -->
                     <TextView
                         android:id="@+id/tvRigConnectionStatus"
                         android:layout_width="0dp"
@@ -1691,9 +1752,7 @@
                         android:fontFamily="monospace"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/rigNameLayout" />
-
-                    <!-- Decode Mode Section -->
+                        app:layout_constraintTop_toBottomOf="@+id/tuneCommandLayout" />
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/decodeModeLayout"
                         android:layout_width="0dp"

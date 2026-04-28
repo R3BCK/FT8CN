@@ -1,10 +1,10 @@
 package com.bg7yoz.ft8cn.rigs;
 
 import androidx.lifecycle.MutableLiveData;
-
+import com.bg7yoz.ft8cn.ui.ToastMessage;
 import com.bg7yoz.ft8cn.Ft8Message;
 import com.bg7yoz.ft8cn.connector.BaseRigConnector;
-
+import android.util.Log;
 /**
  * 电台的抽象类。
  * @author BGY70Z
@@ -19,7 +19,7 @@ public abstract class BaseRig {
     private int baudRate;//波特率
     private boolean isPttOn=false;//ptt是否打开
     private BaseRigConnector connector = null;//连接电台的对象
-
+    private static final String TAG = "BaseRig";
     public abstract boolean isConnected();//确认电台是否连接
 
     public abstract void setUsbModeToRig();//设置电台上边带方式
@@ -140,6 +140,16 @@ public abstract class BaseRig {
     }
 
     public void onDisconnecting() {
+    }
+
+    /**
+     * Send TUNE command to the rig. Override in subclasses.
+     * @param action One of: TUNER_OFF, TUNER_ON, TUNER_START
+     */
+    public void setTune(byte action) {
+        // Default: not supported. Override in IcomRig, YaesuRig, etc.
+        Log.w(TAG, "setTune() not implemented for this rig type");
+        ToastMessage.show("TUNE not supported for this rig");
     }
 
 }

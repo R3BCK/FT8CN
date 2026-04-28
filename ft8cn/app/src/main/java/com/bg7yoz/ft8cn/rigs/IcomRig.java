@@ -281,4 +281,32 @@ public class IcomRig extends BaseRig {
         setCivAddress(civAddress);
         startMeterTimer();
     }
+
+    @Override
+    public void setTune(byte action) {
+        if (!isConnected()) {
+            ToastMessage.show("Cannot send TUNE: rig not connected");
+            Log.w(TAG, "Cannot send TUNE: rig not connected");
+            return;
+        }
+
+        // Build CI-V frame using constants
+        byte[] tuneCmd = IcomRigConstant.setTuneCommand(
+                0xE0,                           // Controller address (standard for PC)
+                GeneralVariables.civAddress,    // Rig address from settings (e.g. 0x94)
+                action                          // TUNER_OFF / TUNER_ON / TUNER_START
+        );
+
+        // Send via connector using the correct method: sendData(byte[])
+        try {
+            getConnector().sendData(tuneCmd);
+            ToastMessage.show("TUNE command sent");
+            Log.d(TAG, "TUNE command sent: 0x" + String.format("%02X", action));
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to send TUNE command: " + e.getMessage());
+            ToastMessage.show("Failed to send TUNE command");
+
+        }
+    }
+
 }
