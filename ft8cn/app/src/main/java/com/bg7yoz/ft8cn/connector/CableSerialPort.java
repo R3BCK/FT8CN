@@ -181,9 +181,25 @@ public class CableSerialPort {
                     ,GeneralVariables.serialParity));
             usbSerialPort.setParameters(baudRate, GeneralVariables.serialDataBits
                     , GeneralVariables.serialStopBits, GeneralVariables.serialParity);
+
+            // === НОВЫЙ БЛОК: Логирование входящих данных ===
             usbIoManager = new SerialInputOutputManager(usbSerialPort, new SerialInputOutputManager.Listener() {
                 @Override
                 public void onNewData(byte[] data) {
+                    // Логируем ВСЕ входящие байты для отладки
+                    if (data != null && data.length > 0) {
+                        StringBuilder hex = new StringBuilder();
+                        for (byte b : data) {
+                            hex.append(String.format("%02X ", b & 0xFF));
+                        }
+                        Log.d(TAG, "<<< SERIAL READ: " + hex.toString().trim());
+
+                        // Если пакет похож на CI-V ответ
+                        if (data.length >= 4 && data[0] == (byte)0xFE && data[1] == (byte)0xFE) {
+                            Log.d(TAG, "<<< CI-V response detected, length=" + data.length);
+                        }
+                    }
+
                     if (ioListener != null) {
                         ioListener.onNewData(data);
                     }
@@ -191,12 +207,15 @@ public class CableSerialPort {
 
                 @Override
                 public void onRunError(Exception e) {
+                    Log.e(TAG, "SerialInputOutputManager error: " + e.getMessage(), e);
                     if (ioListener != null) {
                         ioListener.onRunError(e);
                     }
                     disconnect();
                 }
             });
+            // === КОНЕЦ НОВОГО БЛОКА ===
+
             usbIoManager.start();
             Log.d(TAG, "串口打开成功！");
             connected = true;
@@ -221,18 +240,32 @@ public class CableSerialPort {
     public boolean sendData(final byte[] src) {
         if (usbSerialPort != null) {
             try {
+                // Логирование исходящих данных
+                if (src != null && src.length > 0) {
+                    StringBuilder hex = new StringBuilder();
+                    for (byte b : src) {
+                        hex.append(String.format("%02X ", b & 0xFF));
+                    }
+                    Log.d(TAG, ">>> SERIAL WRITE: " + hex.toString().trim());
+
+                    if (src.length >= 2 && src[0] == (byte)0xFE && src[1] == (byte)0xFE) {
+                        Log.d(TAG, ">>> CI-V command sent, length=" + src.length);
+                    }
+                }
+
                 usbSerialPort.write(src, SEND_TIMEOUT);
+                Log.d(TAG, "write() completed successfully");
+
             } catch (IOException e) {
                 e.printStackTrace();
-                Log.e(TAG, "发送数据出错：" + e.getMessage());
+                Log.e(TAG, "Ошибка отправки данных: " + e.getMessage());
                 return false;
             }
             return true;
         } else {
-            Log.e(TAG, "无法发送数据，串口没有打开。");
+            Log.e(TAG, "Невозможно отправить данные, порт не открыт.");
             return false;
         }
-
     }
 
     public void disconnect() {
@@ -275,6 +308,7 @@ public class CableSerialPort {
             EnumSet<UsbSerialPort.ControlLine> controlLines = usbSerialPort.getSupportedControlLines();
             if (controlLines.contains(UsbSerialPort.ControlLine.RTS)) {
                 usbSerialPort.setRTS(rts_on);
+                Log.d(TAG, "setRTS: " + rts_on);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -286,6 +320,7 @@ public class CableSerialPort {
             EnumSet<UsbSerialPort.ControlLine> controlLines = usbSerialPort.getSupportedControlLines();
             if (controlLines.contains(UsbSerialPort.ControlLine.DTR)) {
                 usbSerialPort.setDTR(dtr_on);
+                Log.d(TAG, "setDTR: " + dtr_on);
             }
         } catch (IOException e) {
             e.printStackTrace();

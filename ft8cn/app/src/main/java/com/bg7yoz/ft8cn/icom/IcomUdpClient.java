@@ -41,8 +41,8 @@ public class IcomUdpClient {
     }
 
     public void sendData(byte[] data, String ip, int port) throws UnknownHostException {
- //       Log.d(TAG, "sendData called: data.len=" + (data != null ? data.length : 0) +
- //               ", ip=" + ip + ", port=" + port + ", activated=" + activated);
+        //       Log.d(TAG, "sendData called: data.len=" + (data != null ? data.length : 0) +
+        //               ", ip=" + ip + ", port=" + port + ", activated=" + activated);
 
         if (!activated) {
             Log.w(TAG, "sendData: not activated, skipping");
@@ -69,7 +69,7 @@ public class IcomUdpClient {
         }
 
         InetAddress address = InetAddress.getByName(ip);
- //       Log.d(TAG, "sendData: resolved address=" + address);
+        //       Log.d(TAG, "sendData: resolved address=" + address);
 
         sendDataRunnable.address = address;
         sendDataRunnable.data = data;
@@ -286,6 +286,42 @@ public class IcomUdpClient {
                     }
 
                     socket.receive(packet);
+
+                    // === НОВЫЙ БЛОК: Логирование входящих пакетов ===
+                    // Логируем ВСЕ входящие пакеты для отладки ответов рига
+                    if (packet.getLength() > 0) {
+                        byte[] received = Arrays.copyOf(packet.getData(), packet.getLength());
+                        String hexDump = byteToStr(received);
+                        int remotePort = packet.getPort();
+                        String remoteAddr = packet.getAddress() != null ? packet.getAddress().getHostAddress() : "unknown";
+
+                        Log.d(TAG, "<<< INCOMING UDP from " + remoteAddr + ":" + remotePort +
+                                " localPort=" + icomUdpClient.localPort + ": " + hexDump);
+
+                        // Если пакет похож на CI-V ответ (начинается с FE FE и адрес рига E0)
+                        if (received.length >= 4 &&
+                                received[0] == (byte)0xFE && received[1] == (byte)0xFE &&
+                                received[2] == (byte)0xE0) {
+
+                            Log.d(TAG, "<<< CIV RESPONSE detected, length=" + received.length);
+
+                            // Проверяем тип ответа по 4-му байту (после заголовка)
+                            if (received.length >= 5) {
+                                byte responseType = received[4];
+                                if (responseType == (byte)0xFB) {
+                                    Log.d(TAG, "<<< CIV: ACK - команда принята");
+                                } else if (responseType == (byte)0xFA) {
+                                    Log.e(TAG, "<<< CIV: NAK - ошибка в команде!");
+                                } else if (responseType == (byte)0x19) {
+                                    Log.d(TAG, "<<< CIV: Version response");
+                                } else {
+                                    Log.d(TAG, "<<< CIV: Unknown response type 0x" +
+                                            String.format("%02X", responseType));
+                                }
+                            }
+                        }
+                    }
+                    // === КОНЕЦ НОВОГО БЛОКА ===
 
                     if (packet.getLength() > 0 && icomUdpClient.onUdpEvents != null) {
                         byte[] temp = Arrays.copyOf(packet.getData(), packet.getLength());

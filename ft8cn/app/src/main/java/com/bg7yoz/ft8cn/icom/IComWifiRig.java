@@ -20,7 +20,7 @@ public class IComWifiRig extends WifiRig {
 
     // Port for CI-V commands (extracted from 0x50 AreYouThere response)
     // Default fallback: 50002 (standard for many Icom models)
-    private int civPort = 50002;
+    private int civPort = 50001;
 
 
     public IComWifiRig(String ip, int port, String userName, String password) {
@@ -31,10 +31,13 @@ public class IComWifiRig extends WifiRig {
     }
 
     /**
-     * Get the port for CI-V commands Возможная причина: для некоторых моделей (включая IC-705) все команды (включая "сырые" CI-V) должны идти на порт управления 50001, а не на отдельный "serial" порт 50002.
+     * Get the port for CI-V commands
+     * Примечание: для некоторых моделей (включая IC-705) все команды,
+     * включая сырые CI-V, должны идти на порт управления 50001,
+     * а не на отдельный serial порт 50002.
      */
     public int getCivPort() {
-        return 50002;
+        return 50001;
         //return (civPort > 0 && civPort <= 65535) ? civPort : 50002; для проверки
     }
 
@@ -115,6 +118,12 @@ public class IComWifiRig extends WifiRig {
             public void OnLoginResponse(boolean authIsOK) {
                 if (authIsOK) {
                     ToastMessage.show(GeneralVariables.getStringFromResource(R.string.login_succeed));
+
+                    // === ТЕСТОВЫЙ ВЫЗОВ: раскомментируйте для автопроверки ===
+                    // Отправляет запрос версии прошивки сразу после успешного логина
+                    sendTestVersionCommand();
+                    // =========================================================
+
                 } else {
                     ToastMessage.show(GeneralVariables.getStringFromResource(R.string.loging_failed));
                     controlUdp.closeAll();
@@ -178,6 +187,23 @@ public class IComWifiRig extends WifiRig {
         // =================================================================
     }
 
+    /**
+     * Отправляет тестовую команду запроса версии прошивки (0x19)
+     * Используется для проверки двусторонней связи по CI-V
+     */
+    public void sendTestVersionCommand() {
+        // Команда 0x19: запрос версии, формат: FE FE A4 E0 19 FD
+        byte[] getVersion = new byte[] {
+                (byte) 0xFE, (byte) 0xFE,  // preamble
+                (byte) 0xA4,               // адрес контроллера (приложение)
+                (byte) 0xE0,               // адрес рига (IC-705)
+                (byte) 0x19,               // команда: запрос версии
+                (byte) 0xFD                // end marker
+        };
+
+        Log.d(TAG, "sendTestVersionCommand: sending 0x19 to port " + getCivPort());
+        sendCivData(getVersion);
+    }
 
     /**
      * Close all connections and audio

@@ -53,12 +53,51 @@ public class IcomCivUdp extends IcomUdpBase{
     }
 
     public void checkCivData(byte[] data){
-       if (IComPacketTypes.CivPacket.checkIsCiv(data)){
-           lastReceivedTime=System.currentTimeMillis();
-           if (getOnStreamEvents()!=null){
-               getOnStreamEvents().OnReceivedCivData(IComPacketTypes.CivPacket.getCivData(data));
-           }
-       }
+        if (IComPacketTypes.CivPacket.checkIsCiv(data)){
+            lastReceivedTime=System.currentTimeMillis();
+
+            // === НОВЫЙ БЛОК: Детальное логирование ответа рига ===
+            // Логируем сырой ответ для отладки проблем с частотой
+            if (data.length >= 6) {
+                String hexResp = IComPacketTypes.byteToStr(data);
+                Log.d(TAG, "<<< CIV RESPONSE RAW: " + hexResp);
+
+                // Проверяем тип ответа по 5-му байту (после заголовка FE FE E0 A4)
+                byte responseType = data[4];
+                switch (responseType) {
+                    case (byte) 0xFB:
+                        Log.d(TAG, "<<< CIV: ACK - команда принята риг");
+                        break;
+                    case (byte) 0xFA:
+                        Log.e(TAG, "<<< CIV: NAK - ошибка в команде! Проверьте формат частоты");
+                        break;
+                    case (byte) 0x05:
+                        // Ответ на запрос частоты: 05 + 5 байт частоты
+                        if (data.length >= 10) {
+                            String freqBCD = IComPacketTypes.byteToStr(
+                                    java.util.Arrays.copyOfRange(data, 5, 10));
+                            Log.d(TAG, "<<< CIV: Текущая частота (BCD): " + freqBCD);
+                        }
+                        break;
+                    case (byte) 0x06:
+                        // Ответ на запрос режима
+                        if (data.length >= 7) {
+                            Log.d(TAG, "<<< CIV: Текущий режим: 0x" +
+                                    String.format("%02X", data[5]));
+                        }
+                        break;
+                    default:
+                        Log.d(TAG, "<<< CIV: Неизвестный тип ответа: 0x" +
+                                String.format("%02X", responseType));
+                        break;
+                }
+            }
+            // === КОНЕЦ НОВОГО БЛОКА ===
+
+            if (getOnStreamEvents()!=null){
+                getOnStreamEvents().OnReceivedCivData(IComPacketTypes.CivPacket.getCivData(data));
+            }
+        }
     }
 
     public void sendOpenClose(boolean open){
