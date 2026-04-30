@@ -192,7 +192,7 @@ public class CableSerialPort {
                         for (byte b : data) {
                             hex.append(String.format("%02X ", b & 0xFF));
                         }
-                        Log.d(TAG, "<<< SERIAL READ: " + hex.toString().trim());
+                        //Log.d(TAG, "<<< SERIAL READ: " + hex.toString().trim());
 
                         // Если пакет похож на CI-V ответ
                         if (data.length >= 4 && data[0] == (byte)0xFE && data[1] == (byte)0xFE) {
@@ -249,12 +249,12 @@ public class CableSerialPort {
                     Log.d(TAG, ">>> SERIAL WRITE: " + hex.toString().trim());
 
                     if (src.length >= 2 && src[0] == (byte)0xFE && src[1] == (byte)0xFE) {
-                        Log.d(TAG, ">>> CI-V command sent, length=" + src.length);
+                        //Log.d(TAG, ">>> CI-V command sent, length=" + src.length);
                     }
                 }
 
                 usbSerialPort.write(src, SEND_TIMEOUT);
-                Log.d(TAG, "write() completed successfully");
+//                Log.d(TAG, "write() completed successfully");
 
             } catch (IOException e) {
                 e.printStackTrace();

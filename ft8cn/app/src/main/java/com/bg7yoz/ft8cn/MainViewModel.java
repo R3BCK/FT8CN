@@ -30,6 +30,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelStoreOwner;
 import androidx.lifecycle.Observer;
 import com.bg7yoz.ft8cn.rigs.IcomRigConstant;
+import com.bg7yoz.ft8cn.rigs.OnConnectReceiveData; // ← ДОБАВЛЕН ПРАВИЛЬНЫЙ ИМПОРТ
 import com.bg7yoz.ft8cn.callsign.CallsignDatabase;
 import com.bg7yoz.ft8cn.callsign.CallsignInfo;
 import com.bg7yoz.ft8cn.callsign.OnAfterQueryCallsignLocation;
@@ -571,7 +572,21 @@ public class MainViewModel extends ViewModel {
         connectRig();
         if (baseRig == null) return;
         baseRig.setControlMode(GeneralVariables.controlMode);
+
         CableConnector connector = new CableConnector(context, port, GeneralVariables.baudRate, GeneralVariables.controlMode, baseRig);
+
+        // === КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Устанавливаем слушатель для CI-V данных ===
+        connector.setOnConnectReceiveData(new OnConnectReceiveData() { // ← ИСПРАВЛЕНО: используем правильный тип
+            @Override
+            public void onData(byte[] data) {
+                // Передаём данные в baseRig для обработки
+                if (baseRig != null) {
+                    baseRig.onReceiveData(data);
+                }
+            }
+        });
+        // === КОНЕЦ ИСПРАВЛЕНИЯ ===
+
         connector.setOnCableDataReceived(new CableConnector.OnCableDataReceived() {
             @Override
             public void OnWaveReceived(int bufferLen, float[] buffer) {
