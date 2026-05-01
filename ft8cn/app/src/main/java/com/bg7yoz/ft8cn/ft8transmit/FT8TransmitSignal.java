@@ -181,7 +181,7 @@ public class FT8TransmitSignal {
             setActivated(false);
             return;
         }
-        Log.d(TAG, "doTransmit: 开始发射...");
+        //Log.d(TAG, "doTransmit: 开始发射...");
         doTransmitThreadPool.execute(doTransmitRunnable);
 
         mutableFunctions.postValue(functionList);
@@ -328,7 +328,7 @@ public class FT8TransmitSignal {
     private void playFT8Signal(Ft8Message msg) {
 
         if (GeneralVariables.connectMode == ConnectMode.NETWORK) {//网络方式就不播放音频了
-            Log.d(TAG, "playFT8Signal: 进入网络发射程序，等待音频发送。");
+            //Log.d(TAG, "playFT8Signal: 进入网络发射程序，等待音频发送。");
 
 
             if (onDoTransmitted != null) {//处理音频数据，可以给ICOM的网络模式发送
@@ -349,7 +349,7 @@ public class FT8TransmitSignal {
                     e.printStackTrace();
                 }
             }
-            Log.d(TAG, "playFT8Signal: 退出网络音频发送。");
+            //Log.d(TAG, "playFT8Signal: 退出网络音频发送。");
             afterPlayAudio();
             return;
         }
@@ -357,7 +357,7 @@ public class FT8TransmitSignal {
         //进入到CAT串口传输音频方式
         //2023-08-16 由DS1UFX提交修改（基于0.9版），用于(tr)uSDX audio over cat的支持。
         if (GeneralVariables.controlMode == ControlMode.CAT) {
-            Log.d(TAG, "playFT8Signal: try to transmit over CAT");
+            //Log.d(TAG, "playFT8Signal: try to transmit over CAT");
 
             if (onDoTransmitted != null) {//处理音频数据，可以给truSDX的CAT模式发送
                 if (onDoTransmitted.supportTransmitOverCAT()) {
@@ -376,7 +376,7 @@ public class FT8TransmitSignal {
                             e.printStackTrace();
                         }
                     }
-                    Log.d(TAG, "playFT8Signal: transmitting over CAT is finished.");
+                    //Log.d(TAG, "playFT8Signal: transmitting over CAT is finished.");
                     afterPlayAudio();
                     return;
                 }
@@ -393,9 +393,9 @@ public class FT8TransmitSignal {
             return;
         }
 
-        Log.d(TAG, String.format("playFT8Signal: 准备声卡播放....位数：%s,采样率：%d"
-                , GeneralVariables.audioOutput32Bit ? "Float32" : "Int16"
-                , GeneralVariables.audioSampleRate));
+        //Log.d(TAG, String.format("playFT8Signal: 准备声卡播放....位数：%s,采样率：%d"
+        //        , GeneralVariables.audioOutput32Bit ? "Float32" : "Int16"
+        //        , GeneralVariables.audioSampleRate));
         attributes = new AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_MEDIA)
                 .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)

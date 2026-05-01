@@ -246,7 +246,7 @@ public class CableSerialPort {
                     for (byte b : src) {
                         hex.append(String.format("%02X ", b & 0xFF));
                     }
-                    Log.d(TAG, ">>> SERIAL WRITE: " + hex.toString().trim());
+                    //Log.d(TAG, ">>> SERIAL WRITE: " + hex.toString().trim());
 
                     if (src.length >= 2 && src[0] == (byte)0xFE && src[1] == (byte)0xFE) {
                         //Log.d(TAG, ">>> CI-V command sent, length=" + src.length);

@@ -547,7 +547,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     public void addCallsignQTH(String callsign, String grid) {
         if (grid.trim().length() < 4) return;
         new AddCallsignQTH(db).execute(callsign, grid);
-        Log.d(TAG, String.format("addCallsignQTH: callsign:%s,grid:%s", callsign, grid));
+        //Log.d(TAG, String.format("addCallsignQTH: callsign:%s,grid:%s", callsign, grid));
     }
 
     //查询配置信息。

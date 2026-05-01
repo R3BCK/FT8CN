@@ -66,7 +66,7 @@ int unpack_callsign(uint32_t n28, uint8_t ip, uint8_t i3, char *result,hashCode 
         hash->hash12=n28;//把哈希值保存下来
         hash->hash22=n28;//把哈希值保存下来
 
-        LOG_PRINTF("N28 HASH: %0x",n28);
+        //LOG_PRINTF("N28 HASH: %0x",n28);
 
         // This is a 22-bit hash of a result
         // TODO: implement

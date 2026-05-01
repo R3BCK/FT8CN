@@ -30,7 +30,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelStoreOwner;
 import androidx.lifecycle.Observer;
 import com.bg7yoz.ft8cn.rigs.IcomRigConstant;
-import com.bg7yoz.ft8cn.rigs.OnConnectReceiveData; // ← ДОБАВЛЕН ПРАВИЛЬНЫЙ ИМПОРТ
+import com.bg7yoz.ft8cn.rigs.OnConnectReceiveData;
 import com.bg7yoz.ft8cn.callsign.CallsignDatabase;
 import com.bg7yoz.ft8cn.callsign.CallsignInfo;
 import com.bg7yoz.ft8cn.callsign.OnAfterQueryCallsignLocation;
@@ -186,6 +186,12 @@ public class MainViewModel extends ViewModel {
             GeneralVariables.bandListIndex = OperationBand.getIndexByFreq(freq);
             GeneralVariables.mutableBandChange.postValue(GeneralVariables.bandListIndex);
             databaseOpr.getAllQSLCallsigns();
+
+            // === ✅ TUNE on RADIO frequency change (with FT8-safe timing) ===
+            if (GeneralVariables.sendTuneOnFreqChange && baseRig != null && baseRig.isConnected()) {
+                scheduleTuneCommand();
+            }
+            // ===============================================================
         }
 
         @Override
@@ -451,6 +457,9 @@ public class MainViewModel extends ViewModel {
         updateRigStatus();
 
         // === Auto TUNE on Frequency Change ===
+        // ❗️ ОТКЛЮЧЕНО: mutableBaseFrequency — это аудио-частота (AF), тюнер не нужен
+        // Тюнер теперь вызывается только из onFreqChanged() для радио-частоты (RF)
+        /*
         GeneralVariables.mutableBaseFrequency.observeForever(new Observer<Float>() {
             private Float lastTunedFreq = null;
             @Override
@@ -463,6 +472,7 @@ public class MainViewModel extends ViewModel {
                 }
             }
         });
+        */
         // ================================
     }
 
@@ -480,7 +490,7 @@ public class MainViewModel extends ViewModel {
     }
 
     private synchronized void findIncludedCallsigns(ArrayList<Ft8Message> messages) {
-        Log.d(TAG, "findIncludedCallsigns");
+        //Log.d(TAG, "findIncludedCallsigns");
         if (ft8TransmitSignal.isActivated() && ft8TransmitSignal.sequential != UtcTimer.getNowSequential()) return;
         int count = 0;
         for (Ft8Message msg : messages) {
@@ -575,17 +585,14 @@ public class MainViewModel extends ViewModel {
 
         CableConnector connector = new CableConnector(context, port, GeneralVariables.baudRate, GeneralVariables.controlMode, baseRig);
 
-        // === КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Устанавливаем слушатель для CI-V данных ===
-        connector.setOnConnectReceiveData(new OnConnectReceiveData() { // ← ИСПРАВЛЕНО: используем правильный тип
+        connector.setOnConnectReceiveData(new OnConnectReceiveData() {
             @Override
             public void onData(byte[] data) {
-                // Передаём данные в baseRig для обработки
                 if (baseRig != null) {
                     baseRig.onReceiveData(data);
                 }
             }
         });
-        // === КОНЕЦ ИСПРАВЛЕНИЯ ===
 
         connector.setOnCableDataReceived(new CableConnector.OnCableDataReceived() {
             @Override
@@ -834,14 +841,6 @@ public class MainViewModel extends ViewModel {
         if (httpServer != null) httpServer.restartServer(newPort);
     }
 
-    /**
-     * Универсальное переключение подключения к ригу
-     * @param context Android context
-     */
-    /**
-     * Универсальное переключение подключения к ригу
-     * @param context Android context
-     */
     public void toggleRigConnection(Context context) {
         if (GeneralVariables.controlMode == ControlMode.VOX) {
             ToastMessage.show("VOX mode does not use CAT connection");
@@ -849,7 +848,6 @@ public class MainViewModel extends ViewModel {
         }
 
         if (isRigConnected()) {
-            // Disconnect
             if (baseRig != null && baseRig.getConnector() != null) {
                 baseRig.getConnector().disconnect();
                 baseRig = null;
@@ -859,17 +857,12 @@ public class MainViewModel extends ViewModel {
             return;
         }
 
-        // Connect based on mode
         switch (GeneralVariables.connectMode) {
             case ConnectMode.USB_CABLE:
-                // Show USB port selection (already implemented)
                 getUsbDevice();
                 break;
-
             case ConnectMode.BLUE_TOOTH:
             case ConnectMode.NETWORK:
-                // For BT/Network, we rely on ConfigFragment to show the dialog
-                // Just notify that connection is requested
                 ToastMessage.show("Open settings to select " +
                         (GeneralVariables.connectMode == ConnectMode.BLUE_TOOTH ? "Bluetooth" : "Network") +
                         " device");
@@ -877,13 +870,6 @@ public class MainViewModel extends ViewModel {
         }
     }
 
-
-    /**
-     * Parse hex string and send TUNE command via CAT connector
-     */
-    /**
-     * Send TUNE START command via rig abstraction
-     */
     private void sendTuneCommand() {
         if (baseRig != null && baseRig.isConnected()) {
             baseRig.setTune(IcomRigConstant.TUNER_START);
@@ -893,5 +879,37 @@ public class MainViewModel extends ViewModel {
             Log.w(TAG, "Cannot send TUNE: rig not connected");
             ToastMessage.show("Cannot send TUNE: rig not connected");
         }
+    }
+
+    /**
+     * Schedule TUNE command to execute in the safe gap between FT8 transmission slots.
+     * FT8 slots: ~0-13s, 15-28s, 30-43s, 45-58s of each minute (transmission windows)
+     * Safe gaps: ~13-15s, 28-30s, 43-45s, 58-60s (quiet periods for tuning)
+     * This avoids interfering with ongoing QSOs.
+     */
+    private void scheduleTuneCommand() {
+        new Handler(Looper.getMainLooper()).post(() -> {
+            long nowSec = (System.currentTimeMillis() / 1000) % 60;
+            int slotStart = ((int) nowSec / 15) * 15;
+            int secondsIntoSlot = (int) nowSec - slotStart;
+
+            long delayMs;
+            if (secondsIntoSlot < 12) {
+                delayMs = (13 - secondsIntoSlot) * 1000L + 300;
+            } else {
+                delayMs = 400;
+            }
+            delayMs = Math.max(delayMs, 300);
+            delayMs = Math.min(delayMs, 15000);
+
+            Log.d(TAG, "Scheduling TUNE: sec=" + nowSec + ", delay=" + delayMs + "ms");
+
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                if (baseRig != null && baseRig.isConnected()) {
+                    baseRig.setTune(IcomRigConstant.TUNER_START);
+                    Log.d(TAG, "TUNE START sent at sec " + ((System.currentTimeMillis()/1000)%60));
+                }
+            }, delayMs);
+        });
     }
 }

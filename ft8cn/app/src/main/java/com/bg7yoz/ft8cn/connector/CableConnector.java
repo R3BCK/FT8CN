@@ -8,7 +8,8 @@ import com.bg7yoz.ft8cn.rigs.BaseRig;
 import com.bg7yoz.ft8cn.serialport.util.SerialInputOutputManager;
 
 /**
- * 有线连接方式的Connector，这里是指USB方式的，继承于BaseRigConnector
+ * Connector for wired (USB cable) connections to radios.
+ * Extends BaseRigConnector.
  *
  * @author BG7YOZ
  * @date 2023-03-20
@@ -16,22 +17,27 @@ import com.bg7yoz.ft8cn.serialport.util.SerialInputOutputManager;
 public class CableConnector extends BaseRigConnector {
     private static final String TAG = "CableConnector";
 
-    //2023-08-16 由DS1UFX提交修改（基于0.9版），用于(tr)uSDX audio over cat的支持。
+    /**
+     * Callback interface for receiving waveform data from rig over CAT.
+     * Added 2023-08-16 by DS1UFX for (tr)uSDX audio-over-CAT support.
+     */
     public interface OnCableDataReceived {
         void OnWaveReceived(int bufferLen, float[] buffer);
     }
 
     private final CableSerialPort cableSerialPort;
-
     private final BaseRig cableConnectedRig;
     private OnCableDataReceived onCableDataReceived;
 
-    public CableConnector(Context context, CableSerialPort.SerialPort serialPort, int baudRate
-                          //, int controlMode) {
-            , int controlMode, BaseRig cableConnectedRig) {
+    public CableConnector(Context context,
+                          CableSerialPort.SerialPort serialPort,
+                          int baudRate,
+                          int controlMode,
+                          BaseRig cableConnectedRig) {
         super(controlMode);
         this.cableConnectedRig = cableConnectedRig;
         cableSerialPort = new CableSerialPort(context, serialPort, baudRate, getOnConnectorStateChanged());
+
         cableSerialPort.ioListener = new SerialInputOutputManager.Listener() {
             @Override
             public void onNewData(byte[] data) {
@@ -43,57 +49,56 @@ public class CableConnector extends BaseRigConnector {
             @Override
             public void onRunError(Exception e) {
                 Log.e(TAG, "CableConnector error: " + e.getMessage());
-                getOnConnectorStateChanged().onRunError("与串口失去连接：" + e.getMessage());
+                if (getOnConnectorStateChanged() != null) {
+                    getOnConnectorStateChanged().onRunError("Serial connection lost: " + e.getMessage());
+                }
             }
         };
-        //connect();
     }
 
     @Override
     public synchronized void sendData(byte[] data) {
-        cableSerialPort.sendData(data);
+        // ✅ ИСПРАВЛЕНО: убрана проверка isOpen(), так как метода нет в CableSerialPort
+        // sendData() внутри сам обрабатывает состояние подключения
+        if (cableSerialPort != null) {
+            cableSerialPort.sendData(data);
+        }
     }
-
 
     @Override
     public void setPttOn(boolean on) {
-        //只处理RTS和DTR
+        // Handle only RTS and DTR modes for PTT control
         switch (getControlMode()) {
             case ControlMode.DTR:
-                cableSerialPort.setDTR_On(on);//打开和关闭DTR
+                if (cableSerialPort != null) {
+                    cableSerialPort.setDTR_On(on);
+                }
                 break;
             case ControlMode.RTS:
-                cableSerialPort.setRTS_On(on);//打开和关闭RTS
+                if (cableSerialPort != null) {
+                    cableSerialPort.setRTS_On(on);
+                }
                 break;
+            // CAT mode: PTT sent via CAT command in sendData()
         }
     }
 
     @Override
     public void setPttOn(byte[] command) {
-        cableSerialPort.sendData(command);//以CAT指令发送PTT
+        // Send PTT as CAT command
+        sendData(command);
     }
 
+    // === (tr)uSDX audio-over-CAT support (2023-08-16 by DS1UFX) ===
 
-    //以下是（tr）uSDX与wave有关的代码，是2023-08-16 由DS1UFX提交修改（基于0.9版），用于(tr)uSDX audio over cat的支持。
     @Override
     public void sendWaveData(byte[] data) {
         sendData(data);
     }
 
-//    @Override
-//    public void sendWaveData(float[] data) {
-//        // TODO float to byte
-//        byte[] wave = new byte[data.length * 4];
-//
-//        sendWaveData(wave);
-//    }
-
     @Override
     public void receiveWaveData(float[] data) {
-        Log.i(TAG, "received wave data");
-
         if (onCableDataReceived != null) {
-            Log.i(TAG, "call onCableDataReceived.OnWaveReceived");
             onCableDataReceived.OnWaveReceived(data.length, data);
         }
     }
@@ -102,17 +107,44 @@ public class CableConnector extends BaseRigConnector {
         this.onCableDataReceived = onCableDataReceived;
     }
 
-
     @Override
     public void connect() {
         super.connect();
-        cableSerialPort.connect();
+        if (cableSerialPort != null) {
+            cableSerialPort.connect();
+        }
     }
 
     @Override
     public void disconnect() {
-        cableConnectedRig.onDisconnecting();
+        if (cableConnectedRig != null) {
+            cableConnectedRig.onDisconnecting();
+        }
         super.disconnect();
-        cableSerialPort.disconnect();
+        if (cableSerialPort != null) {
+            cableSerialPort.disconnect();
+        }
+    }
+
+    /**
+     * Configure smart polling for the connected rig.
+     * Call this after connection to enable 1-second interval and Transceive support.
+     * @param rig The connected BaseRig instance
+     */
+    public void configureSmartPolling(BaseRig rig) {
+        if (rig != null) {
+            // Set 1-second polling interval
+            rig.setPollIntervalMs(1000);
+
+            // Enable Transceive mode for Icom rigs (if supported)
+            if (rig instanceof com.bg7yoz.ft8cn.rigs.IcomRig) {
+                rig.setTransceiveEnabled(true);
+                rig.enableTransceiveMode();
+                Log.d(TAG, "Smart polling: Transceive enabled for Icom rig");
+            } else {
+                rig.setTransceiveEnabled(false);
+                Log.d(TAG, "Smart polling: Transceive not supported for this rig");
+            }
+        }
     }
 }

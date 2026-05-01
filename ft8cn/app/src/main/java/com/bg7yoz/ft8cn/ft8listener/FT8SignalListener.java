@@ -1,6 +1,7 @@
 package com.bg7yoz.ft8cn.ft8listener;
 /**
- * 用于监听音频的类。监听通过时钟UtcTimer来控制周期，通过OnWaveDataListener接口来读取音频数据。
+ * Class for listening to audio. Listening cycle is controlled by UtcTimer clock,
+ * audio data is read through OnWaveDataListener interface.
  *
  * @author BGY70Z
  * @date 2023-03-20
@@ -27,17 +28,17 @@ public class FT8SignalListener {
     private static final String TAG = "FT8SignalListener";
     private final UtcTimer utcTimer;
     //private HamRecorder hamRecorder;
-    private final OnFt8Listen onFt8Listen;//当开始监听，解码结束后触发的事件
+    private final OnFt8Listen onFt8Listen; // Event triggered when listening starts and after decoding ends
     //private long band;
-    public MutableLiveData<Long> decodeTimeSec = new MutableLiveData<>();//解码的时长
-    public long timeSec=0;//解码的时长
+    public MutableLiveData<Long> decodeTimeSec = new MutableLiveData<>(); // Decoding duration
+    public long timeSec = 0; // Decoding duration
 
     private OnWaveDataListener onWaveDataListener;
 
 
     private DatabaseOpr db;
 
-    private final A91List a91List = new A91List();//a91列表
+    private final A91List a91List = new A91List(); // a91 list
 
 
     static {
@@ -53,15 +54,17 @@ public class FT8SignalListener {
         this.onFt8Listen = onFt8Listen;
         this.db = db;
 
-        //创建动作触发器，与UTC时间同步，以15秒一个周期，DoOnSecTimer是在周期起始时触发的事件。150是15秒
+        // Create action trigger, synchronized with UTC time, 15 seconds per cycle.
+        // DoOnSecTimer is the event triggered at the start of each cycle.
+        // FT8Common.FT8_SLOT_TIME_M is 15 seconds
         utcTimer = new UtcTimer(FT8Common.FT8_SLOT_TIME_M, false, new OnUtcTimer() {
             @Override
-            public void doHeartBeatTimer(long utc) {//不触发时的时钟信息
+            public void doHeartBeatTimer(long utc) { // Clock info when not triggering
             }
 
             @Override
-            public void doOnSecTimer(long utc) {//当指定间隔时触发时
-                Log.d(TAG, String.format("触发录音,%d", utc));
+            public void doOnSecTimer(long utc) { // Triggered when specified interval is reached
+                //Log.d(TAG, String.format("Trigger recording, %d", utc));
                 runRecorde(utc);
             }
         });
@@ -80,7 +83,7 @@ public class FT8SignalListener {
     }
 
     /**
-     * 获取当前时间的偏移量，这里包括总的时钟偏移，也包括本实例的偏移
+     * Get the current time offset, including total clock offset and this instance's offset
      *
      * @return int
      */
@@ -89,20 +92,22 @@ public class FT8SignalListener {
     }
 
     /**
-     * 录音。在后台以多线程的方式录音，录音自动生成一个临时的Wav格式文件。
-     * 有两个回调函数，用于开始录音时和结束录音时。当结束录音时，激活解码程序。
+     * Record audio. Recording runs in background with multi-threading,
+     * automatically generates a temporary Wav format file.
+     * Two callback functions for start and end of recording.
+     * When recording ends, activate the decoder.
      *
-     * @param utc 当前解码的UTC时间
+     * @param utc Current UTC time for decoding
      */
     private void runRecorde(long utc) {
-        Log.d(TAG, "开始录音...");
+        //Log.d(TAG, "Starting recording...");
 
         if (onWaveDataListener != null) {
             onWaveDataListener.getVoiceData(FT8Common.FT8_SLOT_TIME_MILLISECOND, true
                     , new OnGetVoiceDataDone() {
                         @Override
                         public void onGetDone(float[] data) {
-                            Log.d(TAG, String.format("开始解码...###,数据长度：%d",data.length));
+                            //Log.d(TAG, String.format("Starting decode...###, data length: %d", data.length));
                             decodeFt8(utc, data);
                         }
                     });
@@ -111,7 +116,7 @@ public class FT8SignalListener {
 
     public void decodeFt8(long utc, float[] voiceData) {
 
-        //此处是测试用代码-------------------------
+        // Test code below-------------------------
 //        String fileName = getCacheFileName("test_01.wav");
 //        Log.e(TAG, "onClick: fileName:" + fileName);
 //        WaveFileReader reader = new WaveFileReader(fileName);
@@ -129,13 +134,13 @@ public class FT8SignalListener {
 //                float[] tempData = ints2floats(data);
 
 
-                ///读入音频数据，并做预处理
-                //其实这种方式要注意一个问题，在一个周期之内，必须解码完毕，否则新的解码又要开始了
+                // Read audio data and perform preprocessing
+                // Note: decoding must complete within one cycle, otherwise new decoding will start
                 long ft8Decoder = InitDecoder(utc, FT8Common.SAMPLE_RATE
                         , voiceData.length, true);
 //                        , tempData.length, true);
-                DecoderMonitorPressFloat(voiceData, ft8Decoder);//读入音频数据
-//                DecoderMonitorPressFloat(tempData, ft8Decoder);//读入音频数据
+                DecoderMonitorPressFloat(voiceData, ft8Decoder); // Read audio data
+//                DecoderMonitorPressFloat(tempData, ft8Decoder); // Read audio data
 
 
                 ArrayList<Ft8Message> allMsg = new ArrayList<>();
@@ -143,43 +148,43 @@ public class FT8SignalListener {
                 ArrayList<Ft8Message> msgs = runDecode(ft8Decoder, utc, false);
                 addMsgToList(allMsg, msgs);
                 timeSec = System.currentTimeMillis() - time;
-                decodeTimeSec.postValue(timeSec);//解码耗时
+                decodeTimeSec.postValue(timeSec); // Decoding duration
                 if (onFt8Listen != null) {
                     onFt8Listen.afterDecode(utc, averageOffset(allMsg), UtcTimer.sequential(utc), msgs, false);
                 }
 
 
-                if (GeneralVariables.deepDecodeMode) {//进入深度解码模式
+                if (GeneralVariables.deepDecodeMode) { // Enter deep decode mode
                     //float[] newSignal=tempData;
                     msgs = runDecode(ft8Decoder, utc, true);
                     addMsgToList(allMsg, msgs);
                     timeSec = System.currentTimeMillis() - time;
-                    decodeTimeSec.postValue(timeSec);//解码耗时
+                    decodeTimeSec.postValue(timeSec); // Decoding duration
                     if (onFt8Listen != null) {
                         onFt8Listen.afterDecode(utc, averageOffset(allMsg), UtcTimer.sequential(utc), msgs, true);
                     }
 
                     do {
-                        if (timeSec > FT8Common.DEEP_DECODE_TIMEOUT) break;//此处做超时检测，超过一定时间(7秒)，就不做减码操作了
-                        //减去解码的信号
+                        if (timeSec > FT8Common.DEEP_DECODE_TIMEOUT) break; // Timeout check: if exceeded certain time (7 seconds), stop subtracting signals
+                        // Subtract decoded signal
                         ReBuildSignal.subtractSignal(ft8Decoder, a91List);
 
-                        //再做一次解码
+                        // Decode again
                         msgs = runDecode(ft8Decoder, utc, true);
                         addMsgToList(allMsg, msgs);
                         timeSec = System.currentTimeMillis() - time;
-                        decodeTimeSec.postValue(timeSec);//解码耗时
+                        decodeTimeSec.postValue(timeSec); // Decoding duration
                         if (onFt8Listen != null) {
                             onFt8Listen.afterDecode(utc, averageOffset(allMsg), UtcTimer.sequential(utc), msgs, true);
                         }
 
-                    } while (msgs.size() > 0 );
+                    } while (msgs.size() > 0);
 
                 }
-                //移到finalize() 方法中调用了
+                // Moved to finalize() method
                 DeleteDecoder(ft8Decoder);
 
-                Log.d(TAG, String.format("解码耗时:%d毫秒", System.currentTimeMillis() - time));
+                //Log.d(TAG, String.format("Decoding time: %d ms", System.currentTimeMillis() - time));
 
             }
         }).start();
@@ -194,17 +199,17 @@ public class FT8SignalListener {
         ft8Message.band = GeneralVariables.band;
         a91List.clear();
 
-        setDecodeMode(ft8Decoder, isDeep);//设置迭代次数,isDeep==true，迭代次数增加
+        setDecodeMode(ft8Decoder, isDeep); // Set iteration count, isDeep==true increases iterations
 
-        int num_candidates = DecoderFt8FindSync(ft8Decoder);//最多120个
+        int num_candidates = DecoderFt8FindSync(ft8Decoder); // Max 120 candidates
         //long startTime = System.currentTimeMillis();
         for (int idx = 0; idx < num_candidates; ++idx) {
-            //todo 应当做一下超时计算
-            try {//做一下解码失败保护
+            //todo Should implement timeout calculation
+            try { // Add decoding failure protection
                 if (DecoderFt8Analysis(idx, ft8Decoder, ft8Message)) {
 
                     if (ft8Message.isValid) {
-                        Ft8Message msg = new Ft8Message(ft8Message);//此处使用msg，是因为有的哈希呼号会把<...>替换掉
+                        Ft8Message msg = new Ft8Message(ft8Message); // Using msg here because some hashed callsigns may replace <...>
                         byte[] a91 = DecoderGetA91(ft8Decoder);
                         a91List.add(a91, ft8Message.freq_hz, ft8Message.time_sec);
 
@@ -212,7 +217,7 @@ public class FT8SignalListener {
                             continue;
                         }
 
-                        msg.isWeakSignal = isDeep;//是不是弱信号
+                        msg.isWeakSignal = isDeep; // Whether this is a weak signal
                         ft8Messages.add(msg);
 
                     }
@@ -228,10 +233,10 @@ public class FT8SignalListener {
     }
 
     /**
-     * 计算平均时间偏移值
+     * Calculate average time offset value
      *
-     * @param messages 消息列表
-     * @return 偏移值
+     * @param messages Message list
+     * @return Offset value
      */
     private float averageOffset(ArrayList<Ft8Message> messages) {
         if (messages.size() == 0) return 0f;
@@ -244,10 +249,10 @@ public class FT8SignalListener {
     }
 
     /**
-     * 把消息添加到列表中
+     * Add messages to the list
      *
-     * @param allMsg 消息列表
-     * @param newMsg 新的消息
+     * @param allMsg Message list
+     * @param newMsg New messages
      */
     private void addMsgToList(ArrayList<Ft8Message> allMsg, ArrayList<Ft8Message> newMsg) {
         for (int i = newMsg.size() - 1; i >= 0; i--) {
@@ -260,10 +265,10 @@ public class FT8SignalListener {
     }
 
     /**
-     * 检查消息列表里同样的内容是否存在
+     * Check if duplicate content exists in message list
      *
-     * @param ft8Messages 消息列表
-     * @param ft8Message  消息
+     * @param ft8Messages Message list
+     * @param ft8Message  Message
      * @return boolean
      */
     private boolean checkMessageSame(ArrayList<Ft8Message> ft8Messages, Ft8Message ft8Message) {
@@ -314,21 +319,21 @@ public class FT8SignalListener {
     }
 
     /**
-     * 解码的第一步，初始化解码器，获取解码器的地址。
+     * First step of decoding: initialize decoder and get decoder address.
      *
-     * @param utcTime     UTC时间
-     * @param sampleRat   采样率，12000
-     * @param num_samples 缓冲区数据的长度
-     * @param isFt8       是否是FT8信号
-     * @return 返回解码器的地址
+     * @param utcTime     UTC time
+     * @param sampleRat   Sample rate, 12000
+     * @param num_samples Length of buffer data
+     * @param isFt8       Whether this is FT8 signal
+     * @return Returns decoder address
      */
     public native long InitDecoder(long utcTime, int sampleRat, int num_samples, boolean isFt8);
 
     /**
-     * 解码的第二步，读取Wav数据。
+     * Second step of decoding: read Wav data.
      *
-     * @param buffer  Wav数据缓冲区
-     * @param decoder 解码器数据的地址
+     * @param buffer  Wav data buffer
+     * @param decoder Address of decoder data
      */
     public native void DecoderMonitorPress(int[] buffer, long decoder);
 
@@ -336,33 +341,33 @@ public class FT8SignalListener {
 
 
     /**
-     * 解码的第三步，同步数据。
+     * Third step of decoding: synchronize data.
      *
-     * @param decoder 解码器地址
-     * @return 中标信号的数量
+     * @param decoder Decoder address
+     * @return Number of synchronized signals
      */
     public native int DecoderFt8FindSync(long decoder);
 
     /**
-     * 解码的第四步，分析出消息。（需要在一个循环里）
+     * Fourth step of decoding: analyze messages. (Needs to be in a loop)
      *
-     * @param idx        中标信号的序号
-     * @param decoder    解码器的地址
-     * @param ft8Message 解出来的消息
+     * @param idx        Index of synchronized signal
+     * @param decoder    Decoder address
+     * @param ft8Message Decoded message
      * @return boolean
      */
     public native boolean DecoderFt8Analysis(int idx, long decoder, Ft8Message ft8Message);
 
     /**
-     * 解码的最后一步，删除解码器数据
+     * Final step of decoding: delete decoder data
      *
-     * @param decoder 解码器数据的地址
+     * @param decoder Address of decoder data
      */
     public native void DeleteDecoder(long decoder);
 
     public native void DecoderFt8Reset(long decoder, long utcTime, int num_samples);
 
-    public native byte[] DecoderGetA91(long decoder);//获取当前message的a91数据
+    public native byte[] DecoderGetA91(long decoder); // Get a91 data for current message
 
-    public native void setDecodeMode(long decoder, boolean isDeep);//设置解码的模式，isDeep=true是多次迭代，=false是快速迭代
+    public native void setDecodeMode(long decoder, boolean isDeep); // Set decoding mode: isDeep=true for multiple iterations, =false for fast iteration
 }

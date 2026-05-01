@@ -128,8 +128,8 @@ void decoder_monitor_press(float signal[], decoder_t *decoder) {
 
 
 
-    LOG(LOG_DEBUG, "Waterfall accumulated %d symbols\n", decoder->mon.wf.num_blocks);//积累的信号
-    LOG(LOG_INFO, "Max magnitude: %.1f dB\n", decoder->mon.max_mag);//最大信号值dB
+    //LOG(LOG_DEBUG, "Waterfall accumulated %d symbols\n", decoder->mon.wf.num_blocks);//积累的信号
+    //LOG(LOG_INFO, "Max magnitude: %.1f dB\n", decoder->mon.max_mag);//最大信号值dB
 
 }
 
@@ -241,11 +241,11 @@ ft8_message decoder_ft8_analysis(int idx, decoder_t *decoder) {
 
         ft8Message.isValid = true;
 
-        LOG_PRINTF("%3d %+4.2f %4.0f ~  %s report:%d grid:%s,toHash:%x,fromHash:%x",
-                   ft8Message.snr,
-                   ft8Message.time_sec, ft8Message.freq_hz, ft8Message.message.text,
-                   ft8Message.message.report, ft8Message.message.maidenGrid,
-                   ft8Message.message.call_to_hash.hash12, ft8Message.message.call_de_hash.hash12);
+        //LOG_PRINTF("%3d %+4.2f %4.0f ~  %s report:%d grid:%s,toHash:%x,fromHash:%x",
+        //           ft8Message.snr,
+        //           ft8Message.time_sec, ft8Message.freq_hz, ft8Message.message.text,
+        //           ft8Message.message.report, ft8Message.message.maidenGrid,
+        //           ft8Message.message.call_to_hash.hash12, ft8Message.message.call_de_hash.hash12);
     }
     memcpy(decoder->a91, ft8Message.message.a91, FTX_LDPC_K_BYTES);
     return ft8Message;

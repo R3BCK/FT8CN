@@ -28,7 +28,7 @@ public class MessageHashMap extends HashMap<Long,String> {
         if (hashCode == 0 || checkHash(hashCode)|| callsign.charAt(0) == '<') {
             return;
         }
-        Log.d(TAG, String.format("addHash: callsign:%s ,hash:%x",callsign,hashCode ));
+        //Log.d(TAG, String.format("addHash: callsign:%s ,hash:%x",callsign,hashCode ));
         put(hashCode,callsign);
     }
 
