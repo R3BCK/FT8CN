@@ -10,6 +10,7 @@ import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.view.View;
@@ -18,21 +19,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 柱状频谱图。
+ * Columnar spectrum graph with occupied frequency marking.
  * @author BGY70Z
  * @date 2023-03-20
  */
 public class ColumnarView extends View {
     private static final String TAG = "ColumnarView";
-    //每一个能量柱的宽度
+
+    // Bar width
     private int width;
-    //每一个能量柱之间的间距
+    // Spacing between bars
     private final int spacing = 1;
-    //能量块高度
+    // Block height
     private final int blockHeight = 5;
-    //能量块下将速度
+    // Block fall speed
     private int blockSpeed = 5;
-    //能量块与能量柱之间的距离
+    // Distance between block and bar
     private final int distance = 2;
 
     private boolean drawblock = false;
@@ -40,12 +42,18 @@ public class ColumnarView extends View {
     private final List<Rect> newData = new ArrayList<>();
     private final List<Rect> blockData = new ArrayList<>();
 
-    private Bitmap lastBitMap=null;
+    private Bitmap lastBitMap = null;
     private Canvas _canvas;
     private Paint linePaint;
     private int touch_x = -1;
     private Paint touchPaint;
-    private int freq_hz=-1;
+    private int freq_hz = -1;
+
+    // === Occupied zone drawing ===
+    private final List<RectF> occupiedZones = new ArrayList<>();
+    private final Paint freeZonePaint;
+    private final Paint occupiedPaint;
+    // =============================
 
     public void setBlockSpeed(int blockSpeed) {
         this.blockSpeed = blockSpeed;
@@ -53,36 +61,63 @@ public class ColumnarView extends View {
 
     public ColumnarView(Context context) {
         super(context);
+        freeZonePaint = new Paint();
+        freeZonePaint.setColor(Color.argb(90, 0, 255, 0));
+        freeZonePaint.setStyle(Paint.Style.FILL);
 
+        occupiedPaint = new Paint();
+        occupiedPaint.setColor(Color.argb(180, 255, 60, 60));
+        occupiedPaint.setStyle(Paint.Style.FILL);
     }
 
     public ColumnarView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        freeZonePaint = new Paint();
+        freeZonePaint.setColor(Color.argb(90, 0, 255, 0));
+        freeZonePaint.setStyle(Paint.Style.FILL);
+
+        occupiedPaint = new Paint();
+        occupiedPaint.setColor(Color.argb(180, 255, 60, 60));
+        occupiedPaint.setStyle(Paint.Style.FILL);
     }
 
     public ColumnarView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        freeZonePaint = new Paint();
+        freeZonePaint.setColor(Color.argb(90, 0, 255, 0));
+        freeZonePaint.setStyle(Paint.Style.FILL);
+
+        occupiedPaint = new Paint();
+        occupiedPaint.setColor(Color.argb(180, 255, 60, 60));
+        occupiedPaint.setStyle(Paint.Style.FILL);
     }
 
     public void setShowBlock(boolean showBlock) {
         drawblock = showBlock;
     }
 
+    // === Public method to set occupied zones from FT8 decoder ===
+    public void setOccupiedZones(List<RectF> zones) {
+        this.occupiedZones.clear();
+        if (zones != null) {
+            this.occupiedZones.addAll(zones);
+        }
+        invalidate();
+    }
+    // ============================================================
+
     public void setWaveData(int[] data) {
-        if (data == null) {
-            return;
-        }
-        if (data.length <= 0) {
-            return;
-        }
-        width = getWidth() / (data.length / 2);// 960/2=480，480比较合理，906无法显示了。
-        if (drawblock) {//是否显示能量块
+        if (data == null) return;
+        if (data.length <= 0) return;
+
+        width = getWidth() / (data.length / 2);
+        if (drawblock) {
             if (newData.size() > 0) {
                 if (blockData.size() == 0 || newData.size() != blockData.size()) {
                     blockData.clear();
                     for (int i = 0; i < data.length / 2; i++) {
                         Rect blockRect = new Rect();
-                        blockRect.top =getHeight()- blockHeight;
+                        blockRect.top = getHeight() - blockHeight;
                         blockRect.bottom = getHeight();
                         blockData.add(blockRect);
                     }
@@ -100,7 +135,7 @@ public class ColumnarView extends View {
             }
         }
         newData.clear();
-        float rateHeight =  0.95f * getHeight() / 256;//0.95是比率，柱形的最大高度不超过95%
+        float rateHeight = 0.95f * getHeight() / 256;
         for (int i = 0; i < data.length / 2; i++) {
             Rect colRect = new Rect();
             if (newData.size() == 0) {
@@ -115,17 +150,16 @@ public class ColumnarView extends View {
         }
     }
 
-
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         setClickable(true);
         super.onSizeChanged(w, h, oldw, oldh);
 
-        lastBitMap= Bitmap.createBitmap(w,h, ARGB_8888);
-        _canvas=new Canvas(lastBitMap);
-        LinearGradient linearGradient=new LinearGradient(0f, 0f, 0f, getHeight(),
-                new int[]{0xff00ffff,0xff00ffff, Color.BLUE}
-                , new float[]{0f, 0.6f, 1f}, Shader.TileMode.CLAMP);
+        lastBitMap = Bitmap.createBitmap(w, h, ARGB_8888);
+        _canvas = new Canvas(lastBitMap);
+        LinearGradient linearGradient = new LinearGradient(0f, 0f, 0f, getHeight(),
+                new int[]{0xff00ffff, 0xff00ffff, Color.BLUE},
+                new float[]{0f, 0.6f, 1f}, Shader.TileMode.CLAMP);
         paint.setShader(linearGradient);
         linePaint = new Paint();
         linePaint.setColor(0xff990000);
@@ -138,22 +172,39 @@ public class ColumnarView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         _canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+
+        // 1. Draw spectrum bars
         for (int i = 0; i < newData.size(); i++) {
             _canvas.drawRect(newData.get(i), paint);
         }
+
+        // 2. Draw falling blocks
         if (drawblock) {
             for (int i = 0; i < blockData.size(); i++) {
                 _canvas.drawRect(blockData.get(i), paint);
             }
         }
-        canvas.drawBitmap(lastBitMap,0,0,null);
-        if (touch_x>0) {
-            //计算频率
+
+        // 3. Draw to main canvas
+        canvas.drawBitmap(lastBitMap, 0, 0, null);
+
+        // 4. Draw green "free" base band
+        canvas.drawRect(0, 0, getWidth(), getHeight() * 0.35f, freeZonePaint);
+
+        // 5. Draw red "occupied" blocks on top
+        for (RectF rect : occupiedZones) {
+            canvas.drawRect(rect, occupiedPaint);
+        }
+
+        // 6. Draw touch line
+        if (touch_x > 0) {
             freq_hz = Math.round(3000f * (float) touch_x / (float) getWidth());
             canvas.drawLine(touch_x, 0, touch_x, getHeight(), touchPaint);
         }
+
         invalidate();
     }
+
     public void setTouch_x(int touch_x) {
         this.touch_x = touch_x;
     }

@@ -17,6 +17,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.RectF;
 import android.hardware.usb.UsbManager;
 import android.media.AudioManager;
 import android.os.BatteryManager;
@@ -29,6 +30,7 @@ import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelStoreOwner;
 import androidx.lifecycle.Observer;
+
 import com.bg7yoz.ft8cn.rigs.IcomRigConstant;
 import com.bg7yoz.ft8cn.rigs.OnConnectReceiveData;
 import com.bg7yoz.ft8cn.callsign.CallsignDatabase;
@@ -94,13 +96,14 @@ import com.bg7yoz.ft8cn.x6100.X6100Radio;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 
 public class MainViewModel extends ViewModel {
-    String TAG = "ft8cn MainViewModel";
+    private static final String TAG = "ft8cn MainViewModel";
     public boolean configIsLoaded = false;
 
     private static MainViewModel viewModel = null;
@@ -136,6 +139,12 @@ public class MainViewModel extends ViewModel {
     // Rig connection status
     public MutableLiveData<String> rigStatusText = new MutableLiveData<>("Disconnected");
 
+    // === Persistent spectrum state (survives fragment switches) ===
+    public final List<RectF> persistentOccupiedZones = new ArrayList<>();
+    public int persistentOccupiedZonesAge = 0;
+    public static final int ZONE_PERSIST_CYCLES = 8;
+    // ============================================================
+
     private final ExecutorService getQTHThreadPool = Executors.newCachedThreadPool();
     private final ExecutorService sendWaveDataThreadPool = Executors.newCachedThreadPool();
     private final GetQTHRunnable getQTHRunnable = new GetQTHRunnable(this);
@@ -162,6 +171,12 @@ public class MainViewModel extends ViewModel {
     private ArrayList<CableSerialPort.SerialPort> serialPorts;
     public BaseRig baseRig;
 
+    // === Transmission Watchdog ===
+    private Handler transmissionWatchdogHandler = new Handler(Looper.getMainLooper());
+    private Runnable transmissionWatchdogRunnable;
+    private static final long WATCHDOG_CHECK_INTERVAL_MS = 10000;
+    // ===============================
+
     private final OnRigStateChanged onRigStateChanged = new OnRigStateChanged() {
         @Override
         public void onDisconnected() {
@@ -187,7 +202,7 @@ public class MainViewModel extends ViewModel {
             GeneralVariables.mutableBandChange.postValue(GeneralVariables.bandListIndex);
             databaseOpr.getAllQSLCallsigns();
 
-            // === ✅ TUNE on RADIO frequency change (with FT8-safe timing) ===
+            // === TUNE on RADIO frequency change (with FT8-safe timing) ===
             if (GeneralVariables.sendTuneOnFreqChange && baseRig != null && baseRig.isConnected()) {
                 scheduleTuneCommand();
             }
@@ -244,6 +259,8 @@ public class MainViewModel extends ViewModel {
     public MainViewModel() {
         databaseOpr = DatabaseOpr.getInstance(GeneralVariables.getMainContext(), "data.db");
         mutableIsDecoding.postValue(false);
+
+        // === Initialize HamRecorder FIRST ===
         hamRecorder = new HamRecorder(null);
         hamRecorder.startRecord();
 
@@ -327,6 +344,8 @@ public class MainViewModel extends ViewModel {
         });
 
         ft8SignalListener.startListen();
+
+        // === Create SpectrumListener AFTER hamRecorder is running ===
         spectrumListener = new SpectrumListener(hamRecorder);
 
         ft8TransmitSignal = new FT8TransmitSignal(databaseOpr, new OnDoTransmitted() {
@@ -376,7 +395,6 @@ public class MainViewModel extends ViewModel {
                 if (now - lastNtpSyncTime >= NTP_SYNC_INTERVAL_MS) {
                     UtcTimer.syncTime(null);
                     lastNtpSyncTime = now;
-                    Log.d(TAG, "NTP sync triggered after transmission");
                 }
             }
 
@@ -456,29 +474,70 @@ public class MainViewModel extends ViewModel {
 
         updateRigStatus();
 
-        // === Auto TUNE on Frequency Change ===
-        // ❗️ ОТКЛЮЧЕНО: mutableBaseFrequency — это аудио-частота (AF), тюнер не нужен
-        // Тюнер теперь вызывается только из onFreqChanged() для радио-частоты (RF)
-        /*
-        GeneralVariables.mutableBaseFrequency.observeForever(new Observer<Float>() {
-            private Float lastTunedFreq = null;
-            @Override
-            public void onChanged(Float freq) {
-                if (GeneralVariables.sendTuneOnFreqChange && baseRig != null && baseRig.isConnected()) {
-                    if (lastTunedFreq != null && Math.abs(freq - lastTunedFreq) > 0.1f) {
-                        new Handler(Looper.getMainLooper()).postDelayed(() -> sendTuneCommand(), 600);
-                    }
-                    lastTunedFreq = freq;
-                }
-            }
-        });
-        */
-        // ================================
+        // === Start transmission watchdog ===
+        startTransmissionWatchdog();
+        // ===================================
     }
 
     @Override
     protected void onCleared() {
         super.onCleared();
+        // Stop watchdog to prevent memory leaks
+        if (transmissionWatchdogHandler != null && transmissionWatchdogRunnable != null) {
+            transmissionWatchdogHandler.removeCallbacks(transmissionWatchdogRunnable);
+            Log.d(TAG, "Transmission watchdog stopped");
+        }
+        // Ensure recording is stopped and resources released
+        if (hamRecorder != null) {
+            hamRecorder.stopRecord();
+            Log.d(TAG, "HamRecorder stopped in onCleared()");
+        }
+    }
+
+    /**
+     * Start aggressive watchdog to monitor and recover transmission state.
+     * Checks every 10 seconds if transmit is activated but recording stopped.
+     */
+    private void startTransmissionWatchdog() {
+        transmissionWatchdogRunnable = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    // Check 1: Transmit activated but recording not running
+                    if (ft8TransmitSignal.isActivated() && !hamRecorder.isRunning()) {
+                        Log.w(TAG, "WATCHDOG: Transmit active but hamRecorder.isRunning()=false! Recovering...");
+
+                        // Try to restart HamRecorder
+                        try {
+                            hamRecorder.startRecord();
+                            mutableIsRecording.postValue(true);
+                            Log.d(TAG, "HamRecorder restarted by watchdog");
+                            ToastMessage.show("Recording recovered");
+                        } catch (Exception e) {
+                            Log.e(TAG, "Failed to restart HamRecorder: " + e.getMessage(), e);
+                        }
+                    }
+
+                    // Check 2: Audio focus lost? (optional enhancement)
+                    if (GeneralVariables.connectMode != ConnectMode.NETWORK && !hamRecorder.isRunning()) {
+                        Log.d(TAG, "Watchdog: Mic mode but not recording - may need audio focus recovery");
+                    }
+
+                    // Check 3: Rig connected but PTT stuck? (optional)
+                    if (baseRig != null && baseRig.isConnected() && baseRig.isPttOn()) {
+                        // PTT has been on too long? Could indicate stuck state
+                    }
+
+                } catch (Exception e) {
+                    Log.e(TAG, "Watchdog error: " + e.getMessage(), e);
+                }
+
+                // Schedule next check - aggressive: every 10 seconds
+                transmissionWatchdogHandler.postDelayed(this, WATCHDOG_CHECK_INTERVAL_MS);
+            }
+        };
+        transmissionWatchdogHandler.post(transmissionWatchdogRunnable);
+        Log.d(TAG, "Aggressive transmission watchdog started (10s interval)");
     }
 
     public void setTransmitIsFreeText(boolean isFreeText) {
@@ -489,8 +548,11 @@ public class MainViewModel extends ViewModel {
         return ft8TransmitSignal != null && ft8TransmitSignal.isTransmitFreeText();
     }
 
+    /**
+     * Find messages that match my callsign or followed callsigns.
+     * Add matching messages to transmit queue.
+     */
     private synchronized void findIncludedCallsigns(ArrayList<Ft8Message> messages) {
-        //Log.d(TAG, "findIncludedCallsigns");
         if (ft8TransmitSignal.isActivated() && ft8TransmitSignal.sequential != UtcTimer.getNowSequential()) return;
         int count = 0;
         for (Ft8Message msg : messages) {
@@ -510,11 +572,18 @@ public class MainViewModel extends ViewModel {
         mutableTransmitMessagesCount.postValue(count);
     }
 
+    /**
+     * Clear the transmit message queue.
+     */
     public void clearTransmittingMessage() {
         GeneralVariables.transmitMessages.clear();
         mutableTransmitMessagesCount.postValue(0);
     }
 
+    /**
+     * Extract callsign and grid information from decoded messages.
+     * Store in database and GeneralVariables cache.
+     */
     private void getCallsignAndGrid(ArrayList<Ft8Message> messages) {
         for (Ft8Message msg : messages) {
             if (GeneralVariables.checkFun1(msg.extraInfo)) {
@@ -526,17 +595,27 @@ public class MainViewModel extends ViewModel {
         }
     }
 
+    /**
+     * Clear the FT8 message list (Calling history).
+     * Used when changing frequency to avoid calling old callsigns.
+     */
     public void clearFt8MessageList() {
         ft8Messages.clear();
         mutable_Decoded_Counter.postValue(ft8Messages.size());
         mutableFt8MessageList.postValue(ft8Messages);
     }
 
+    /**
+     * Delete a file by path.
+     */
     public static void deleteFile(String fileName) {
         File file = new File(fileName);
         if (file.exists() && file.isFile()) file.delete();
     }
 
+    /**
+     * Add a callsign to the followed list.
+     */
     public void addFollowCallsign(String callsign) {
         if (!GeneralVariables.followCallsign.contains(callsign)) {
             GeneralVariables.followCallsign.add(callsign);
@@ -544,6 +623,9 @@ public class MainViewModel extends ViewModel {
         }
     }
 
+    /**
+     * Load followed callsigns from database.
+     */
     public void getFollowCallsignsFromDataBase() {
         databaseOpr.getFollowCallsigns(new OnAfterQueryFollowCallsigns() {
             @Override
@@ -555,6 +637,9 @@ public class MainViewModel extends ViewModel {
         });
     }
 
+    /**
+     * Set the operation band on the connected rig.
+     */
     public void setOperationBand() {
         if (!isRigConnected()) return;
         baseRig.setUsbModeToRig();
@@ -564,14 +649,23 @@ public class MainViewModel extends ViewModel {
         }, 800);
     }
 
+    /**
+     * Set the CI-V address for ICOM radios.
+     */
     public void setCivAddress() {
         if (baseRig != null) baseRig.setCivAddress(GeneralVariables.civAddress);
     }
 
+    /**
+     * Set the control mode (VOX, CAT, RTS, DTR).
+     */
     public void setControlMode() {
         if (baseRig != null) baseRig.setControlMode(GeneralVariables.controlMode);
     }
 
+    /**
+     * Connect to a rig via USB cable.
+     */
     public void connectCableRig(Context context, CableSerialPort.SerialPort port) {
         if (ft8TransmitSignal != null && ft8TransmitSignal.isTransmitting()) {
             Log.i(TAG, "Interrupting transmit before connecting USB device");
@@ -607,6 +701,9 @@ public class MainViewModel extends ViewModel {
         new Handler().postDelayed(this::setOperationBand, 1000);
     }
 
+    /**
+     * Connect to a rig via Bluetooth.
+     */
     public void connectBluetoothRig(Context context, BluetoothDevice device) {
         GeneralVariables.controlMode = ControlMode.CAT;
         connectRig();
@@ -618,6 +715,9 @@ public class MainViewModel extends ViewModel {
         new Handler().postDelayed(this::setOperationBand, 5000);
     }
 
+    /**
+     * Connect to a rig via WiFi (ICOM).
+     */
     public void connectWifiRig(WifiRig wifiRig) {
         if (GeneralVariables.connectMode == ConnectMode.NETWORK && baseRig != null && baseRig.getConnector() != null) {
             baseRig.getConnector().disconnect();
@@ -640,6 +740,9 @@ public class MainViewModel extends ViewModel {
         new Handler().postDelayed(this::setOperationBand, 1000);
     }
 
+    /**
+     * Connect to a FlexRadio rig.
+     */
     public void connectFlexRadioRig(Context context, FlexRadio flexRadio) {
         if (GeneralVariables.connectMode == ConnectMode.NETWORK && baseRig != null && baseRig.getConnector() != null) {
             baseRig.getConnector().disconnect();
@@ -659,6 +762,9 @@ public class MainViewModel extends ViewModel {
         new Handler().postDelayed(this::setOperationBand, 3000);
     }
 
+    /**
+     * Connect to a Xiegu X6100 rig.
+     */
     public void connectXieguRadioRig(Context context, X6100Radio xieguRadio) {
         if (GeneralVariables.connectMode == ConnectMode.NETWORK && baseRig != null && baseRig.getConnector() != null) {
             baseRig.getConnector().disconnect();
@@ -685,6 +791,9 @@ public class MainViewModel extends ViewModel {
         new Handler().postDelayed(this::setOperationBand, 3000);
     }
 
+    /**
+     * Initialize the rig instance based on instruction set.
+     */
     private void connectRig() {
         baseRig = null;
         switch (GeneralVariables.instructionSet) {
@@ -733,10 +842,16 @@ public class MainViewModel extends ViewModel {
         mutableIsXieguRadio.postValue(GeneralVariables.instructionSet == InstructionSet.XIEGU_6100_FT8CNS);
     }
 
+    /**
+     * Check if a rig is currently connected.
+     */
     public boolean isRigConnected() {
         return baseRig != null && baseRig.isConnected();
     }
 
+    /**
+     * Update the rig connection status text for UI.
+     */
     public void updateRigStatus() {
         if (GeneralVariables.controlMode == ControlMode.VOX) {
             rigStatusText.postValue("VOX Mode (Audio PTT)");
@@ -754,11 +869,17 @@ public class MainViewModel extends ViewModel {
         }
     }
 
+    /**
+     * Get list of available USB serial ports.
+     */
     public void getUsbDevice() {
         serialPorts = CableSerialPort.listSerialPorts(GeneralVariables.getMainContext());
         mutableSerialPorts.postValue(serialPorts);
     }
 
+    /**
+     * Start Bluetooth SCO for audio routing.
+     */
     public void startSco() {
         AudioManager audioManager = (AudioManager) GeneralVariables.getMainContext().getSystemService(Context.AUDIO_SERVICE);
         if (audioManager == null) return;
@@ -771,6 +892,9 @@ public class MainViewModel extends ViewModel {
         audioManager.setSpeakerphoneOn(false);
     }
 
+    /**
+     * Stop Bluetooth SCO.
+     */
     public void stopSco() {
         AudioManager audioManager = (AudioManager) GeneralVariables.getMainContext().getSystemService(Context.AUDIO_SERVICE);
         if (audioManager == null) return;
@@ -781,6 +905,9 @@ public class MainViewModel extends ViewModel {
         }
     }
 
+    /**
+     * Enable Bluetooth headset mode.
+     */
     public void setBlueToothOn() {
         AudioManager audioManager = (AudioManager) GeneralVariables.getMainContext().getSystemService(Context.AUDIO_SERVICE);
         if (audioManager == null) return;
@@ -796,6 +923,9 @@ public class MainViewModel extends ViewModel {
         ToastMessage.show(getStringFromResource(R.string.bluetooth_headset_mode));
     }
 
+    /**
+     * Disable Bluetooth headset mode.
+     */
     public void setBlueToothOff() {
         AudioManager audioManager = (AudioManager) GeneralVariables.getMainContext().getSystemService(Context.AUDIO_SERVICE);
         if (audioManager == null) return;
@@ -808,6 +938,9 @@ public class MainViewModel extends ViewModel {
         ToastMessage.show(getStringFromResource(R.string.bluetooth_Headset_mode_cancelled));
     }
 
+    /**
+     * Check if Bluetooth headset is connected.
+     */
     @SuppressLint("MissingPermission")
     public boolean isBTConnected() {
         BluetoothAdapter blueAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -817,6 +950,9 @@ public class MainViewModel extends ViewModel {
         return headset == BluetoothAdapter.STATE_CONNECTED || a2dp == BluetoothAdapter.STATE_CONNECTED;
     }
 
+    /**
+     * Runnable to get QTH information for decoded messages.
+     */
     private static class GetQTHRunnable implements Runnable {
         MainViewModel mainViewModel;
         ArrayList<Ft8Message> messages;
@@ -828,6 +964,9 @@ public class MainViewModel extends ViewModel {
         }
     }
 
+    /**
+     * Runnable to send wave data to rig over CAT.
+     */
     private static class SendWaveDataRunnable implements Runnable {
         BaseRig baseRig;
         Ft8Message message;
@@ -837,10 +976,16 @@ public class MainViewModel extends ViewModel {
         }
     }
 
+    /**
+     * Restart the HTTP server on a new port.
+     */
     public void restartHttpServer(int newPort) {
         if (httpServer != null) httpServer.restartServer(newPort);
     }
 
+    /**
+     * Toggle rig connection based on current mode.
+     */
     public void toggleRigConnection(Context context) {
         if (GeneralVariables.controlMode == ControlMode.VOX) {
             ToastMessage.show("VOX mode does not use CAT connection");
@@ -870,6 +1015,9 @@ public class MainViewModel extends ViewModel {
         }
     }
 
+    /**
+     * Send immediate TUNE command to rig.
+     */
     private void sendTuneCommand() {
         if (baseRig != null && baseRig.isConnected()) {
             baseRig.setTune(IcomRigConstant.TUNER_START);
@@ -886,30 +1034,93 @@ public class MainViewModel extends ViewModel {
      * FT8 slots: ~0-13s, 15-28s, 30-43s, 45-58s of each minute (transmission windows)
      * Safe gaps: ~13-15s, 28-30s, 43-45s, 58-60s (quiet periods for tuning)
      * This avoids interfering with ongoing QSOs.
+     * If clearCallHistOnFreqChange is enabled, also clears the transmit queue.
      */
     private void scheduleTuneCommand() {
-        new Handler(Looper.getMainLooper()).post(() -> {
-            long nowSec = (System.currentTimeMillis() / 1000) % 60;
-            int slotStart = ((int) nowSec / 15) * 15;
-            int secondsIntoSlot = (int) nowSec - slotStart;
+        long nowSec = (System.currentTimeMillis() / 1000) % 60;
+        int slotStart = ((int) nowSec / 15) * 15;
+        int secondsIntoSlot = (int) nowSec - slotStart;
 
-            long delayMs;
-            if (secondsIntoSlot < 12) {
-                delayMs = (13 - secondsIntoSlot) * 1000L + 300;
-            } else {
-                delayMs = 400;
-            }
-            delayMs = Math.max(delayMs, 300);
-            delayMs = Math.min(delayMs, 15000);
+        long delayMs;
+        if (secondsIntoSlot < 12) {
+            delayMs = (13 - secondsIntoSlot) * 1000L + 300;
+        } else {
+            delayMs = 400;
+        }
+        delayMs = Math.max(delayMs, 300);
+        delayMs = Math.min(delayMs, 15000);
 
-            Log.d(TAG, "Scheduling TUNE: sec=" + nowSec + ", delay=" + delayMs + "ms");
+        Log.d(TAG, "Scheduling TUNE: sec=" + nowSec + ", delay=" + delayMs + "ms");
 
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                if (baseRig != null && baseRig.isConnected()) {
-                    baseRig.setTune(IcomRigConstant.TUNER_START);
-                    Log.d(TAG, "TUNE START sent at sec " + ((System.currentTimeMillis()/1000)%60));
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (baseRig != null && baseRig.isConnected()) {
+                baseRig.setTune(IcomRigConstant.TUNER_START);
+
+                // === Clear Calling history if enabled ===
+                if (GeneralVariables.clearCallHistOnFreqChange) {
+                    clearTransmittingMessage();
+                    ToastMessage.show("Calling history cleared");
                 }
-            }, delayMs);
-        });
+                // =======================================
+            }
+        }, delayMs);
     }
+
+    // === Persistent occupied zones methods ===
+
+    /**
+     * Update persistent occupied zones from current decode results.
+     * Call this when decoding finishes.
+     */
+    /**
+     * Update persistent occupied zones from current decode results.
+     * Deduplication removed: adds zones for every decoded signal.
+     */
+    public void updatePersistentOccupiedZones(List<Ft8Message> messages, int viewWidth, int viewHeight) {
+        if (messages == null || viewWidth == 0) return;
+
+        // Age existing zones
+        persistentOccupiedZonesAge++;
+        if (persistentOccupiedZonesAge >= ZONE_PERSIST_CYCLES) {
+            persistentOccupiedZones.clear();
+            persistentOccupiedZonesAge = 0;
+        }
+
+        // Add zones for ALL decoded messages (deduplication removed)
+        for (Ft8Message msg : messages) {
+            int freq = (int) msg.freq_hz;
+            if (freq > 0 && freq < 3000) {
+                float left = ((float)(freq - 25) / 3000f) * viewWidth;
+                float right = ((float)(freq + 25) / 3000f) * viewWidth;
+                left = Math.max(0, left);
+                right = Math.min(viewWidth, right);
+
+                // Directly add without overlap check
+                persistentOccupiedZones.add(new RectF(left, 0, right, viewHeight * 0.35f));
+            }
+        }
+    }
+
+    /**
+     * Helper: check if two rectangles overlap with tolerance
+     */
+    private boolean rectsOverlap(RectF a, RectF b, float tolerance) {
+        return (a.left - tolerance <= b.right && a.right + tolerance >= b.left);
+    }
+
+    /**
+     * Get copy of persistent zones for UI
+     */
+    public List<RectF> getPersistentOccupiedZones() {
+        return new ArrayList<>(persistentOccupiedZones);
+    }
+
+    /**
+     * Clear persistent zones (e.g., on band change)
+     */
+    public void clearPersistentOccupiedZones() {
+        persistentOccupiedZones.clear();
+        persistentOccupiedZonesAge = 0;
+    }
+    // =======================================
 }

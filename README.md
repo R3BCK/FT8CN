@@ -10,6 +10,7 @@ This repository is a fork of the original [N0BOY/FT8CN](https://github.com/N0BOY
 8. Displaying UTC.Delay offset of virtual time relative to precise UTC.
 9. Auto TUNE on frequency change for ICOM transceivers is added
 10. The Connect button and rig status have been added to the Settings window.
+11. CQ button behavior repaired (If no messages type 2 to 6 then CQ is generated)
 
 
 FT8CN — an app that runs FT8 natively on Android

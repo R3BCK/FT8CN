@@ -1,15 +1,15 @@
 package com.bg7yoz.ft8cn.ui;
-/**
- * 包含瀑布图、频率柱状图、标尺的自定义控件。
- * @author BGY70Z
- * @date 2023-03-20
- */
 
 import static android.view.MotionEvent.ACTION_UP;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.CompoundButton;
@@ -26,7 +26,12 @@ import com.bg7yoz.ft8cn.MainViewModel;
 import com.bg7yoz.ft8cn.R;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SpectrumView extends ConstraintLayout {
+    private static final String TAG = "SpectrumView";
+
     private MainViewModel mainViewModel;
     private ColumnarView columnarView;
     private Switch controlDeNoiseSwitch;
@@ -35,53 +40,80 @@ public class SpectrumView extends ConstraintLayout {
     private RulerFrequencyView rulerFrequencyView;
     private Fragment fragment;
 
+    private int frequencyLineTimeOut = 0;
 
-    private int frequencyLineTimeOut = 0;//画频率线的时间量
+    // Corridor fields
+    private final List<RectF> clearCorridors = new ArrayList<>();
+    private final Paint corridorPaint;
+    private final Paint corridorBorderPaint;
+
+    // === НАСТРОЙКА ЧУВСТВИТЕЛЬНОСТИ ===
+    // Коридором считается участок, который тише пикового сигнала на X дБ.
+    // Увеличено до 15 для надежного обнаружения тихих зон.
+    private static final int CORRIDOR_SENSITIVITY_DB = 15;
+    private static final int MIN_BIN_WIDTH = 6; // Минимальная ширина коридора в точках FFT
 
     static {
         System.loadLibrary("ft8cn");
     }
 
-
-
     public SpectrumView(@NonNull Context context) {
-        super(context);
+        super(context);  // <-- ПЕРВЫМ
+        corridorPaint = initCorridorPaint();
+        corridorBorderPaint = initBorderPaint();
+        Log.e(TAG, ">>> SpectrumView created (constructor 1)");
     }
 
     public SpectrumView(@NonNull Context context, @Nullable AttributeSet attrs) {
-        super(context, attrs);
-        View view = (View) View.inflate(context, R.layout.spectrum_layout,this);
+        super(context, attrs);  // <-- ОБЯЗАТЕЛЬНО ПЕРВЫМ, иначе ошибка компиляции
+        View view = (View) View.inflate(context, R.layout.spectrum_layout, this);
+        corridorPaint = initCorridorPaint();
+        corridorBorderPaint = initBorderPaint();
+        Log.e(TAG, ">>> SpectrumView created (constructor 2)");
     }
 
+    private Paint initCorridorPaint() {
+        Paint p = new Paint();
+        p.setColor(Color.argb(150, 0, 255, 0)); // Полупрозрачный зеленый
+        p.setStyle(Paint.Style.FILL);
+        return p;
+    }
+
+    private Paint initBorderPaint() {
+        Paint p = new Paint();
+        p.setColor(Color.argb(200, 0, 220, 0)); // Яркая граница
+        p.setStyle(Paint.Style.STROKE);
+        p.setStrokeWidth(2);
+        return p;
+    }
 
     @SuppressLint("ClickableViewAccessibility")
-    public void run(MainViewModel mainViewModel , Fragment fragment){
-        this.mainViewModel = MainViewModel.getInstance(null);
-        this.fragment=fragment;
-        columnarView=findViewById(R.id.controlColumnarView);
-        controlDeNoiseSwitch=findViewById(R.id.controlDeNoiseSwitch);
-        waterfallView=findViewById(R.id.controlWaterfallView);
-        rulerFrequencyView=findViewById(R.id.controlRulerFrequencyView);
-        controlShowMessageSwitch=findViewById(R.id.controlShowMessageSwitch);
+    public void run(MainViewModel mainViewModel, Fragment fragment) {
+        Log.e(TAG, ">>> run() CALLED! ViewModel: " + (mainViewModel != null));
 
+        this.mainViewModel = MainViewModel.getInstance(null);
+        this.fragment = fragment;
+        columnarView = findViewById(R.id.controlColumnarView);
+        controlDeNoiseSwitch = findViewById(R.id.controlDeNoiseSwitch);
+        waterfallView = findViewById(R.id.controlWaterfallView);
+        rulerFrequencyView = findViewById(R.id.controlRulerFrequencyView);
+        controlShowMessageSwitch = findViewById(R.id.controlShowMessageSwitch);
 
         setDeNoiseSwitchState();
         setMarkMessageSwitchState();
 
         rulerFrequencyView.setFreq(Math.round(GeneralVariables.getBaseFrequency()));
-        mainViewModel.currentMessages=null;
+        mainViewModel.currentMessages = null;
 
-
-        //原始频谱开关
         controlDeNoiseSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 mainViewModel.deNoise = b;
                 setDeNoiseSwitchState();
-                mainViewModel.currentMessages=null;
+                mainViewModel.currentMessages = null;
             }
         });
-        //标记消息开关
+
         controlShowMessageSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
@@ -90,55 +122,55 @@ public class SpectrumView extends ConstraintLayout {
             }
         });
 
-        //当声音变化，画频谱
-        mainViewModel.spectrumListener.mutableDataBuffer.observe(fragment.getViewLifecycleOwner(), new Observer<float[]>() {
-            @Override
-            public void onChanged(float[] ints) {
-                drawSpectrum(ints);
-            }
-        });
+        if (mainViewModel.spectrumListener != null) {
+            mainViewModel.spectrumListener.mutableDataBuffer.observe(fragment.getViewLifecycleOwner(), new Observer<float[]>() {
+                @Override
+                public void onChanged(float[] ints) {
+                    Log.d(TAG, "Data buffer changed, length: " + (ints != null ? ints.length : 0));
+                    drawSpectrum(ints);
+                }
+            });
+        } else {
+            Log.e(TAG, "ERROR: spectrumListener is NULL!");
+        }
 
-
-        //观察解码的变化
         mainViewModel.mutableIsDecoding.observe(fragment.getViewLifecycleOwner(), new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean aBoolean) {
-                waterfallView.setDrawMessage(!aBoolean);//aBoolean==false说明解码完毕
+                waterfallView.setDrawMessage(!aBoolean);
             }
         });
 
-        //触摸频谱时的动作
         View.OnTouchListener touchListener = new View.OnTouchListener() {
             @SuppressLint("DefaultLocale")
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-
-                frequencyLineTimeOut = 60;//显示频率线的时长：60*0.16
-
+                frequencyLineTimeOut = 60;
                 waterfallView.setTouch_x(Math.round(motionEvent.getX()));
                 columnarView.setTouch_x(Math.round(motionEvent.getX()));
 
+                if (motionEvent.getAction() == ACTION_UP && !clearCorridors.isEmpty()) {
+                    float x = motionEvent.getX();
+                    for (RectF rect : clearCorridors) {
+                        if (rect.contains(x, 0)) {
+                            float freqHz = (x / getWidth()) * 3000f;
+                            selectFrequency(freqHz);
+                            return true;
+                        }
+                    }
+                }
 
                 if (!mainViewModel.ft8TransmitSignal.isSynFrequency()
                         && (waterfallView.getFreq_hz() > 0)
-                        && (motionEvent.getAction() == ACTION_UP)
-                ) {//如果时异频发射
+                        && (motionEvent.getAction() == ACTION_UP)) {
                     mainViewModel.databaseOpr.writeConfig("freq",
-                            String.valueOf(waterfallView.getFreq_hz()),
-                            null);
-                    mainViewModel.ft8TransmitSignal.setBaseFrequency(
-                            (float) waterfallView.getFreq_hz());
-
+                            String.valueOf(waterfallView.getFreq_hz()), null);
+                    mainViewModel.ft8TransmitSignal.setBaseFrequency((float) waterfallView.getFreq_hz());
                     rulerFrequencyView.setFreq(waterfallView.getFreq_hz());
 
-                    fragment.requireActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            ToastMessage.show(String.format(
-                                    GeneralVariables.getStringFromResource(R.string.sound_frequency_is_set_to)
-                                    , waterfallView.getFreq_hz()),true);
-                        }
-                    });
+                    fragment.requireActivity().runOnUiThread(() -> ToastMessage.show(String.format(
+                            GeneralVariables.getStringFromResource(R.string.sound_frequency_is_set_to),
+                            waterfallView.getFreq_hz()), true));
                 }
                 return false;
             }
@@ -146,62 +178,139 @@ public class SpectrumView extends ConstraintLayout {
 
         waterfallView.setOnTouchListener(touchListener);
         columnarView.setOnTouchListener(touchListener);
-
-
     }
+
+    private void selectFrequency(float freq) {
+        float roundedFreq = Math.round(freq / 10) * 10;
+        mainViewModel.ft8TransmitSignal.setBaseFrequency(roundedFreq);
+        rulerFrequencyView.setFreq((int) roundedFreq);
+        ToastMessage.show("TX: " + roundedFreq + " Hz", true);
+    }
+
     private void setDeNoiseSwitchState() {
-        if (mainViewModel==null) return;
+        if (mainViewModel == null) return;
         controlDeNoiseSwitch.setChecked(mainViewModel.deNoise);
-        if (mainViewModel.deNoise) {
-            controlDeNoiseSwitch.setText(GeneralVariables.getStringFromResource(R.string.de_noise));
-        } else {
-            controlDeNoiseSwitch.setText(GeneralVariables.getStringFromResource(R.string.raw_spectrum_data));
-        }
-    }
-    private void setMarkMessageSwitchState(){
-        if (mainViewModel.markMessage) {
-            controlShowMessageSwitch.setText(GeneralVariables.getStringFromResource(R.string.markMessage));
-        } else {
-            controlShowMessageSwitch.setText(GeneralVariables.getStringFromResource(R.string.unMarkMessage));
-        }
+        controlDeNoiseSwitch.setText(mainViewModel.deNoise ?
+                GeneralVariables.getStringFromResource(R.string.de_noise) :
+                GeneralVariables.getStringFromResource(R.string.raw_spectrum_data));
     }
 
-
-
+    private void setMarkMessageSwitchState() {
+        controlShowMessageSwitch.setText(mainViewModel.markMessage ?
+                GeneralVariables.getStringFromResource(R.string.markMessage) :
+                GeneralVariables.getStringFromResource(R.string.unMarkMessage));
+    }
 
     public void drawSpectrum(float[] buffer) {
-        if (buffer.length <= 0) {
-            return;
-        }
+        Log.d(TAG, "drawSpectrum called. Buffer: " + (buffer != null ? buffer.length : "null"));
+
+        if (buffer == null || buffer.length <= 0) return;
+
         int[] fft = new int[buffer.length / 2];
         if (mainViewModel.deNoise) {
             getFFTDataFloat(buffer, fft);
         } else {
             getFFTDataRawFloat(buffer, fft);
         }
+
+        analyzeCorridors(fft);
+
         frequencyLineTimeOut--;
-        if (frequencyLineTimeOut < 0) {
-            frequencyLineTimeOut = 0;
-        }
-        //达到显示的时长，就取取消掉频率线
+        if (frequencyLineTimeOut < 0) frequencyLineTimeOut = 0;
         if (frequencyLineTimeOut == 0) {
             waterfallView.setTouch_x(-1);
             columnarView.setTouch_x(-1);
         }
+
         columnarView.setWaveData(fft);
-        if (mainViewModel.markMessage) {//是否标记消息
+        if (mainViewModel.markMessage) {
             waterfallView.setWaveData(fft, UtcTimer.getNowSequential(), mainViewModel.currentMessages);
         } else {
             waterfallView.setWaveData(fft, UtcTimer.getNowSequential(), null);
         }
+
+        invalidate();
     }
 
+    private void analyzeCorridors(int[] fftData) {
+        clearCorridors.clear();
+        if (fftData == null || fftData.length == 0) {
+            Log.d(TAG, "analyzeCorridors: fftData is empty");
+            return;
+        }
+        if (getWidth() == 0) {
+            Log.d(TAG, "analyzeCorridors: view width is 0");
+            return;
+        }
+
+        int maxVal = Integer.MIN_VALUE;
+        int minVal = Integer.MAX_VALUE;
+        for (int val : fftData) {
+            if (val > maxVal) maxVal = val;
+            if (val < minVal) minVal = val;
+        }
+
+        int threshold = maxVal - CORRIDOR_SENSITIVITY_DB;
+        Log.d(TAG, "FFT stats: min=" + minVal + " max=" + maxVal + " threshold=" + threshold);
+
+        boolean inCorridor = false;
+        int startBin = 0;
+        int fftLen = fftData.length;
+        int foundCount = 0;
+
+        for (int i = 0; i < fftLen; i++) {
+            if (fftData[i] < threshold) {
+                if (!inCorridor) {
+                    inCorridor = true;
+                    startBin = i;
+                }
+            } else {
+                if (inCorridor) {
+                    inCorridor = false;
+                    int width = i - startBin;
+                    if (width >= MIN_BIN_WIDTH) {
+                        addCorridor(startBin, i, fftLen);
+                        foundCount++;
+                    }
+                }
+            }
+        }
+        if (inCorridor) {
+            int width = fftLen - startBin;
+            if (width >= MIN_BIN_WIDTH) {
+                addCorridor(startBin, fftLen, fftLen);
+                foundCount++;
+            }
+        }
+        Log.d(TAG, "Corridors found: " + foundCount);
+    }
+
+    private void addCorridor(int startBin, int endBin, int totalBins) {
+        if (getWidth() == 0) return;
+        float left = ((float) startBin / totalBins) * getWidth();
+        float right = ((float) endBin / totalBins) * getWidth();
+        clearCorridors.add(new RectF(left, 0, right, getHeight() * 0.35f));
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        Log.d(TAG, "onDraw called! W=" + getWidth() + " H=" + getHeight() + " rects=" + clearCorridors.size());
+
+        // ТЕСТОВЫЙ КРАСНЫЙ ПРЯМОУГОЛЬНИК
+        Paint debugPaint = new Paint();
+        debugPaint.setColor(Color.RED);
+        debugPaint.setAlpha(100);
+        canvas.drawRect(0, 0, getWidth() / 2, getHeight() * 0.35f, debugPaint);
+
+        for (RectF rect : clearCorridors) {
+            canvas.drawRect(rect, corridorPaint);
+            canvas.drawRect(rect, corridorBorderPaint);
+        }
+    }
 
     public native void getFFTData(int[] data, int fftData[]);
     public native void getFFTDataFloat(float[] data, int fftData[]);
-
     public native void getFFTDataRaw(int[] data, int fftData[]);
     public native void getFFTDataRawFloat(float[] data, int fftData[]);
-
-
 }

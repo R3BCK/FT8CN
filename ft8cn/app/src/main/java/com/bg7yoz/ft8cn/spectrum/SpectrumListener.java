@@ -1,6 +1,6 @@
 package com.bg7yoz.ft8cn.spectrum;
 /**
- * 用于瀑布图的音频接收。以一个FT8符号为颗粒度。
+ * Audio reception for waterfall. Granularity is one FT8 symbol.
  * @author BGY70Z
  * @date 2023-03-20
  */
@@ -14,14 +14,13 @@ public class SpectrumListener {
     private static final String TAG = "SpectrumListener";
     private HamRecorder hamRecorder;
 
-    private float[] dataBuffer=new float[0];
+    private float[] dataBuffer = new float[0];
     public MutableLiveData<float[]> mutableDataBuffer = new MutableLiveData<>();
 
-
-    private final OnGetVoiceDataDone onGetVoiceDataDone=new OnGetVoiceDataDone() {
+    private final OnGetVoiceDataDone onGetVoiceDataDone = new OnGetVoiceDataDone() {
         @Override
         public void onGetDone(float[] data) {
-                    mutableDataBuffer.postValue(data);
+            mutableDataBuffer.postValue(data);
         }
     };
 
@@ -30,9 +29,8 @@ public class SpectrumListener {
         doReceiveData();
     }
 
-
-    private void doReceiveData(){
-        hamRecorder.getVoiceData(160,false,onGetVoiceDataDone);
+    private void doReceiveData() {
+        hamRecorder.getVoiceData(160, false, onGetVoiceDataDone);
     }
 
     public float[] getDataBuffer() {

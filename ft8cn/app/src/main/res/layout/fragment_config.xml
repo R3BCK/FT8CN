@@ -774,7 +774,6 @@
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
-
                     <!-- HRDLog.net Section -->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/hrdlogLayout"
@@ -785,7 +784,6 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/qrzLayout">
-
                         <TextView
                             android:id="@+id/hrdlogSettingsTextView"
                             android:layout_width="wrap_content"
@@ -797,7 +795,6 @@
                             app:layout_constraintBottom_toTopOf="@+id/testHrdlogButton"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
-
                         <Switch
                             android:id="@+id/enableHrdlogSwitch"
                             android:layout_width="wrap_content"
@@ -815,7 +812,6 @@
                             app:layout_constraintStart_toEndOf="@+id/hrdlogSettingsTextView"
                             app:layout_constraintTop_toBottomOf="@+id/hrdlogCallsignEdit"
                             tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
-
                         <!-- URL -->
                         <TextView
                             android:id="@+id/hrdlogUrlTextView"
@@ -829,7 +825,6 @@
                             app:layout_constraintBottom_toBottomOf="@+id/hrdlogUrlEdit"
                             app:layout_constraintStart_toEndOf="@+id/hrdlogSettingsTextView"
                             app:layout_constraintTop_toTopOf="@+id/hrdlogUrlEdit" />
-
                         <EditText
                             android:id="@+id/hrdlogUrlEdit"
                             android:layout_width="0dp"
@@ -849,7 +844,6 @@
                             app:layout_constraintTop_toTopOf="parent"
                             tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck,SpeakableTextPresentCheck"
                             android:importantForAutofill="no" />
-
                         <!-- API Key -->
                         <TextView
                             android:id="@+id/hrdlogApiKeyTextView"
@@ -863,7 +857,6 @@
                             app:layout_constraintBottom_toTopOf="@+id/hrdlogUsernameEdit"
                             app:layout_constraintStart_toEndOf="@+id/hrdlogSettingsTextView"
                             app:layout_constraintTop_toBottomOf="@+id/hrdlogUrlEdit" />
-
                         <EditText
                             android:id="@+id/hrdlogApiKeyEdit"
                             android:layout_width="0dp"
@@ -881,7 +874,6 @@
                             app:layout_constraintTop_toBottomOf="@+id/hrdlogUrlEdit"
                             tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck,SpeakableTextPresentCheck"
                             android:importantForAutofill="no" />
-
                         <!-- Username -->
                         <TextView
                             android:id="@+id/hrdlogUsernameTextView"
@@ -895,7 +887,6 @@
                             app:layout_constraintBottom_toTopOf="@+id/hrdlogPasswordEdit"
                             app:layout_constraintStart_toEndOf="@+id/hrdlogSettingsTextView"
                             app:layout_constraintTop_toBottomOf="@+id/hrdlogApiKeyEdit" />
-
                         <EditText
                             android:id="@+id/hrdlogUsernameEdit"
                             android:layout_width="0dp"
@@ -913,7 +904,6 @@
                             app:layout_constraintTop_toBottomOf="@+id/hrdlogApiKeyEdit"
                             tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck,SpeakableTextPresentCheck"
                             android:importantForAutofill="no" />
-
                         <!-- Password -->
                         <TextView
                             android:id="@+id/hrdlogPasswordTextView"
@@ -927,7 +917,6 @@
                             app:layout_constraintBottom_toTopOf="@+id/hrdlogCallsignEdit"
                             app:layout_constraintStart_toEndOf="@+id/hrdlogSettingsTextView"
                             app:layout_constraintTop_toBottomOf="@+id/hrdlogUsernameEdit" />
-
                         <EditText
                             android:id="@+id/hrdlogPasswordEdit"
                             android:layout_width="0dp"
@@ -945,7 +934,6 @@
                             app:layout_constraintTop_toBottomOf="@+id/hrdlogUsernameEdit"
                             tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck,SpeakableTextPresentCheck"
                             android:importantForAutofill="no" />
-
                         <!-- Callsign -->
                         <TextView
                             android:id="@+id/hrdlogCallsignTextView"
@@ -959,7 +947,6 @@
                             app:layout_constraintBottom_toBottomOf="@+id/hrdlogCallsignEdit"
                             app:layout_constraintStart_toEndOf="@+id/hrdlogSettingsTextView"
                             app:layout_constraintTop_toBottomOf="@+id/hrdlogPasswordEdit" />
-
                         <EditText
                             android:id="@+id/hrdlogCallsignEdit"
                             android:layout_width="0dp"
@@ -977,7 +964,6 @@
                             app:layout_constraintTop_toBottomOf="@+id/hrdlogPasswordEdit"
                             tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck,SpeakableTextPresentCheck"
                             android:importantForAutofill="no" />
-
                         <!-- Test Button -->
                         <Button
                             android:id="@+id/testHrdlogButton"
@@ -988,7 +974,6 @@
                             app:layout_constraintBottom_toBottomOf="@id/enableHrdlogSwitch"
                             app:layout_constraintStart_toStartOf="@id/hrdlogSettingsTextView"
                             tools:ignore="DuplicateSpeakableTextCheck" />
-
                         <!-- Help Button -->
                         <ImageButton
                             android:id="@+id/hrdlogSettingsImageButton"
@@ -1003,7 +988,6 @@
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
-
                     <!-- Operation Band Section -->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/operatonBandLayout"
@@ -1341,7 +1325,6 @@
                                 android:textColor="@color/text_view_color"
                                 android:textSize="12sp" />
                         </com.bg7yoz.ft8cn.ui.RadioGroupFt8cn>
-
                         <!-- ДОБАВЛЕНО: Кнопка Connect/Disconnect -->
                         <Button
                             android:id="@+id/btnConnectRig"
@@ -1355,6 +1338,23 @@
                             app:layout_constraintStart_toEndOf="@+id/controlModeRadioGroup"
                             app:layout_constraintTop_toTopOf="parent" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- ✅ Риг статус: ПЕРЕМЕЩЁН СЮДА (между Control и Connection type) -->
+                    <TextView
+                        android:id="@+id/tvRigConnectionStatus"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        android:padding="6dp"
+                        android:text="Disconnected"
+                        android:textColor="@color/text_view_color"
+                        android:textSize="12sp"
+                        android:fontFamily="monospace"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/controlModeLayout" />
+
                     <!-- Connect Mode Section -->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/connectModeLayout"
@@ -1364,7 +1364,7 @@
                         android:background="@drawable/editor_layout_style"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/controlModeLayout">
+                        app:layout_constraintTop_toBottomOf="@+id/tvRigConnectionStatus">
                         <TextView
                             android:id="@+id/connectModeDelayText"
                             android:layout_width="wrap_content"
@@ -1621,8 +1621,7 @@
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck,DuplicateSpeakableTextCheck" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
-
-                    <!-- Rig Name Section (ПЕРЕМЕЩЕНО ВВЕРХ) -->
+                    <!-- Rig Name Section -->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/rigNameLayout"
                         android:layout_width="0dp"
@@ -1676,10 +1675,9 @@
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
-
-                    <!-- TUNE Command Section (ПЕРЕМЕЩЕНО ВНИЗ) -->
+                    <!-- TUNE Command Section -->
                     <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/tuneCommandLayout"
+                        android:id="@+id/tuneAndClearLayout"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
@@ -1688,7 +1686,7 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/rigNameLayout">
 
-                        <!-- Label: "Send TUNE on Freq Change" -->
+                        <!-- TUNE Label -->
                         <TextView
                             android:id="@+id/tuneCommandLabel"
                             android:layout_width="75dp"
@@ -1698,19 +1696,16 @@
                             android:textAlignment="textEnd"
                             android:textColor="@color/text_view_color"
                             android:textSize="14sp"
-                            app:layout_constraintBottom_toBottomOf="@+id/sendTuneOnFreqChangeSwitch"
-                            app:layout_constraintEnd_toStartOf="@+id/sendTuneOnFreqChangeSwitch"
+                            app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
 
-                        <!-- Switch: ON/OFF -->
+                        <!-- TUNE Switch -->
                         <Switch
                             android:id="@+id/sendTuneOnFreqChangeSwitch"
-                            android:layout_width="100dp"
+                            android:layout_width="70dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="4dp"
-                            android:layout_marginBottom="4dp"
+                            android:layout_marginStart="4dp"
                             android:checked="false"
                             android:text="OFF"
                             android:textColor="@color/text_view_color"
@@ -1720,11 +1715,42 @@
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintStart_toEndOf="@+id/tuneCommandLabel"
                             app:layout_constraintTop_toTopOf="parent"
-                            tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
+                            tools:ignore="UseSwitchCompatOrMaterialXml" />
 
-                        <!-- Help button -->
+                        <!-- CLEAR Label -->
+                        <TextView
+                            android:id="@+id/clearCallHistLabel"
+                            android:layout_width="75dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/config_clear_call_hist_on_freq_change"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/sendTuneOnFreqChangeSwitch"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <!-- CLEAR Switch -->
+                        <Switch
+                            android:id="@+id/clearCallHistOnFreqChangeSwitch"
+                            android:layout_width="70dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:checked="false"
+                            android:text="OFF"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            android:thumbTint="?attr/colorPrimary"
+                            android:trackTint="@color/button_start_color"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/clearCallHistLabel"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="UseSwitchCompatOrMaterialXml" />
+
+                        <!-- Help Button (выровнена по правому краю, как в других секциях) -->
                         <ImageButton
-                            android:id="@+id/tuneCommandHelpButton"
+                            android:id="@+id/clearCallHistHelpButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="8dp"
@@ -1738,21 +1764,8 @@
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
-                    <!-- Rig Connection Status -->
-                    <TextView
-                        android:id="@+id/tvRigConnectionStatus"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:background="@drawable/editor_layout_style"
-                        android:padding="6dp"
-                        android:text="Disconnected"
-                        android:textColor="@color/text_view_color"
-                        android:textSize="12sp"
-                        android:fontFamily="monospace"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/tuneCommandLayout" />
+                    <!-- ⚠️ tvRigConnectionStatus УДАЛЁН отсюда (был между tuneCommandLayout и decodeModeLayout) -->
+
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/decodeModeLayout"
                         android:layout_width="0dp"
@@ -1761,7 +1774,7 @@
                         android:background="@drawable/editor_layout_style"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/tvRigConnectionStatus">
+                        app:layout_constraintTop_toBottomOf="@+id/tuneAndClearLayout">
                         <TextView
                             android:id="@+id/decodeModeText"
                             android:layout_width="wrap_content"
@@ -2262,8 +2275,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:srcCompat="@drawable/config_ic_baseline_keyboard_arrow_down_24" />
-        <!-- Bottom Action Buttons -->
-        <!-- Bottom Action Buttons -->
         <!-- Bottom Action Buttons -->
         <LinearLayout
             android:id="@+id/bottomButtonsPanel"

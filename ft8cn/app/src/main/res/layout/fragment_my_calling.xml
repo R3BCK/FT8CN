@@ -40,7 +40,7 @@
                 app:layout_constraintTop_toBottomOf="@+id/toCallsignTextView"
                 tools:text="123456" />
 
-            <!-- UTC Delay (NEW: между временем и иконкой динамика) -->
+            <!-- UTC Delay (между временем и кнопкой передачи) -->
             <TextView
                 android:id="@+id/utcDelayTextView"
                 android:layout_width="wrap_content"
@@ -284,7 +284,7 @@
                 app:layout_constraintStart_toStartOf="@+id/guideline3"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <!-- Bearing header Azimuth (fixed width, between Message and Distance) - ИСПРАВЛЕНО -->
+            <!-- Bearing header Azimuth (fixed width, between Message and Distance) -->
             <TextView
                 android:id="@+id/textViewAzimuth"
                 android:layout_width="30dp"
@@ -301,7 +301,7 @@
                 app:layout_constraintTop_toTopOf="@+id/decoder_counter_textView"
                 app:layout_constraintHorizontal_bias="0.5" />
 
-            <!-- Distance (fixed width, right-aligned, rightmost) - ИСПРАВЛЕНО -->
+            <!-- Distance (fixed width, right-aligned, rightmost) -->
             <TextView
                 android:id="@+id/textView9"
                 android:layout_width="45dp"

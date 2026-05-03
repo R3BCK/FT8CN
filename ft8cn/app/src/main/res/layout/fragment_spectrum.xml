@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -45,8 +44,7 @@
             tools:ignore="SmallSp"
             tools:text="UTC TIMER"
             tools:visibility="visible" />
-        <!-- Local time display -->
-        <!-- Local time display (вставляем ПОСЛЕ timersTextView) -->
+
         <TextView
             android:id="@+id/spectrumLocTimeText"
             android:layout_width="wrap_content"
@@ -62,7 +60,6 @@
             app:layout_constraintTop_toTopOf="@id/timersTextView"
             tools:ignore="SmallSp" />
 
-        <!-- Offset display -->
         <TextView
             android:id="@+id/spectrumOffsetText"
             android:layout_width="wrap_content"
@@ -138,7 +135,7 @@
             app:layout_constraintEnd_toStartOf="@+id/showMessageSwitch"
             app:layout_constraintStart_toEndOf="@+id/deNoiseSwitch"
             tools:ignore="TextContrastCheck"
-            tools:text="解码耗时500毫秒" />
+            tools:text="Decoding..." />
 
         <TextView
             android:id="@+id/freqBandTextView"
@@ -152,8 +149,7 @@
             app:layout_constraintBottom_toBottomOf="@+id/timersTextView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/columnarView"
-            tools:text="波特率设置" />
+            tools:text="Band" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 </layout>

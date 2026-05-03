@@ -1,12 +1,14 @@
 package com.bg7yoz.ft8cn;
 /**
- * FT8CN程序的主Activity。本APP采用Fragment框架实现，每个Fragment实现不同的功能。
+ * Main Activity of FT8CN application.
+ * This APP uses Fragment framework, each Fragment implements different functionality.
  * ----2022.5.6-----
- * 主要完成以下功能：
- * 1.生成MainViewModel实例。MainViewModel是用于整个生存周期，用于录音、解析等功能。
- * 2.录音、存储的权限申请。
- * 3.实现Fragment的导航管理。
- * 4.USB串口连接后的提示
+ * Main functions:
+ * 1. Create MainViewModel instance. MainViewModel lives for entire app lifecycle,
+ *    handles recording, decoding, etc.
+ * 2. Request permissions for recording and storage.
+ * 3. Implement Fragment navigation management.
+ * 4. Show notification after USB serial connection.
  *
  * @author BG7YOZ
  * @date 2022.5.6
@@ -28,6 +30,8 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -35,6 +39,8 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
 import android.widget.TextView;
+import android.content.Context;
+import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -77,13 +83,11 @@ public class MainActivity extends AppCompatActivity {
     private MainViewModel mainViewModel;
     private NavController navController;
     private static boolean animatorRunned = false;
-    //private boolean animationEnd = false;
 
     private MainActivityBinding binding;
     private FloatView floatView;
 
-    private ShareLogsProgressDialog dialog = null;//生成共享log的对话框
-
+    private ShareLogsProgressDialog dialog = null;
 
     String[] permissions = new String[]{Manifest.permission.RECORD_AUDIO
             , Manifest.permission.ACCESS_COARSE_LOCATION
@@ -96,6 +100,13 @@ public class MainActivity extends AppCompatActivity {
     List<String> mPermissionList = new ArrayList<>();
 
     private static final int PERMISSION_REQUEST = 1;
+
+    // === USB Reconnect and RFI protection ===
+    private static final String PREFS_USB = "FT8CN_UsbPrefs";
+    private static final String KEY_DISCONNECT_COUNT = "disconnect_count_";
+    private static final String KEY_LAST_TX_FREQ = "last_tx_frequency";
+    private static final int MAX_DISCONNECT_BEFORE_STOP = 3;
+    // =========================================
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,38 +124,32 @@ public class MainActivity extends AppCompatActivity {
         }
 
         checkPermission();
-        //全屏
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN
                 , WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-        //禁止休眠
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
                 , WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         super.onCreate(savedInstanceState);
         GeneralVariables.getInstance().setMainContext(getApplicationContext());
 
-        //判断是不是简体中文
         GeneralVariables.isTraditionalChinese =
-                getResources().getConfiguration().locale.getDisplayCountry().equals("中國");
+                getResources().getConfiguration().locale.getDisplayCountry().equals("China");
 
-        //确定是不是中国、香港、澳门、台湾
         GeneralVariables.isChina = (getResources().getConfiguration().locale
                 .getLanguage().toUpperCase().startsWith("ZH"));
 
         mainViewModel = MainViewModel.getInstance(this);
         binding = MainActivityBinding.inflate(getLayoutInflater());
-        binding.initDataLayout.setVisibility(View.VISIBLE);//显示LOG页面
+        binding.initDataLayout.setVisibility(View.VISIBLE);
         setContentView(binding.getRoot());
 
 
         ToastMessage.getInstance();
-        registerBluetoothReceiver();//注册蓝牙动作改变的广播
+        registerBluetoothReceiver();
         if (mainViewModel.isBTConnected()) {
             mainViewModel.setBlueToothOn();
         }
 
 
-        //观察DEBUG信息
         GeneralVariables.mutableDebugMessage.observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
@@ -174,7 +179,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        //观察时钟的变化，显示进度条
         mainViewModel.timerSec.observe(this, new Observer<Long>() {
             @Override
             public void onChanged(Long aLong) {
@@ -188,36 +192,26 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //添加点击发射消息提示窗口点击关闭动作
         binding.transmittingLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 binding.transmittingLayout.setVisibility(View.GONE);
             }
         });
-        //清空缓存中的文件
-        //deleteFolderFile(this.getCacheDir().getPath());
 
-        //Log.e(TAG, this.getCacheDir().getPath());
-
-        //用于Fragment的导航。
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.fragmentContainerView);
-        assert navHostFragment != null;//断言不为空
+        assert navHostFragment != null;
         navController = navHostFragment.getNavController();
 
         NavigationUI.setupWithNavController(binding.navView, navController);
-        //此处增加回调是因为当APP主动navigation后，无法回到解码的界面
         binding.navView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                //Log.e(TAG, "onNavigationItemSelected: "+item.toString() );
                 navController.navigate(item.getItemId());
-                //binding.navView.setLabelFor(item.getItemId());
                 return true;
             }
         });
 
-        //FT8CN Ver %s\nBG7YOZ\n%s
         binding.welcomTextView.setText(String.format(getString(R.string.version_info)
                 , GeneralVariables.VERSION, GeneralVariables.BUILD_DATE));
 
@@ -227,19 +221,15 @@ public class MainActivity extends AppCompatActivity {
             animatorRunned = true;
         } else {
             binding.initDataLayout.setVisibility(View.GONE);
-
             InitFloatView();
         }
-        //初始化数据
         InitData();
 
 
-        //观察是不是flex radio
         mainViewModel.mutableIsFlexRadio.observe(this, new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean aBoolean) {
                 if (aBoolean) {
-                    //添加flex配置按钮
                     floatView.addButton(R.id.flex_radio, "flex_radio", R.drawable.flex_icon
                             , new View.OnClickListener() {
                                 @Override
@@ -247,18 +237,16 @@ public class MainActivity extends AppCompatActivity {
                                     navController.navigate(R.id.flexRadioInfoFragment);
                                 }
                             });
-                } else {//删除flex配置按钮
+                } else {
                     floatView.deleteButtonByName("flex_radio");
                 }
             }
         });
 
-        //观察是不是xiegu radio
         mainViewModel.mutableIsXieguRadio.observe(this, new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean aBoolean) {
                 if (aBoolean) {
-                    //添加xiegu配置按钮
                     floatView.addButton(R.id.xiegu_radio, "xiegu_radio", R.drawable.xiegulogo32
                             , new View.OnClickListener() {
                                 @Override
@@ -266,13 +254,12 @@ public class MainActivity extends AppCompatActivity {
                                     navController.navigate(R.id.xieguInfoFragment);
                                 }
                             });
-                } else {//删除xiegu配置按钮
+                } else {
                     floatView.deleteButtonByName("xiegu_radio");
                 }
             }
         });
 
-        //关闭串口设备列表按钮
         binding.closeSelectSerialPortImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -280,7 +267,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //观察串口设备列表的变化
         mainViewModel.mutableSerialPorts.observe(this, new Observer<ArrayList<CableSerialPort.SerialPort>>() {
             @Override
             public void onChanged(ArrayList<CableSerialPort.SerialPort> serialPorts) {
@@ -288,14 +274,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //列USB设备列表
         mainViewModel.getUsbDevice();
 
 
-        //设置发射消息框的动画
         binding.transmittingMessageTextView.setAnimation(AnimationUtils.loadAnimation(this
                 , R.anim.view_blink));
-        //观察发射的状态
         mainViewModel.ft8TransmitSignal.mutableIsTransmitting.observe(this,
                 new Observer<Boolean>() {
                     @Override
@@ -308,7 +291,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-        //观察发射内容的变化
         mainViewModel.ft8TransmitSignal.mutableTransmittingMessage.observe(this,
                 new Observer<String>() {
                     @Override
@@ -317,91 +299,111 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-        //判断导入共享log文件的工作线程还在，如果在，就显示对话框
         if (Boolean.TRUE.equals(mainViewModel.mutableImportShareRunning.getValue())) {
             showShareDialog();
         }else {
-            //读取共享的文件
             doReceiveShareFile(getIntent());
         }
+
+        requestIgnoreBatteryOptimization();
 
     }
 
 
-    /**
-     * 接收共享文件
-     * @param intent intent
-     */
+    private void requestIgnoreBatteryOptimization() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+            if (pm != null) {
+                String packageName = getPackageName();
+                boolean isIgnoring = pm.isIgnoringBatteryOptimizations(packageName);
+
+                if (!isIgnoring) {
+                    Log.d(TAG, "Battery optimization not ignored, requesting exemption");
+
+                    new AlertDialog.Builder(this)
+                            .setTitle("Background Operation")
+                            .setMessage("To ensure stable FT8 transmission and reception, FT8CN needs to run in the background. Please allow the app to ignore battery optimization.\n\nThis prevents Android from stopping audio recording and radio communication when the screen is off.")
+                            .setPositiveButton("Allow", (dialog, which) -> {
+                                Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                                intent.setData(Uri.parse("package:" + packageName));
+                                startActivity(intent);
+                            })
+                            .setNegativeButton("Later", (dialog, which) -> {
+                                Log.i(TAG, "User deferred battery optimization exemption");
+                                dialog.dismiss();
+                            })
+                            .setCancelable(false)
+                            .show();
+                } else {
+                    Log.d(TAG, "Battery optimization already ignored for " + packageName);
+                }
+            }
+        }
+    }
+
+
     private void doReceiveShareFile(Intent intent) {
         Uri uri = (Uri) intent.getData();
 
         if (uri != null) {
             ImportSharedLogs importSharedLogs = null;
-            //先显示导入log的对话框
             showShareDialog();
             try {
 
                 importSharedLogs = new ImportSharedLogs(mainViewModel);
-                Log.e(TAG,"开始导入。。。");
+                Log.e(TAG,"Starting import...");
                 mainViewModel.mutableImportShareRunning.setValue(true);
                 importSharedLogs.doImport(getBaseContext().getContentResolver().openInputStream(uri)
                         ,new OnShareLogEvents() {
-                    @Override
-                    public void onPreparing(String info) {
-                        mainViewModel.mutableShareInfo.postValue(info);
-                    }
+                            @Override
+                            public void onPreparing(String info) {
+                                mainViewModel.mutableShareInfo.postValue(info);
+                            }
 
-                    @Override
-                    public void onShareStart(int count, String info) {
-                        mainViewModel.mutableSharePosition.postValue(0);
-                        mainViewModel.mutableShareInfo.postValue(info);
-                        mainViewModel.mutableImportShareRunning.postValue(true);
-                        mainViewModel.mutableShareCount.postValue(count);
-                    }
+                            @Override
+                            public void onShareStart(int count, String info) {
+                                mainViewModel.mutableSharePosition.postValue(0);
+                                mainViewModel.mutableShareInfo.postValue(info);
+                                mainViewModel.mutableImportShareRunning.postValue(true);
+                                mainViewModel.mutableShareCount.postValue(count);
+                            }
 
-                    @Override
-                    public boolean onShareProgress(int count, int position, String info) {
-                        mainViewModel.mutableSharePosition.postValue(position);
-                        mainViewModel.mutableShareInfo.postValue(info);
-                        mainViewModel.mutableShareCount.postValue(count);
-                        return Boolean.TRUE.equals(mainViewModel.mutableImportShareRunning.getValue());
-                    }
+                            @Override
+                            public boolean onShareProgress(int count, int position, String info) {
+                                mainViewModel.mutableSharePosition.postValue(position);
+                                mainViewModel.mutableShareInfo.postValue(info);
+                                mainViewModel.mutableShareCount.postValue(count);
+                                return Boolean.TRUE.equals(mainViewModel.mutableImportShareRunning.getValue());
+                            }
 
-                    @Override
-                    public void afterGet(int count, String info) {
-                        mainViewModel.mutableShareInfo.postValue(info);
-                        mainViewModel.mutableImportShareRunning.postValue(false);
-                    }
+                            @Override
+                            public void afterGet(int count, String info) {
+                                mainViewModel.mutableShareInfo.postValue(info);
+                                mainViewModel.mutableImportShareRunning.postValue(false);
+                            }
 
-                    @Override
-                    public void onShareFailed(String info) {
-                        mainViewModel.mutableShareInfo.postValue(info);
-                    }
-                });
+                            @Override
+                            public void onShareFailed(String info) {
+                                mainViewModel.mutableShareInfo.postValue(info);
+                            }
+                        });
             } catch (IOException e) {
                 mainViewModel.mutableImportShareRunning.postValue(false);
-                Log.e(TAG,String.format("错误：%s",e.getMessage()));
+                Log.e(TAG,String.format("Error: %s",e.getMessage()));
                 ToastMessage.show(e.getMessage());
             }
         } else {
-            Log.e(TAG, "读文件类型时，文件没有找到。");
+            Log.e(TAG, "File not found when reading file type.");
         }
     }
 
 
-    /**
-     * 添加浮动按钮
-     */
-
     private void InitFloatView() {
-        //floatView = new FloatView(this, 32);
-
         binding.container.addView(floatView);
         floatView.setButtonMargin(0);
         floatView.setFloatBoard(FloatView.FLOAT_BOARD.RIGHT);
 
         floatView.setButtonBackgroundResourceId(R.drawable.float_button_style);
-        //动态添加按钮，建议使用静态的ID，静态ID在VALUES/FLOAT_BUTTON_IDS.XML中设置
         floatView.addButton(R.id.float_nav, "float_nav", R.drawable.ic_baseline_fullscreen_24
                 , new View.OnClickListener() {
                     @Override
@@ -435,7 +437,6 @@ public class MainActivity extends AppCompatActivity {
                         new SetVolumeDialog(binding.container.getContext(), mainViewModel).show();
                     }
                 });
-        //打开网格追踪
         floatView.addButton(R.id.grid_tracker, "grid_tracker", R.drawable.ic_baseline_grid_tracker_24
                 , new View.OnClickListener() {
                     @Override
@@ -445,32 +446,19 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-
-//        floatView.addButton(R.id.flex_radio, "flex_radio", R.drawable.flex_icon
-//                , new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View view) {
-//                        navController.navigate(R.id.flexRadioInfoFragment);
-//                    }
-//                });
-
         floatView.initLocation();
     }
 
-    /**
-     * 初始化一些数据
-     */
-    private void InitData() {
-        if (mainViewModel.configIsLoaded) return;//如果数据已经读取一遍了，就不用再读取了。
 
-        //读取波段数据
+    private void InitData() {
+        if (mainViewModel.configIsLoaded) return;
+
         if (mainViewModel.operationBand == null) {
             mainViewModel.operationBand = OperationBand.getInstance(getBaseContext());
         }
 
         mainViewModel.databaseOpr.getQslDxccToMap();
 
-        //获取所有的配置参数
         mainViewModel.databaseOpr.getAllConfigParameter(new OnAfterQueryConfig() {
             @Override
             public void doOnBeforeQueryConfig(String KeyName) {
@@ -480,21 +468,18 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void doOnAfterQueryConfig(String KeyName, String Value) {
                 mainViewModel.configIsLoaded = true;
-                //此处梅登海德已经通过数据库得到了，但是如果GPS能获取到，还是用GPS的
                 String grid = MaidenheadGrid.getMyMaidenheadGrid(getApplicationContext());
-                if (!grid.equals("")) {//说明获取到了GPS数据
+                if (!grid.equals("")) {
                     GeneralVariables.setMyMaidenheadGrid(grid);
-                    //写到数据库中
                     mainViewModel.databaseOpr.writeConfig("grid", grid, null);
                 }
 
                 mainViewModel.ft8TransmitSignal.setTimer_sec(GeneralVariables.transmitDelay);
-                //如果呼号、网格为空，就进入设置界面
                 if (GeneralVariables.getMyMaidenheadGrid().equals("")
                         || GeneralVariables.myCallsign.equals("")) {
                     runOnUiThread(new Runnable() {
                         @Override
-                        public void run() {//导航到设置页面
+                        public void run() {
                             navController.navigate(R.id.menu_nav_config);
                         }
                     });
@@ -502,20 +487,15 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //把历史中通联成功的呼号与网格的对应关系
         new DatabaseOpr.GetCallsignMapGrid(mainViewModel.databaseOpr.getDb()).execute();
 
         mainViewModel.getFollowCallsignsFromDataBase();
-        //打开呼号位置信息的数据库，目前是以内存数据库方式。
         if (GeneralVariables.callsignDatabase == null) {
             GeneralVariables.callsignDatabase = CallsignDatabase.getInstance(getBaseContext(), null, 1);
         }
     }
 
 
-    /**
-     * 显示生成log的对话框
-     */
     private void showShareDialog() {
         dialog = new ShareLogsProgressDialog(
                 binding.getRoot().getContext()
@@ -528,31 +508,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    /**
-     * 检查权限
-     */
     private void checkPermission() {
         mPermissionList.clear();
 
-        //判断哪些权限未授予
         for (String permission : permissions) {
             if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
                 mPermissionList.add(permission);
             }
         }
 
-        //判断是否为空
-        if (!mPermissionList.isEmpty()) {//请求权限方法
-            String[] permissions = mPermissionList.toArray(new String[mPermissionList.size()]);//将List转为数组
+        if (!mPermissionList.isEmpty()) {
+            String[] permissions = mPermissionList.toArray(new String[mPermissionList.size()]);
             ActivityCompat.requestPermissions(MainActivity.this, permissions, PERMISSION_REQUEST);
         }
     }
 
 
-    /**
-     * 响应授权
-     * 这里不管用户是否拒绝，都进入首页，不再重复申请权限
-     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -562,56 +533,150 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    /**
-     * 显示串口设备列表
-     */
+    private static final String PREFS_SERIAL = "FT8CN_SerialPrefs";
+    private static final String KEY_LAST_PORT_ID = "last_port_id";
+
     public void setSelectUsbDevice() {
         ArrayList<CableSerialPort.SerialPort> ports = mainViewModel.mutableSerialPorts.getValue();
         binding.selectSerialPortLinearLayout.removeAllViews();
-        for (int i = 0; i < ports.size(); i++) {//动态添加串口设备列表
-            View layout = LayoutInflater.from(getApplicationContext())
-                    .inflate(R.layout.select_serial_port_list_view_item, null);
-            layout.setId(i);
-            TextView textView = layout.findViewById(R.id.selectSerialPortListViewItemTextView);
-            textView.setText(ports.get(i).information());
-            binding.selectSerialPortLinearLayout.addView(layout);
-            layout.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    //连接电台并做电台的频率设置等操作
-                    mainViewModel.connectCableRig(getApplicationContext(), ports.get(view.getId()));
-                    binding.selectSerialPortLayout.setVisibility(View.GONE);
-                }
-            });
+
+        if (ports == null || ports.isEmpty() || mainViewModel.isRigConnected()) {
+            binding.selectSerialPortLayout.setVisibility(View.GONE);
+            return;
         }
 
-        //选择串口设备弹框
-        if ((ports.size() >= 1) && (!mainViewModel.isRigConnected())) {
-            binding.selectSerialPortLayout.setVisibility(View.VISIBLE);
-        } else {//说明没有可以识别的驱动，不显示设备弹框
+        SharedPreferences prefs = getSharedPreferences(PREFS_SERIAL, Context.MODE_PRIVATE);
+        String savedPortId = prefs.getString(KEY_LAST_PORT_ID, null);
+        CableSerialPort.SerialPort targetPort = null;
+
+        if (ports.size() == 1) {
+            targetPort = ports.get(0);
+        }
+        else if (savedPortId != null) {
+            for (CableSerialPort.SerialPort p : ports) {
+                if (p.information() != null && p.information().equals(savedPortId)) {
+                    targetPort = p;
+                    break;
+                }
+            }
+        }
+
+        if (targetPort != null) {
+            Log.d(TAG, "Auto-connecting to serial port: " + targetPort.information());
+
+            // Check if we should stop transmission due to repeated disconnects
+            if (shouldStopTransmissionOnThisFrequency()) {
+                Log.w(TAG, "Transmission stopped: too many USB disconnects on this frequency");
+                ToastMessage.show("TX stopped: USB unstable on this band");
+                if (mainViewModel.ft8TransmitSignal.isActivated()) {
+                    mainViewModel.ft8TransmitSignal.setActivated(false);
+                    mainViewModel.ft8TransmitSignal.setTransmitting(false);
+                    if (mainViewModel.baseRig != null && mainViewModel.baseRig.isConnected()) {
+                        try {
+                            mainViewModel.baseRig.setPTT(false);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Failed to send PTT OFF: " + e.getMessage());
+                        }
+                    }
+                }
+                binding.selectSerialPortLayout.setVisibility(View.GONE);
+                return;
+            }
+
+            // Check if rig was transmitting before disconnect - force stop after reconnect
+            boolean wasTransmitting = mainViewModel.ft8TransmitSignal.isTransmitting();
+
+            mainViewModel.connectCableRig(this, targetPort);
             binding.selectSerialPortLayout.setVisibility(View.GONE);
+
+            if (savedPortId == null) {
+                prefs.edit().putString(KEY_LAST_PORT_ID, targetPort.information()).apply();
+            }
+
+            // If was transmitting, ensure TX is stopped after reconnect
+            if (wasTransmitting) {
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                    if (mainViewModel.baseRig != null && mainViewModel.baseRig.isConnected()) {
+                        Log.d(TAG, "Forcing PTT OFF after USB reconnect (was transmitting)");
+                        try {
+                            mainViewModel.baseRig.setPTT(false);
+                            mainViewModel.ft8TransmitSignal.setTransmitting(false);
+                            mainViewModel.mutableIsRecording.postValue(true);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Failed to force PTT OFF: " + e.getMessage());
+                        }
+                    }
+                }, 500);
+            }
+        } else {
+            for (int i = 0; i < ports.size(); i++) {
+                CableSerialPort.SerialPort port = ports.get(i);
+                View layout = LayoutInflater.from(this)
+                        .inflate(R.layout.select_serial_port_list_view_item, null);
+                layout.setId(i);
+                TextView textView = layout.findViewById(R.id.selectSerialPortListViewItemTextView);
+                textView.setText(port.information());
+                binding.selectSerialPortLinearLayout.addView(layout);
+
+                layout.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        prefs.edit().putString(KEY_LAST_PORT_ID, port.information()).apply();
+                        mainViewModel.connectCableRig(getApplicationContext(), port);
+                        binding.selectSerialPortLayout.setVisibility(View.GONE);
+                    }
+                });
+            }
+            binding.selectSerialPortLayout.setVisibility(View.VISIBLE);
         }
     }
 
-//    /**
-//     * 删除指定文件夹中的所有文件
-//     *
-//     * @param filePath 指定的文件夹
-//     */
-//    public static void deleteFolderFile(String filePath) {
-//        try {
-//            File file = new File(filePath);//获取SD卡指定路径
-//            File[] files = file.listFiles();//获取SD卡指定路径下的文件或者文件夹
-//            for (int i = 0; i < files.length; i++) {
-//                if (files[i].isFile()) {//如果是文件直接删除
-//                    File tempFile = new File(files[i].getPath());
-//                    tempFile.delete();
-//                }
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
+
+    /**
+     * Check if transmission should be stopped on current frequency due to repeated USB disconnects
+     * @return true if transmission should be stopped
+     */
+    private boolean shouldStopTransmissionOnThisFrequency() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_USB, Context.MODE_PRIVATE);
+        long currentFreq = GeneralVariables.band;
+        String key = KEY_DISCONNECT_COUNT + currentFreq;
+        int disconnectCount = prefs.getInt(key, 0);
+
+        if (disconnectCount >= MAX_DISCONNECT_BEFORE_STOP) {
+            return true;
+        }
+        return false;
+    }
+
+
+    /**
+     * Increment disconnect counter for current frequency
+     */
+    public void incrementUsbDisconnectCounter() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_USB, Context.MODE_PRIVATE);
+        long currentFreq = GeneralVariables.band;
+        String key = KEY_DISCONNECT_COUNT + currentFreq;
+        int count = prefs.getInt(key, 0) + 1;
+        prefs.edit().putInt(key, count).apply();
+        Log.d(TAG, "USB disconnect count for freq " + currentFreq + ": " + count);
+
+        if (count >= MAX_DISCONNECT_BEFORE_STOP) {
+            Log.w(TAG, "USB disconnect threshold reached for freq " + currentFreq);
+        }
+    }
+
+
+    /**
+     * Reset disconnect counter for current frequency (call after successful operation)
+     */
+    public void resetUsbDisconnectCounter() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_USB, Context.MODE_PRIVATE);
+        long currentFreq = GeneralVariables.band;
+        String key = KEY_DISCONNECT_COUNT + currentFreq;
+        prefs.edit().remove(key).apply();
+        Log.d(TAG, "USB disconnect counter reset for freq " + currentFreq);
+    }
+
 
     private void animationImage() {
 
@@ -625,7 +690,6 @@ public class MainActivity extends AppCompatActivity {
 
         AnimatorSet animatorSet = new AnimatorSet();
         animatorSet.playTogether(navigationAnimator, hideLogoAnimator);
-        //animatorSet.playTogether(initPositionStrAnimator, logoAnimator, navigationAnimator, hideLogoAnimator);
         animatorSet.addListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animator) {
@@ -634,11 +698,9 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onAnimationEnd(Animator animator) {
-                //animationEnd = true;
                 binding.initDataLayout.setVisibility(View.GONE);
                 binding.utcProgressBar.setVisibility(View.VISIBLE);
-                InitFloatView();//显示浮窗
-                //binding.floatView.setVisibility(View.VISIBLE);
+                InitFloatView();
             }
 
             @Override
@@ -656,13 +718,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    //此方法只有在android:launchMode="singleTask"模式下起作用
     @Override
     protected void onNewIntent(Intent intent) {
         if ("android.hardware.usb.action.USB_DEVICE_ATTACHED".equals(intent.getAction())) {
             mainViewModel.getUsbDevice();
         }else {
-            setIntent(intent);//因为处于单例模式，所以要更新一下intent
+            setIntent(intent);
             doReceiveShareFile(getIntent());
         }
         super.onNewIntent(intent);
@@ -671,7 +732,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (navController.getGraph().getStartDestination() == navController.getCurrentDestination().getId()) {//说明是到最后一个页面了
+        if (navController.getGraph().getStartDestination() == navController.getCurrentDestination().getId()) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this)
                     .setMessage(getString(R.string.exit_confirmation))
                     .setPositiveButton(getString(R.string.exit)
@@ -681,7 +742,7 @@ public class MainActivity extends AppCompatActivity {
                                     if (mainViewModel.ft8TransmitSignal.isActivated()) {
                                         mainViewModel.ft8TransmitSignal.setActivated(false);
                                     }
-                                    closeThisApp();//退出APP
+                                    closeThisApp();
                                 }
                             }).setNegativeButton(getString(R.string.cancel)
                             , new DialogInterface.OnClickListener() {
@@ -692,9 +753,8 @@ public class MainActivity extends AppCompatActivity {
                             });
             builder.create().show();
 
-        } else {//退出activity堆栈
+        } else {
             navController.navigateUp();
-            //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
         }
     }
 
@@ -712,9 +772,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    /**
-     * 注册蓝牙动作广播
-     */
     private void registerBluetoothReceiver() {
         if (mReceive == null) {
             mReceive = new BluetoothStateBroadcastReceive(getApplicationContext(), mainViewModel);
@@ -735,9 +792,7 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(mReceive, intentFilter);
     }
 
-    /**
-     * 注销蓝牙动作广播
-     */
+
     private void unregisterBluetoothReceiver() {
         if (mReceive != null) {
             unregisterReceiver(mReceive);
@@ -748,7 +803,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         unregisterBluetoothReceiver();
-        //保证屏幕方向切换后，不会因为对话框导致闪退
         if (Boolean.TRUE.equals(mainViewModel.mutableImportShareRunning.getValue())) {
             if (dialog != null) {
                 dialog.dismiss();

@@ -1,0 +1,1157 @@
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\bluetooth\BluetoothConstants.java:39: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                if (parcelUuids[i].getUuid().toString().toUpperCase().equals("00001101-0000-1000-8000-00805F9B34FB")) {
+                                                        ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\bluetooth\BluetoothConstants.java:53: Warning: Implicitly using the default locale is a common source of bugs: Use toLowerCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                if (parcelUuids[i].getUuid().toString().toLowerCase().equals("0000111e-0000-1000-8000-00805f9b34fb")) {
+                                                        ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\bluetooth\BluetoothConstants.java:56: Warning: Implicitly using the default locale is a common source of bugs: Use toLowerCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                if (parcelUuids[i].getUuid().toString().toLowerCase().equals("0000110b-0000-1000-8000-00805f9b34fb")) {
+                                                        ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\callsign\CallsignDatabase.java:163: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+        Cursor cursor = db.rawQuery(querySQL, new String[]{callsign.toUpperCase(), callsign.toUpperCase()});
+                                                                    ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\callsign\CallsignDatabase.java:163: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+        Cursor cursor = db.rawQuery(querySQL, new String[]{callsign.toUpperCase(), callsign.toUpperCase()});
+                                                                                            ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\callsign\CallsignDatabase.java:165: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            callsignInfo = new CallsignInfo(callsign.toUpperCase()
+                                                     ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\ui\ConfigFragment.java:194: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            GeneralVariables.hrdlogCallsign = s.toString().toUpperCase().trim();
+                                                           ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\ui\ConfigFragment.java:228: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            writeConfig("callsign", editable.toString().toUpperCase().trim());
+                                                        ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\ui\ConfigFragment.java:229: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            String callsign = editable.toString().toUpperCase().trim();
+                                                  ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\ui\ConfigFragment.java:235: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            GeneralVariables.myCallsign = (editable.toString().toUpperCase().trim());
+                                                               ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\ui\ConfigFragment.java:342: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            if (editable.toString().toUpperCase().trim().matches("[0-9]{3}|[A-Z]{1,4}")
+                                    ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\ui\ConfigFragment.java:345: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                GeneralVariables.toModifier = editable.toString().toUpperCase().trim();
+                                                                  ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\ui\ConfigFragment.java:366: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                String temp = editable.toString().substring(0, 2).toUpperCase();
+                                                                  ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\ui\ConfigFragment.java:2017: Warning: Implicitly using the default locale is a common source of bugs: Use String.format(Locale, ...) instead [DefaultLocale]
+        binding.utcCalculatedOffsetText.setText(String.format("%+d ms", displayOffset));
+                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\ft8signal\FT8Package.java:267: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            String temp = callsign.substring(3).trim().toUpperCase();
+                                                       ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\flex\FlexMeterInfos.java:45: Warning: Implicitly using the default locale is a common source of bugs: Use toLowerCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                    if (val[0].toLowerCase().contains(".src")) {
+                               ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\flex\FlexMeterInfos.java:49: Warning: Implicitly using the default locale is a common source of bugs: Use toLowerCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                    if (val[0].toLowerCase().contains(".num")) {
+                               ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\flex\FlexMeterInfos.java:52: Warning: Implicitly using the default locale is a common source of bugs: Use toLowerCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                    if (val[0].toLowerCase().contains(".nam")) {
+                               ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\flex\FlexMeterInfos.java:55: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                        if (val[1].toUpperCase().contains("LEVEL")) {
+                                   ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\flex\FlexMeterInfos.java:57: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                        } else if (val[1].toUpperCase().contains("PATEMP")) {
+                                          ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\flex\FlexMeterInfos.java:59: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                        } else if (val[1].toUpperCase().contains("SWR")) {
+                                          ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\flex\FlexMeterInfos.java:61: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                        } else if (val[1].toUpperCase().contains("FWDPWR")) {
+                                          ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\flex\FlexMeterInfos.java:63: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                        } else if (val[1].toUpperCase().contains("ALC")) {
+                                          ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\flex\FlexMeterInfos.java:68: Warning: Implicitly using the default locale is a common source of bugs: Use toLowerCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                    if (val[0].toLowerCase().contains(".low")) {
+                               ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\flex\FlexMeterInfos.java:71: Warning: Implicitly using the default locale is a common source of bugs: Use toLowerCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                    if (val[0].toLowerCase().contains(".hi")) {
+                               ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\flex\FlexMeterInfos.java:74: Warning: Implicitly using the default locale is a common source of bugs: Use toLowerCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                    if (val[0].toLowerCase().contains(".desc")) {
+                               ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\flex\FlexMeterInfos.java:77: Warning: Implicitly using the default locale is a common source of bugs: Use toLowerCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                    if (val[0].toLowerCase().contains(".unit")) {
+                               ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\flex\FlexMeterInfos.java:78: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                        String s = val[1].toUpperCase();
+                                          ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\flex\FlexMeterInfos.java:92: Warning: Implicitly using the default locale is a common source of bugs: Use toLowerCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                    if (val[0].toLowerCase().contains(".fps")) {
+                               ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\flex\FlexMeterInfos.java:95: Warning: Implicitly using the default locale is a common source of bugs: Use toLowerCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                    if (val[0].toLowerCase().contains(".peak")) {
+                               ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\flex\FlexRadio.java:135: Warning: Implicitly using the default locale is a common source of bugs: Use toLowerCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            if (parameters[i].toLowerCase().startsWith(prefix.toLowerCase() + "=")) {
+                              ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\flex\FlexRadio.java:135: Warning: Implicitly using the default locale is a common source of bugs: Use toLowerCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            if (parameters[i].toLowerCase().startsWith(prefix.toLowerCase() + "=")) {
+                                                              ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\flex\FlexRadio.java:153: Warning: Implicitly using the default locale is a common source of bugs: Use toLowerCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            if (parameters[i].toLowerCase().startsWith(prefix.toLowerCase() + "=")) {
+                              ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\flex\FlexRadio.java:153: Warning: Implicitly using the default locale is a common source of bugs: Use toLowerCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            if (parameters[i].toLowerCase().startsWith(prefix.toLowerCase() + "=")) {
+                                                              ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\flex\FlexRadio.java:1057: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                header = line.toUpperCase().charAt(0);
+                              ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\flex\FlexRadio.java:1132: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                        if (head.toUpperCase().charAt(1) == 'D') index = 2;
+                                 ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\flex\FlexRadioFactory.java:113: Warning: Implicitly using the default locale is a common source of bugs: Use toLowerCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            if (strings[i].toLowerCase().startsWith("serial")){
+                           ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\Ft8Message.java:114: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+        this.callsignTo = callTo.toUpperCase();
+                                 ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\Ft8Message.java:115: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+        this.callsignFrom = callFrom.toUpperCase();
+                                     ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\Ft8Message.java:116: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+        this.extraInfo = extraInfo.toUpperCase();
+                                   ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\GeneralVariables.java:121: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+        String[] s = callsigns.toUpperCase().replace(" ", ",")
+                               ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\GeneralVariables.java:140: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            if (callsign.toUpperCase().indexOf(key) == 0) {
+                         ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\log\ImportSharedLogs.java:90: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                                        record.put(name.toUpperCase(), value);//保存字段,key要大写
+                                                        ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\log\LogFileImport.java:95: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                                        record.put(name.toUpperCase(), value);//保存字段,key要大写
+                                                        ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\maidenhead\MaidenheadGrid.java:43: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            x = grid.toUpperCase().charAt(1) - 'A' + 0.5f;
+                     ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\maidenhead\MaidenheadGrid.java:45: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            x = grid.toUpperCase().charAt(1) - 'A';
+                     ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\maidenhead\MaidenheadGrid.java:56: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            z = grid.toUpperCase().charAt(5) - 'A' + 0.5f;
+                     ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\maidenhead\MaidenheadGrid.java:65: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            x = grid.toUpperCase().charAt(0) - 'A' + 0.5;
+                     ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\maidenhead\MaidenheadGrid.java:67: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            x = grid.toUpperCase().charAt(0) - 'A';
+                     ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\maidenhead\MaidenheadGrid.java:77: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            z = grid.toUpperCase().charAt(4) - 'A' + 0.5;
+                     ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\maidenhead\MaidenheadGrid.java:101: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+        double x = grid.toUpperCase().charAt(1) - 'A';
+                        ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\maidenhead\MaidenheadGrid.java:108: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            z = grid.toUpperCase().charAt(5) - 'A';
+                     ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\maidenhead\MaidenheadGrid.java:117: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            x = grid.toUpperCase().charAt(1) - 'A' + 1;
+                     ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\maidenhead\MaidenheadGrid.java:119: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            x = grid.toUpperCase().charAt(1) - 'A';
+                     ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\maidenhead\MaidenheadGrid.java:128: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            z = grid.toUpperCase().charAt(5) - 'A' + 1;
+                     ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\maidenhead\MaidenheadGrid.java:136: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+        x = grid.toUpperCase().charAt(0) - 'A';
+                 ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\maidenhead\MaidenheadGrid.java:143: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            z = grid.toUpperCase().charAt(4) - 'A';
+                     ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\maidenhead\MaidenheadGrid.java:151: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            x = grid.toUpperCase().charAt(0) - 'A' + 1;
+                     ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\maidenhead\MaidenheadGrid.java:153: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            x = grid.toUpperCase().charAt(0) - 'A';
+                     ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\maidenhead\MaidenheadGrid.java:163: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            z = grid.toUpperCase().charAt(4) - 'A' + 1;
+                     ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\MainActivity.java:136: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                .getLanguage().toUpperCase().startsWith("ZH"));
+                               ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\ui\MyCallingFragment.java:426: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                mainViewModel.ft8TransmitSignal.setFreeText(editable.toString().toUpperCase());
+                                                                                ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\ui\RigNameSpinnerAdapter.java:57: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            if (rigNameList.getRigNameInfo(i).toUpperCase().contains("GUOHE")){
+                                              ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\ui\RigNameSpinnerAdapter.java:60: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            }else if (rigNameList.getRigNameInfo(i).toUpperCase().contains("XIEGU")){
+                                                    ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\ui\SpectrumFragment.java:247: Warning: Implicitly using the default locale is a common source of bugs: Use String.format(Locale, ...) instead [DefaultLocale]
+        spectrumOffsetText.setText(String.format("%+d ms", offset));
+                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\log\ThirdPartyService.java:31: Warning: Implicitly using the default locale is a common source of bugs: Use String.format(Locale, ...) instead [DefaultLocale]
+        logStr.append(String.format("<call:%d>%s "
+                      ^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\log\ThirdPartyService.java:36: Warning: Implicitly using the default locale is a common source of bugs: Use String.format(Locale, ...) instead [DefaultLocale]
+            logStr.append(String.format("<gridsquare:%d>%s "
+                          ^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\log\ThirdPartyService.java:42: Warning: Implicitly using the default locale is a common source of bugs: Use String.format(Locale, ...) instead [DefaultLocale]
+            logStr.append(String.format("<mode:%d>%s "
+                          ^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\log\ThirdPartyService.java:48: Warning: Implicitly using the default locale is a common source of bugs: Use String.format(Locale, ...) instead [DefaultLocale]
+            logStr.append(String.format("<rst_sent:%d>%s "
+                          ^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\log\ThirdPartyService.java:54: Warning: Implicitly using the default locale is a common source of bugs: Use String.format(Locale, ...) instead [DefaultLocale]
+            logStr.append(String.format("<rst_rcvd:%d>%s "
+                          ^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\log\ThirdPartyService.java:60: Warning: Implicitly using the default locale is a common source of bugs: Use String.format(Locale, ...) instead [DefaultLocale]
+            logStr.append(String.format("<qso_date:%d>%s "
+                          ^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\log\ThirdPartyService.java:66: Warning: Implicitly using the default locale is a common source of bugs: Use String.format(Locale, ...) instead [DefaultLocale]
+            logStr.append(String.format("<time_on:%d>%s "
+                          ^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\log\ThirdPartyService.java:71: Warning: Implicitly using the default locale is a common source of bugs: Use String.format(Locale, ...) instead [DefaultLocale]
+            logStr.append(String.format("<band:%d>%s "
+                          ^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\log\ThirdPartyService.java:77: Warning: Implicitly using the default locale is a common source of bugs: Use String.format(Locale, ...) instead [DefaultLocale]
+            logStr.append(String.format("<qso_date_off:%d>%s "
+                          ^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\log\ThirdPartyService.java:83: Warning: Implicitly using the default locale is a common source of bugs: Use String.format(Locale, ...) instead [DefaultLocale]
+            logStr.append(String.format("<time_off:%d>%s "
+                          ^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\log\ThirdPartyService.java:96: Warning: Implicitly using the default locale is a common source of bugs: Use String.format(Locale, ...) instead [DefaultLocale]
+            logStr.append(String.format("<freq:%d>%s "
+                          ^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\log\ThirdPartyService.java:102: Warning: Implicitly using the default locale is a common source of bugs: Use String.format(Locale, ...) instead [DefaultLocale]
+            logStr.append(String.format("<station_callsign:%d>%s "
+                          ^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\log\ThirdPartyService.java:108: Warning: Implicitly using the default locale is a common source of bugs: Use String.format(Locale, ...) instead [DefaultLocale]
+            logStr.append(String.format("<my_gridsquare:%d>%s "
+                          ^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\log\ThirdPartyService.java:117: Warning: Implicitly using the default locale is a common source of bugs: Use String.format(Locale, ...) instead [DefaultLocale]
+        logStr.append(String.format("<comment:%d>%s <eor>\n"
+                      ^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\connector\X6100Connector.java:122: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                   if (response.resultContent.toUpperCase().contains("PORT=")){//说明流端口打开了
+                                              ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\x6100\X6100Radio.java:182: Warning: Implicitly using the default locale is a common source of bugs: Use toLowerCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            if (parameters[i].toLowerCase().startsWith(prefix.toLowerCase() + "=")) {
+                              ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\x6100\X6100Radio.java:182: Warning: Implicitly using the default locale is a common source of bugs: Use toLowerCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            if (parameters[i].toLowerCase().startsWith(prefix.toLowerCase() + "=")) {
+                                                              ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\x6100\X6100Radio.java:199: Warning: Implicitly using the default locale is a common source of bugs: Use toLowerCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            if (parameters[i].toLowerCase().startsWith(prefix.toLowerCase() + "=")) {
+                              ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\x6100\X6100Radio.java:199: Warning: Implicitly using the default locale is a common source of bugs: Use toLowerCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            if (parameters[i].toLowerCase().startsWith(prefix.toLowerCase() + "=")) {
+                                                              ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\x6100\X6100Radio.java:911: Warning: Implicitly using the default locale is a common source of bugs: Use toUpperCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+                header = line.toUpperCase().charAt(0);
+                              ~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\x6100\XieguRadioFactory.java:115: Warning: Implicitly using the default locale is a common source of bugs: Use toLowerCase(Locale) instead. For strings meant to be internal use Locale.ROOT, otherwise Locale.getDefault(). [DefaultLocale]
+            if (strings[i].toLowerCase().startsWith("mac")){
+                           ~~~~~~~~~~~
+
+   Explanation for issues of type "DefaultLocale":
+   Calling String#toLowerCase() or #toUpperCase() without specifying an
+   explicit locale is a common source of bugs. The reason for that is that
+   those methods will use the current locale on the user's device, and even
+   though the code appears to work correctly when you are developing the app,
+   it will fail in some locales. For example, in the Turkish locale, the
+   uppercase replacement for i is not I.
+
+   If you want the methods to just perform ASCII replacement, for example to
+   convert an enum name, call String#toUpperCase(Locale.US) instead. If you
+   really want to use the current locale, call
+   String#toUpperCase(Locale.getDefault()) instead.
+
+   https://developer.android.com/reference/java/util/Locale.html#default_locale
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\wave\HamRecorder.java:122: Warning: Field requires API level 26 (current min is 23): android.media.AudioManager#AUDIOFOCUS_REQUEST_DELAYED [InlinedApi]
+        return audioFocusGranted || result == AudioManager.AUDIOFOCUS_REQUEST_DELAYED;
+                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "InlinedApi":
+   This check scans through all the Android API field references in the
+   application and flags certain constants, such as static final integers and
+   Strings, which were introduced in later versions. These will actually be
+   copied into the class files rather than being referenced, which means that
+   the value is available even when running on older devices. In some cases
+   that's fine, and in other cases it can result in a runtime crash or
+   incorrect behavior. It depends on the context, so consider the code
+   carefully and decide whether it's safe and can be suppressed or whether the
+   code needs to be guarded.
+
+   If you really want to use this API and don't need to support older devices
+   just set the minSdkVersion in your build.gradle or AndroidManifest.xml
+   files.
+
+   If your code is deliberately accessing newer APIs, and you have ensured
+   (e.g. with conditional execution) that this code will only ever be called
+   on a supported platform, then you can annotate your class or method with
+   the @TargetApi annotation specifying the local minimum SDK to apply, such
+   as @TargetApi(11), such that this check considers 11 rather than your
+   manifest file's minimum SDK as the required API level.
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\MainActivity.java:359: Warning: Use of REQUEST_IGNORE_BATTERY_OPTIMIZATIONS violates the Play Store Content Policy regarding acceptable use cases, as described in https://developer.android.com/training/monitoring-device-state/doze-standby.html [BatteryLife]
+                                Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "BatteryLife":
+   This issue flags code that either
+   * negatively affects battery life, or
+   * uses APIs that have recently changed behavior to prevent background tasks
+   from consuming memory and battery excessively.
+
+   Generally, you should be using WorkManager instead.
+
+   For more details on how to update your code, please see
+   https://developer.android.com/topic/performance/background-optimization
+
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\count\CountInfoAdapter.java:90: Warning: Avoid passing null as the view root (needed to resolve layout parameters on the inflated layout's root element) [InflateParams]
+            View view=LayoutInflater.from(context).inflate(R.layout.count_detail_item,null);
+                                                                                      ~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\MainActivity.java:620: Warning: Avoid passing null as the view root (needed to resolve layout parameters on the inflated layout's root element) [InflateParams]
+                    .inflate(R.layout.select_serial_port_list_view_item, null);
+                                                                         ~~~~
+
+   Explanation for issues of type "InflateParams":
+   When inflating a layout, avoid passing in null as the parent view, since
+   otherwise any layout parameters on the root of the inflated layout will be
+   ignored.
+
+   https://www.bignerdranch.com/blog/understanding-androids-layoutinflater-inflate/
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\ui\SpectrumView.java:32: Warning: Use SwitchCompat from AppCompat or SwitchMaterial from Material library [UseSwitchCompatOrMaterialCode from androidx.appcompat]
+    private Switch controlDeNoiseSwitch;
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\ui\SpectrumView.java:33: Warning: Use SwitchCompat from AppCompat or SwitchMaterial from Material library [UseSwitchCompatOrMaterialCode from androidx.appcompat]
+    private Switch controlShowMessageSwitch;
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "UseSwitchCompatOrMaterialCode":
+   Use SwitchCompat from AppCompat or SwitchMaterial from Material library
+
+   Vendor: Android Open Source Project
+   Identifier: androidx.appcompat
+   Feedback: https://issuetracker.google.com/issues/new?component=460343
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-el\strings.xml:9: Warning: The resource string "map_name" is marked as translatable="false", but is translated to "el" (Greek) here [Untranslatable]
+    <string name="map_name" translatable="false">nightUSGS4Layer.sqlite</string>
+                            ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-es\strings.xml:9: Warning: The resource string "map_name" is marked as translatable="false", but is translated to "es" (Spanish) here [Untranslatable]
+    <string name="map_name" translatable="false">nightUSGS4Layer.sqlite</string>
+                            ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-ja\strings.xml:9: Warning: The resource string "map_name" is marked as translatable="false", but is translated to "ja" (Japanese) here [Untranslatable]
+    <string name="map_name" translatable="false">nightUSGS4Layer.sqlite</string>
+                            ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rCN\strings.xml:9: Warning: The resource string "map_name" is marked as translatable="false", but is translated to "zh" (Chinese) here [Untranslatable]
+    <string name="map_name" translatable="false">nightUSGS4Layer.sqlite</string>
+                            ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rHK\strings.xml:9: Warning: The resource string "map_name" is marked as translatable="false", but is translated to "zh" (Chinese) here [Untranslatable]
+    <string name="map_name" translatable="false">nightUSGS4Layer.sqlite</string>
+                            ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rMO\strings.xml:9: Warning: The resource string "map_name" is marked as translatable="false", but is translated to "zh" (Chinese) here [Untranslatable]
+    <string name="map_name" translatable="false">nightUSGS4Layer.sqlite</string>
+                            ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rTW\strings.xml:9: Warning: The resource string "map_name" is marked as translatable="false", but is translated to "zh" (Chinese) here [Untranslatable]
+    <string name="map_name" translatable="false">nightUSGS4Layer.sqlite</string>
+                            ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-el\strings.xml:547: Warning: The resource string "swr_switch_on" is marked as translatable="false", but is translated to "el" (Greek) here [Untranslatable]
+    <string name="swr_switch_on" translatable="false">SWR On</string>
+                                 ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-es\strings.xml:547: Warning: The resource string "swr_switch_on" is marked as translatable="false", but is translated to "es" (Spanish) here [Untranslatable]
+    <string name="swr_switch_on" translatable="false">SWR On</string>
+                                 ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-ja\strings.xml:547: Warning: The resource string "swr_switch_on" is marked as translatable="false", but is translated to "ja" (Japanese) here [Untranslatable]
+    <string name="swr_switch_on" translatable="false">SWR On</string>
+                                 ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rCN\strings.xml:547: Warning: The resource string "swr_switch_on" is marked as translatable="false", but is translated to "zh" (Chinese) here [Untranslatable]
+    <string name="swr_switch_on" translatable="false">SWR On</string>
+                                 ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rHK\strings.xml:547: Warning: The resource string "swr_switch_on" is marked as translatable="false", but is translated to "zh" (Chinese) here [Untranslatable]
+    <string name="swr_switch_on" translatable="false">SWR On</string>
+                                 ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rMO\strings.xml:547: Warning: The resource string "swr_switch_on" is marked as translatable="false", but is translated to "zh" (Chinese) here [Untranslatable]
+    <string name="swr_switch_on" translatable="false">SWR On</string>
+                                 ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rTW\strings.xml:547: Warning: The resource string "swr_switch_on" is marked as translatable="false", but is translated to "zh" (Chinese) here [Untranslatable]
+    <string name="swr_switch_on" translatable="false">SWR On</string>
+                                 ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-el\strings.xml:548: Warning: The resource string "swr_switch_off" is marked as translatable="false", but is translated to "el" (Greek) here [Untranslatable]
+    <string name="swr_switch_off" translatable="false">SWR Off</string>
+                                  ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-es\strings.xml:548: Warning: The resource string "swr_switch_off" is marked as translatable="false", but is translated to "es" (Spanish) here [Untranslatable]
+    <string name="swr_switch_off" translatable="false">SWR Off</string>
+                                  ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-ja\strings.xml:548: Warning: The resource string "swr_switch_off" is marked as translatable="false", but is translated to "ja" (Japanese) here [Untranslatable]
+    <string name="swr_switch_off" translatable="false">SWR Off</string>
+                                  ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rCN\strings.xml:548: Warning: The resource string "swr_switch_off" is marked as translatable="false", but is translated to "zh" (Chinese) here [Untranslatable]
+    <string name="swr_switch_off" translatable="false">SWR Off</string>
+                                  ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rHK\strings.xml:548: Warning: The resource string "swr_switch_off" is marked as translatable="false", but is translated to "zh" (Chinese) here [Untranslatable]
+    <string name="swr_switch_off" translatable="false">SWR Off</string>
+                                  ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rMO\strings.xml:548: Warning: The resource string "swr_switch_off" is marked as translatable="false", but is translated to "zh" (Chinese) here [Untranslatable]
+    <string name="swr_switch_off" translatable="false">SWR Off</string>
+                                  ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rTW\strings.xml:548: Warning: The resource string "swr_switch_off" is marked as translatable="false", but is translated to "zh" (Chinese) here [Untranslatable]
+    <string name="swr_switch_off" translatable="false">SWR Off</string>
+                                  ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-el\strings.xml:549: Warning: The resource string "alc_switch_on" is marked as translatable="false", but is translated to "el" (Greek) here [Untranslatable]
+    <string name="alc_switch_on" translatable="false">ALC On</string>
+                                 ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-es\strings.xml:549: Warning: The resource string "alc_switch_on" is marked as translatable="false", but is translated to "es" (Spanish) here [Untranslatable]
+    <string name="alc_switch_on" translatable="false">ALC On</string>
+                                 ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-ja\strings.xml:549: Warning: The resource string "alc_switch_on" is marked as translatable="false", but is translated to "ja" (Japanese) here [Untranslatable]
+    <string name="alc_switch_on" translatable="false">ALC On</string>
+                                 ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rCN\strings.xml:549: Warning: The resource string "alc_switch_on" is marked as translatable="false", but is translated to "zh" (Chinese) here [Untranslatable]
+    <string name="alc_switch_on" translatable="false">ALC On</string>
+                                 ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rHK\strings.xml:549: Warning: The resource string "alc_switch_on" is marked as translatable="false", but is translated to "zh" (Chinese) here [Untranslatable]
+    <string name="alc_switch_on" translatable="false">ALC On</string>
+                                 ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rMO\strings.xml:549: Warning: The resource string "alc_switch_on" is marked as translatable="false", but is translated to "zh" (Chinese) here [Untranslatable]
+    <string name="alc_switch_on" translatable="false">ALC On</string>
+                                 ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rTW\strings.xml:549: Warning: The resource string "alc_switch_on" is marked as translatable="false", but is translated to "zh" (Chinese) here [Untranslatable]
+    <string name="alc_switch_on" translatable="false">ALC On</string>
+                                 ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-el\strings.xml:550: Warning: The resource string "alc_switch_off" is marked as translatable="false", but is translated to "el" (Greek) here [Untranslatable]
+    <string name="alc_switch_off" translatable="false">ALC Off</string>
+                                  ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-es\strings.xml:550: Warning: The resource string "alc_switch_off" is marked as translatable="false", but is translated to "es" (Spanish) here [Untranslatable]
+    <string name="alc_switch_off" translatable="false">ALC Off</string>
+                                  ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-ja\strings.xml:550: Warning: The resource string "alc_switch_off" is marked as translatable="false", but is translated to "ja" (Japanese) here [Untranslatable]
+    <string name="alc_switch_off" translatable="false">ALC Off</string>
+                                  ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rCN\strings.xml:550: Warning: The resource string "alc_switch_off" is marked as translatable="false", but is translated to "zh" (Chinese) here [Untranslatable]
+    <string name="alc_switch_off" translatable="false">ALC Off</string>
+                                  ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rHK\strings.xml:550: Warning: The resource string "alc_switch_off" is marked as translatable="false", but is translated to "zh" (Chinese) here [Untranslatable]
+    <string name="alc_switch_off" translatable="false">ALC Off</string>
+                                  ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rMO\strings.xml:550: Warning: The resource string "alc_switch_off" is marked as translatable="false", but is translated to "zh" (Chinese) here [Untranslatable]
+    <string name="alc_switch_off" translatable="false">ALC Off</string>
+                                  ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rTW\strings.xml:550: Warning: The resource string "alc_switch_off" is marked as translatable="false", but is translated to "zh" (Chinese) here [Untranslatable]
+    <string name="alc_switch_off" translatable="false">ALC Off</string>
+                                  ~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "Untranslatable":
+   Strings can be marked with translatable=false to indicate that they are not
+   intended to be translated, but are present in the resource file for other
+   purposes (for example for non-display strings that should vary by some
+   other configuration qualifier such as screen size or API level).
+
+   There are cases where translators accidentally translate these strings
+   anyway, and lint will flag these occurrences with this lint check.
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:121: Warning: Formatting %d followed by words ("calls"): This should probably be a plural rather than a string [PluralsCandidate]
+    <string name="times">%d calls</string>
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:132: Warning: Formatting %d followed by words ("Mins"): This should probably be a plural rather than a string [PluralsCandidate]
+    <string name="minutes">%d Mins</string>
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:208: Warning: Formatting %d followed by words ("records"): This should probably be a plural rather than a string [PluralsCandidate]
+    <string name="html_import_count">There are %d records in the ADI file and %d imported records . The format of %d logs is incorrect .</string>
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:237: Warning: Formatting %d followed by words ("milliseconds"): This should probably be a plural rather than a string [PluralsCandidate]
+    <string name="html_milliseconds">%d milliseconds</string>
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:371: Warning: Formatting %d followed by words ("messages"): This should probably be a plural rather than a string [PluralsCandidate]
+    <string name="tracker_decoded_new">Decode %d messages .</string>
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:424: Warning: Formatting %d followed by words ("milliseconds"): This should probably be a plural rather than a string [PluralsCandidate]
+    <string name="utc_time_sync_delay_slow">Synced . Local clock is %d milliseconds behind</string>
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:425: Warning: Formatting %d followed by words ("milliseconds"): This should probably be a plural rather than a string [PluralsCandidate]
+    <string name="utc_time_sync_delay_faster">Synced. Local clock is %d milliseconds ahead</string>
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:524: Warning: Formatting %d followed by words ("logs"): This should probably be a plural rather than a string [PluralsCandidate]
+    <string name="total_logs">There are a total of %d logs.</string>
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:525: Warning: Formatting %d followed by words ("logs"): This should probably be a plural rather than a string [PluralsCandidate]
+    <string name="get_log_no">%d logs have been downloaded.</string>
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:529: Warning: Formatting %d followed by words ("logs"): This should probably be a plural rather than a string [PluralsCandidate]
+    <string name="share_logs_been_read">%d logs have been read in.</string>
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "PluralsCandidate":
+   This lint check looks for potential errors in internationalization where
+   you have translated a message which involves a quantity and it looks like
+   other parts of the string may need grammatical changes.
+
+   For example, rather than something like this:
+     <string name="try_again">Try again in %d seconds.</string>
+   you should be using a plural:
+      <plurals name="try_again">
+           <item quantity="one">Try again in %d second</item>
+           <item quantity="other">Try again in %d seconds</item>
+       </plurals>
+   This will ensure that in other languages the right set of translations are
+   provided for the different quantity classes.
+
+   (This check depends on some heuristics, so it may not accurately determine
+   whether a string really should be a quantity. You can use tools:ignore to
+   filter out false positives.
+
+   https://developer.android.com/guide/topics/resources/string-resource.html#Plurals
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\libs\commons-net-3.6.jar: Warning: checkClientTrusted is empty, which could cause insecure network traffic due to trusting arbitrary TLS/SSL certificates presented by peers [TrustAllX509TrustManager]
+Z:\3d\GIT\FT8CN\ft8cn\app\src\libs\commons-net-3.6.jar: Warning: checkClientTrusted is empty, which could cause insecure network traffic due to trusting arbitrary TLS/SSL certificates presented by peers [TrustAllX509TrustManager]
+
+   Explanation for issues of type "TrustAllX509TrustManager":
+   This check looks for X509TrustManager implementations whose
+   checkServerTrusted or checkClientTrusted methods do nothing (thus trusting
+   any certificate chain) which could result in insecure network traffic
+   caused by trusting arbitrary TLS/SSL certificates presented by peers.
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\connector\CableSerialPort.java:155: Warning: Missing PendingIntent mutability flag [UnspecifiedImmutableFlag]
+                        , new Intent(INTENT_ACTION_GRANT_USB), 0);
+                                                               ~
+
+   Explanation for issues of type "UnspecifiedImmutableFlag":
+   Apps targeting Android 12 and higher must specify either FLAG_IMMUTABLE or
+   FLAG_MUTABLE when constructing a PendingIntent.
+
+   https://developer.android.com/about/versions/12/behavior-changes-12#pending-intent-mutability
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\count\CountDbOpr.java:78: Warning: This Cursor should be freed up after use with #close() [Recycle]
+            cursor = db.rawQuery(querySQL,null);
+                        ~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\count\CountDbOpr.java:143: Warning: This Cursor should be freed up after use with #close() [Recycle]
+            Cursor cursor = db.rawQuery(querySQL,new String[]{grid});
+                               ~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\count\CountDbOpr.java:326: Warning: This Cursor should be freed up after use with #close() [Recycle]
+            cursor = db.rawQuery(querySQL,null);
+                        ~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\count\CountDbOpr.java:394: Warning: This Cursor should be freed up after use with #close() [Recycle]
+            cursor = db.rawQuery(querySQL,null);
+                        ~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\count\CountDbOpr.java:488: Warning: This Cursor should be freed up after use with #close() [Recycle]
+            cursor = db.rawQuery(querySQL,null);
+                        ~~~~~~~~
+
+   Explanation for issues of type "Recycle":
+   Many resources, such as TypedArrays, VelocityTrackers, etc., should be
+   recycled (with a recycle() call) after use. This lint check looks for
+   missing recycle() calls.
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\MainActivity.java:345: Warning: Unnecessary; SDK_INT is always >= 23 [ObsoleteSdkInt]
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-night\themes.xml:13: Warning: Unnecessary; SDK_INT is always >= 21 [ObsoleteSdkInt]
+        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+                                            ~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\themes.xml:13: Warning: Unnecessary; SDK_INT is always >= 21 [ObsoleteSdkInt]
+        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+                                            ~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "ObsoleteSdkInt":
+   This check flags version checks that are not necessary, because the
+   minSdkVersion (or surrounding known API level) is already at least as high
+   as the version checked for.
+
+   Similarly, it also looks for resources in -vNN folders, such as values-v14
+   where the version qualifier is less than or equal to the minSdkVersion,
+   where the contents should be merged into the best folder.
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\connector\BluetoothRigConnector.java:29: Warning: Do not place Android context classes in static fields (static reference to BluetoothRigConnector which has field context pointing to Context); this is a memory leak [StaticFieldLeak]
+    private static BluetoothRigConnector connector=null;
+            ~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\GeneralVariables.java:98: Warning: Do not place Android context classes in static fields (static reference to CallsignDatabase which has field context pointing to Context); this is a memory leak [StaticFieldLeak]
+    public static CallsignDatabase callsignDatabase = null;
+           ~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\database\OperationBand.java:23: Warning: Do not place Android context classes in static fields (static reference to OperationBand which has field context pointing to Context); this is a memory leak [StaticFieldLeak]
+    private static OperationBand operationBand = null;
+            ~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\database\RigNameList.java:22: Warning: Do not place Android context classes in static fields (static reference to RigNameList which has field context pointing to Context); this is a memory leak [StaticFieldLeak]
+    private static RigNameList rigNameList = null;
+            ~~~~~~
+
+   Explanation for issues of type "StaticFieldLeak":
+   A static field will leak contexts.
+
+   Non-static inner classes have an implicit reference to their outer class.
+   If that outer class is for example a Fragment or Activity, then this
+   reference means that the long-running handler/loader/task will hold a
+   reference to the activity which prevents it from getting garbage
+   collected.
+
+   Similarly, direct field references to activities and fragments from these
+   longer running instances can cause leaks.
+
+   ViewModel classes should never point to Views or non-application Contexts.
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\ic_baseline_grid_tracker_24.xml:4: Warning: Very long vector path (940 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector. [VectorPath]
+    <path android:fillColor="@android:color/white" android:pathData="M11.99,2C6.47,2 2,6.48 2,12s4.47,10 9.99,10C17.52,22 22,17.52 22,12S17.52,2 11.99,2zM18.92,8h-2.95c-0.32,-1.25 -0.78,-2.45 -1.38,-3.56 1.84,0.63 3.37,1.91 4.33,3.56zM12,4.04c0.83,1.2 1.48,2.53 1.91,3.96h-3.82c0.43,-1.43 1.08,-2.76 1.91,-3.96zM4.26,14C4.1,13.36 4,12.69 4,12s0.1,-1.36 0.26,-2h3.38c-0.08,0.66 -0.14,1.32 -0.14,2 0,0.68 0.06,1.34 0.14,2L4.26,14zM5.08,16h2.95c0.32,1.25 0.78,2.45 1.38,3.56 -1.84,-0.63 -3.37,-1.9 -4.33,-3.56zM8.03,8L5.08,8c0.96,-1.66 2.49,-2.93 4.33,-3.56C8.81,5.55 8.35,6.75 8.03,8zM12,19.96c-0.83,-1.2 -1.48,-2.53 -1.91,-3.96h3.82c-0.43,1.43 -1.08,2.76 -1.91,3.96zM14.34,14L9.66,14c-0.09,-0.66 -0.16,-1.32 -0.16,-2 0,-0.68 0.07,-1.35 0.16,-2h4.68c0.09,0.65 0.16,1.32 0.16,2 0,0.68 -0.07,1.34 -0.16,2zM14.59,19.56c0.6,-1.11 1.06,-2.31 1.38,-3.56h2.95c-0.96,1.65 -2.49,2.93 -4.33,3.56zM16.36,14c0.08,-0.66 0.14,-1.32 0.14,-2 0,-0.68 -0.06,-1.34 -0.14,-2h3.38c0.16,0.64 0.26,1.31 0.26,2s-0.1,1.36 -0.26,2h-3.38z"/>
+                                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\ic_baseline_settings_24.xml:9: Warning: Very long vector path (904 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector. [VectorPath]
+      android:pathData="M19.14,12.94c0.04,-0.3 0.06,-0.61 0.06,-0.94c0,-0.32 -0.02,-0.64 -0.07,-0.94l2.03,-1.58c0.18,-0.14 0.23,-0.41 0.12,-0.61l-1.92,-3.32c-0.12,-0.22 -0.37,-0.29 -0.59,-0.22l-2.39,0.96c-0.5,-0.38 -1.03,-0.7 -1.62,-0.94L14.4,2.81c-0.04,-0.24 -0.24,-0.41 -0.48,-0.41h-3.84c-0.24,0 -0.43,0.17 -0.47,0.41L9.25,5.35C8.66,5.59 8.12,5.92 7.63,6.29L5.24,5.33c-0.22,-0.08 -0.47,0 -0.59,0.22L2.74,8.87C2.62,9.08 2.66,9.34 2.86,9.48l2.03,1.58C4.84,11.36 4.8,11.69 4.8,12s0.02,0.64 0.07,0.94l-2.03,1.58c-0.18,0.14 -0.23,0.41 -0.12,0.61l1.92,3.32c0.12,0.22 0.37,0.29 0.59,0.22l2.39,-0.96c0.5,0.38 1.03,0.7 1.62,0.94l0.36,2.54c0.05,0.24 0.24,0.41 0.48,0.41h3.84c0.24,0 0.44,-0.17 0.47,-0.41l0.36,-2.54c0.59,-0.24 1.13,-0.56 1.62,-0.94l2.39,0.96c0.22,0.08 0.47,0 0.59,-0.22l1.92,-3.32c0.12,-0.22 0.07,-0.47 -0.12,-0.61L19.14,12.94zM12,15.6c-1.98,0 -3.6,-1.62 -3.6,-3.6s1.62,-3.6 3.6,-3.6s3.6,1.62 3.6,3.6S13.98,15.6 12,15.6z"/>
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\ic_baseline_tracker_settings_24.xml:9: Warning: Very long vector path (904 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector. [VectorPath]
+      android:pathData="M19.14,12.94c0.04,-0.3 0.06,-0.61 0.06,-0.94c0,-0.32 -0.02,-0.64 -0.07,-0.94l2.03,-1.58c0.18,-0.14 0.23,-0.41 0.12,-0.61l-1.92,-3.32c-0.12,-0.22 -0.37,-0.29 -0.59,-0.22l-2.39,0.96c-0.5,-0.38 -1.03,-0.7 -1.62,-0.94L14.4,2.81c-0.04,-0.24 -0.24,-0.41 -0.48,-0.41h-3.84c-0.24,0 -0.43,0.17 -0.47,0.41L9.25,5.35C8.66,5.59 8.12,5.92 7.63,6.29L5.24,5.33c-0.22,-0.08 -0.47,0 -0.59,0.22L2.74,8.87C2.62,9.08 2.66,9.34 2.86,9.48l2.03,1.58C4.84,11.36 4.8,11.69 4.8,12s0.02,0.64 0.07,0.94l-2.03,1.58c-0.18,0.14 -0.23,0.41 -0.12,0.61l1.92,3.32c0.12,0.22 0.37,0.29 0.59,0.22l2.39,-0.96c0.5,0.38 1.03,0.7 1.62,0.94l0.36,2.54c0.05,0.24 0.24,0.41 0.48,0.41h3.84c0.24,0 0.44,-0.17 0.47,-0.41l0.36,-2.54c0.59,-0.24 1.13,-0.56 1.62,-0.94l2.39,0.96c0.22,0.08 0.47,0 0.59,-0.22l1.92,-3.32c0.12,-0.22 0.07,-0.47 -0.12,-0.61L19.14,12.94zM12,15.6c-1.98,0 -3.6,-1.62 -3.6,-3.6s1.62,-3.6 3.6,-3.6s3.6,1.62 3.6,3.6S13.98,15.6 12,15.6z"/>
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "VectorPath":
+   Using long vector paths is bad for performance. There are several ways to
+   make the pathData shorter:
+   * Using less precision
+   * Removing some minor details
+   * Using the Android Studio vector conversion tool
+   * Rasterizing the image (converting to PNG)
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\spectrum_layout.xml:8: Warning: Possible overdraw: Root element paints background @color/black with a theme that also paints a background (inferred theme is @style/Theme.Ft8CN) [Overdraw]
+    android:background="@color/black">
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "Overdraw":
+   If you set a background drawable on a root view, then you should use a
+   custom theme where the theme background is null. Otherwise, the theme
+   background will be painted first, only to have your custom background
+   completely cover it; this is called "overdraw".
+
+   NOTE: This detector relies on figuring out which layouts are associated
+   with which activities based on scanning the Java code, and it's currently
+   doing that using an inexact pattern matching algorithm. Therefore, it can
+   incorrectly conclude which activity the layout is associated with and then
+   wrongly complain that a background-theme is hidden.
+
+   If you want your custom background on multiple pages, then you should
+   consider making a custom theme with your custom background and just using
+   that theme instead of a root element background.
+
+   Of course it's possible that your custom drawable is translucent and you
+   want it to be mixed with the background. However, you will get better
+   performance if you pre-mix the background with your drawable and use that
+   resulting image or color as a custom theme background instead.
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\colors.xml:47: Warning: The resource R.color.transparent appears to be unused [UnusedResources]
+    <color name="transparent">#00000000</color>
+           ~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\colors.xml:48: Warning: The resource R.color.image_button_pressed appears to be unused [UnusedResources]
+    <color name="image_button_pressed">#ff53c1bd</color>
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\colors.xml:61: Warning: The resource R.color.image_button_ground_color appears to be unused [UnusedResources]
+    <color name="image_button_ground_color">#BEF1F1F1</color>
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\colors.xml:62: Warning: The resource R.color.black_half appears to be unused [UnusedResources]
+    <color name="black_half">#77000000</color>
+           ~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\colors.xml:63: Warning: The resource R.color.textview_disable_color appears to be unused [UnusedResources]
+    <color name="textview_disable_color">#5A5A5A</color>
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\colors.xml:65: Warning: The resource R.color.textview_message_color appears to be unused [UnusedResources]
+    <color name="textview_message_color">#000000</color>
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\colors.xml:70: Warning: The resource R.color.calling_follow_list_item_color appears to be unused [UnusedResources]
+    <color name="calling_follow_list_item_color">#851D3B53</color>
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\colors.xml:71: Warning: The resource R.color.transmitting_color appears to be unused [UnusedResources]
+    <color name="transmitting_color">#E91E63</color>
+           ~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\colors.xml:73: Warning: The resource R.color.waterfall_text_color appears to be unused [UnusedResources]
+    <color name="waterfall_text_color">#E91E63</color>
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\colors.xml:74: Warning: The resource R.color.ruler_text_color appears to be unused [UnusedResources]
+    <color name="ruler_text_color">#F44336</color>
+           ~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\colors.xml:84: Warning: The resource R.color.tracker_tips_start_color appears to be unused [UnusedResources]
+    <color name="tracker_tips_start_color">#74FFFFFF</color>
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\colors.xml:85: Warning: The resource R.color.tracker_tips_win_end_color appears to be unused [UnusedResources]
+    <color name="tracker_tips_win_end_color">#7ED0D6F8</color>
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\colors.xml:97: Warning: The resource R.color.tracker_new_cq_win_end_color appears to be unused [UnusedResources]
+    <color name="tracker_new_cq_win_end_color">#D7FB9B9B</color>
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\colors.xml:143: Warning: The resource R.color.edit_layout_background_stroke appears to be unused [UnusedResources]
+    <color name="edit_layout_background_stroke">#977A7878</color>
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\colors.xml:144: Warning: The resource R.color.edit_layout_background_gradient_start appears to be unused [UnusedResources]
+    <color name="edit_layout_background_gradient_start">#E9E9E9</color>
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\colors.xml:145: Warning: The resource R.color.edit_layout_background_gradient_end appears to be unused [UnusedResources]
+    <color name="edit_layout_background_gradient_end">#FFFFFFFF</color>
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\colors.xml:153: Warning: The resource R.color.select_serial_port_item_background_gradient_end appears to be unused [UnusedResources]
+    <color name="select_serial_port_item_background_gradient_end">#DC414141</color>
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\colors.xml:156: Warning: The resource R.color.welcome_layout_text_color appears to be unused [UnusedResources]
+    <color name="welcome_layout_text_color">#535353</color>
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\cqzone_b.png: Warning: The resource R.drawable.cqzone_b appears to be unused [UnusedResources]
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\dialog_style.xml:2: Warning: The resource R.drawable.dialog_style appears to be unused [UnusedResources]
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\dxcc_b.png: Warning: The resource R.drawable.dxcc_b appears to be unused [UnusedResources]
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\editor_layout_background_style.xml:2: Warning: The resource R.drawable.editor_layout_background_style appears to be unused [UnusedResources]
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\error_editor_style.xml:2: Warning: The resource R.drawable.error_editor_style appears to be unused [UnusedResources]
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\flex_config_style.xml:2: Warning: The resource R.drawable.flex_config_style appears to be unused [UnusedResources]
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\ic_baseline_check_24.xml:1: Warning: The resource R.drawable.ic_baseline_check_24 appears to be unused [UnusedResources]
+<vector android:height="24dp" android:tint="#FF0000"
+^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\ic_baseline_check_48.xml:1: Warning: The resource R.drawable.ic_baseline_check_48 appears to be unused [UnusedResources]
+<vector android:height="48dp" android:tint="#FFFFFF"
+^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\ic_baseline_help_outline_32.xml:1: Warning: The resource R.drawable.ic_baseline_help_outline_32 appears to be unused [UnusedResources]
+<vector android:height="32dp" android:tint="#3700B3"
+^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\ic_baseline_info_24.xml:1: Warning: The resource R.drawable.ic_baseline_info_24 appears to be unused [UnusedResources]
+<vector android:autoMirrored="true" android:height="48dp"
+^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\ic_baseline_info_white_32.xml:1: Warning: The resource R.drawable.ic_baseline_info_white_32 appears to be unused [UnusedResources]
+<vector android:height="32dp" android:tint="#FFFFFF"
+^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\ic_baseline_nav_24.xml:1: Warning: The resource R.drawable.ic_baseline_nav_24 appears to be unused [UnusedResources]
+<vector android:autoMirrored="true" android:height="24dp"
+^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\ic_baseline_send_48.xml:1: Warning: The resource R.drawable.ic_baseline_send_48 appears to be unused [UnusedResources]
+<vector android:autoMirrored="true" android:height="48dp"
+^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\ic_baseline_signal_cellular_4_bar_24.xml:1: Warning: The resource R.drawable.ic_baseline_signal_cellular_4_bar_24 appears to be unused [UnusedResources]
+<vector android:autoMirrored="true" android:height="24dp"
+^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\ic_baseline_wifi_tethering_16.xml:1: Warning: The resource R.drawable.ic_baseline_wifi_tethering_16 appears to be unused [UnusedResources]
+<vector android:autoMirrored="true" android:height="24dp"
+^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\mipmap-anydpi-v26\ic_launcher.xml:2: Warning: The resource R.mipmap.ic_launcher appears to be unused [UnusedResources]
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\ic_launcher_background.xml:2: Warning: The resource R.drawable.ic_launcher_background appears to be unused [UnusedResources]
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\ic_launcher_foreground.xml:1: Warning: The resource R.drawable.ic_launcher_foreground appears to be unused [UnusedResources]
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\mipmap-anydpi-v26\ic_launcher_round.xml:2: Warning: The resource R.mipmap.ic_launcher_round appears to be unused [UnusedResources]
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\color\imagebutton_click_selector.xml:2: Warning: The resource R.color.imagebutton_click_selector appears to be unused [UnusedResources]
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\imagebutton_selected_style.xml:2: Warning: The resource R.drawable.imagebutton_selected_style appears to be unused [UnusedResources]
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\itu_b.png: Warning: The resource R.drawable.itu_b appears to be unused [UnusedResources]
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\newyear.png: Warning: The resource R.drawable.newyear appears to be unused [UnusedResources]
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\run_decode_image_48.xml:1: Warning: The resource R.drawable.run_decode_image_48 appears to be unused [UnusedResources]
+<vector android:height="48dp" android:tint="#FFFFFF"
+^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\speaker.xml:1: Warning: The resource R.drawable.speaker appears to be unused [UnusedResources]
+<vector android:autoMirrored="true" android:height="36dp"
+^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:4: Warning: The resource R.string.nav_menu_title_call_list appears to be unused [UnusedResources]
+    <string name="nav_menu_title_call_list">Content</string>
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:11: Warning: The resource R.string.run_decode appears to be unused [UnusedResources]
+    <string name="run_decode">Start decoding</string>
+            ~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:21: Warning: The resource R.string.location appears to be unused [UnusedResources]
+    <string name="location">Location</string>
+            ~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:28: Warning: The resource R.string.check appears to be unused [UnusedResources]
+    <string name="check">Check</string>
+            ~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:29: Warning: The resource R.string.sendFreq appears to be unused [UnusedResources]
+    <string name="sendFreq">TX Freq</string>
+            ~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:32: Warning: The resource R.string.transmitting appears to be unused [UnusedResources]
+    <string name="transmitting">TX …</string>
+            ~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:40: Warning: The resource R.string.scroll_down appears to be unused [UnusedResources]
+    <string name="scroll_down">▾</string>
+            ~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:41: Warning: The resource R.string.about_me appears to be unused [UnusedResources]
+    <string name="about_me">About FT8CN</string>
+            ~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:49: Warning: The resource R.string.serial_port appears to be unused [UnusedResources]
+    <string name="serial_port">Serial port</string>
+            ~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:54: Warning: The resource R.string.debug appears to be unused [UnusedResources]
+    <string name="debug">Debug</string>
+            ~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:57: Warning: The resource R.string.FAQ appears to be unused [UnusedResources]
+    <string name="FAQ">FAQ</string>
+            ~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:77: Warning: The resource R.string.bluetooth_set appears to be unused [UnusedResources]
+    <string name="bluetooth_set">Bluetooth Settings</string>
+            ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:162: Warning: The resource R.string.log_start_time appears to be unused [UnusedResources]
+    <string name="log_start_time">Start time : %s</string>
+            ~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:163: Warning: The resource R.string.log_end_time appears to be unused [UnusedResources]
+    <string name="log_end_time">End time:%s</string>
+            ~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:167: Warning: The resource R.string.log_cancel_confirmation appears to be unused [UnusedResources]
+    <string name="log_cancel_confirmation">Cancel confirmation (%s)</string>
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:168: Warning: The resource R.string.log_manual_confirmation appears to be unused [UnusedResources]
+    <string name="log_manual_confirmation">Manual confirmation (%s)</string>
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:196: Warning: The resource R.string.html_query_communication_message appears to be unused [UnusedResources]
+    <string name="html_query_communication_message">Query QSO</string>
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:200: Warning: The resource R.string.html_manage_communication_callsigns appears to be unused [UnusedResources]
+    <string name="html_manage_communication_callsigns">Manage QSO callsigns</string>
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:208: Warning: The resource R.string.html_import_count appears to be unused [UnusedResources]
+    <string name="html_import_count">There are %d records in the ADI file and %d imported records . The format of %d logs is incorrect .</string>
+            ~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:254: Warning: The resource R.string.html_serial_port_in_use appears to be unused [UnusedResources]
+    <string name="html_serial_port_in_use">Serial port in use</string>
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:286: Warning: The resource R.string.can_not_location appears to be unused [UnusedResources]
+    <string name="can_not_location">Unable to locate. Please confirm whether you have permission to locate.</string>
+            ~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:397: Warning: The resource R.string.log_statistics_cache appears to be unused [UnusedResources]
+    <string name="log_statistics_cache">Number of logs cached</string>
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:559: Warning: The resource R.string.tune_command_label appears to be unused [UnusedResources]
+    <string name="tune_command_label">TUNE command 1C 01 02</string>
+            ~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\styles.xml:18: Warning: The resource R.style.InitDataDialog appears to be unused [UnusedResources]
+    <style name="InitDataDialog" parent="android:style/Theme.Dialog">
+           ~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\color\switch_color_style.xml:2: Warning: The resource R.color.switch_color_style appears to be unused [UnusedResources]
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+^
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\tracker_tips_radio_style.xml:2: Warning: The resource R.drawable.tracker_tips_radio_style appears to be unused [UnusedResources]
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+^
+
+   Explanation for issues of type "UnusedResources":
+   Unused resources make applications larger and slow down builds.
+
+
+   The unused resource check can ignore tests. If you want to include
+   resources that are only referenced from tests, consider packaging them in a
+   test source set instead.
+
+   You can include test sources in the unused resource check by setting the
+   system property lint.unused-resources.include-tests =true, and to exclude
+   them (usually for performance reasons), use
+   lint.unused-resources.exclude-tests =true.
+   ,
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:1017: Warning: fragment_config.xml has more than 80 views, bad for performance [TooManyViews]
+                        <TextView
+                         ~~~~~~~~
+
+   Explanation for issues of type "TooManyViews":
+   Using too many views in a single layout is bad for performance. Consider
+   using compound drawables or other tricks for reducing the number of views
+   in this layout.
+
+   The maximum view count defaults to 80 but can be configured with the
+   environment variable ANDROID_LINT_MAX_VIEW_COUNT.
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-el\strings.xml:556: Warning: Replace "-" with an "en dash" character (–, &#8211;) ? [TypographyDashes]
+    <string name="faq_web_port">Θύρα διακομιστή HTTP για διεπαφή ιστού. Η προεπιλογή είναι 7050. Αλλάξτε εάν η θύρα είναι απασχολημένη. Εύρος: 1024-65535.</string>
+                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-es\strings.xml:556: Warning: Replace "-" with an "en dash" character (–, &#8211;) ? [TypographyDashes]
+    <string name="faq_web_port">Puerto del servidor HTTP para la interfaz web. El predeterminado es 7050. Cambiar si el puerto está ocupado. Rango: 1024-65535.</string>
+                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-ja\strings.xml:556: Warning: Replace "-" with an "en dash" character (–, &#8211;) ? [TypographyDashes]
+    <string name="faq_web_port">Webインターフェース用HTTPサーバーポート。デフォルトは7050です。ポートが使用中の場合は変更してください。範囲：1024-65535。</string>
+                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rCN\strings.xml:556: Warning: Replace "-" with an "en dash" character (–, &#8211;) ? [TypographyDashes]
+    <string name="faq_web_port">Web 界面 HTTP 服务器端口。默认为 7050。如果端口被占用请更改。范围：1024-65535。</string>
+                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rHK\strings.xml:556: Warning: Replace "-" with an "en dash" character (–, &#8211;) ? [TypographyDashes]
+    <string name="faq_web_port">Web 介面 HTTP 伺服器埠。預設為 7050。若埠被佔用請更改。範圍：1024-65535。</string>
+                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rMO\strings.xml:556: Warning: Replace "-" with an "en dash" character (–, &#8211;) ? [TypographyDashes]
+    <string name="faq_web_port">Web 介面 HTTP 伺服器埠。預設為 7050。若埠被佔用請更改。範圍：1024-65535。</string>
+                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values-zh-rTW\strings.xml:556: Warning: Replace "-" with an "en dash" character (–, &#8211;) ? [TypographyDashes]
+    <string name="faq_web_port">網頁介面的 HTTP 伺服器埠。預設為 7050。如果埠被佔用請更改。範圍：1024-65535。</string>
+                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:556: Warning: Replace "-" with an "en dash" character (–, &#8211;) ? [TypographyDashes]
+    <string name="faq_web_port">HTTP server port for web interface. Default is 7050. Change if port is busy. Range: 1024-65535.</string>
+                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "TypographyDashes":
+   The "n dash" (u2013, &#8211;) and the "m dash" (u2014, &#8212;) characters
+   are used for ranges (n dash) and breaks (m dash). Using these instead of
+   plain hyphens can make text easier to read and your application will look
+   more polished.
+
+   https://en.wikipedia.org/wiki/Dash
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\values\strings.xml:480: Warning: Replace "..." with ellipsis character (…, &#8230;) ? [TypographyEllipsis]
+    <string name="log_importing_html">Importing...</string>
+                                      ~~~~~~~~~~~~
+
+   Explanation for issues of type "TypographyEllipsis":
+   You can replace the string "..." with a dedicated ellipsis character,
+   ellipsis character (u2026, &#8230;). This can help make the text more
+   readable.
+
+   https://en.wikipedia.org/wiki/Ellipsis
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\ft8cn_icon.png: Warning: Launcher icon used as round icon did not have a circular shape [IconLauncherShape]
+
+   Explanation for issues of type "IconLauncherShape":
+   According to the Android Design Guide
+   (https://material.io/design/iconography/) your launcher icons should "use a
+   distinct silhouette", a "three-dimensional, front view, with a slight
+   perspective as if viewed from above, so that users perceive some depth."
+
+   The unique silhouette implies that your launcher icon should not be a
+   filled square.
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\cq.png: Warning: Found bitmap drawable res/drawable/cq.png in densityless folder [IconLocation]
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\cqzone.png: Warning: Found bitmap drawable res/drawable/cqzone.png in densityless folder [IconLocation]
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\cqzone_b.png: Warning: Found bitmap drawable res/drawable/cqzone_b.png in densityless folder [IconLocation]
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\dxcc.png: Warning: Found bitmap drawable res/drawable/dxcc.png in densityless folder [IconLocation]
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\dxcc_b.png: Warning: Found bitmap drawable res/drawable/dxcc_b.png in densityless folder [IconLocation]
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\flex_icon.png: Warning: Found bitmap drawable res/drawable/flex_icon.png in densityless folder [IconLocation]
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\flexradio.png: Warning: Found bitmap drawable res/drawable/flexradio.png in densityless folder [IconLocation]
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\ft8cn_icon.png: Warning: Found bitmap drawable res/drawable/ft8cn_icon.png in densityless folder [IconLocation]
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\guohe_logo.png: Warning: Found bitmap drawable res/drawable/guohe_logo.png in densityless folder [IconLocation]
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\itu.png: Warning: Found bitmap drawable res/drawable/itu.png in densityless folder [IconLocation]
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\itu_b.png: Warning: Found bitmap drawable res/drawable/itu_b.png in densityless folder [IconLocation]
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\newyear.png: Warning: Found bitmap drawable res/drawable/newyear.png in densityless folder [IconLocation]
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\xiegulogo.png: Warning: Found bitmap drawable res/drawable/xiegulogo.png in densityless folder [IconLocation]
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\drawable\xiegulogo32.png: Warning: Found bitmap drawable res/drawable/xiegulogo32.png in densityless folder [IconLocation]
+
+   Explanation for issues of type "IconLocation":
+   The res/drawable folder is intended for density-independent graphics such
+   as shapes defined in XML. For bitmaps, move it to drawable-mdpi and
+   consider providing higher and lower resolution versions in drawable-ldpi,
+   drawable-hdpi and drawable-xhdpi. If the icon really is density independent
+   (for example a solid color) you can place it in drawable-nodpi.
+
+   https://developer.android.com/guide/practices/screens_support.html
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:2280: Warning: Buttons in button bars should be borderless; use style="?android:attr/buttonBarButtonStyle" (and ?android:attr/buttonBarStyle on the parent) [ButtonStyle]
+            <Button
+             ~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:2288: Warning: Buttons in button bars should be borderless; use style="?android:attr/buttonBarButtonStyle" (and ?android:attr/buttonBarStyle on the parent) [ButtonStyle]
+            <Button
+             ~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:2296: Warning: Buttons in button bars should be borderless; use style="?android:attr/buttonBarButtonStyle" (and ?android:attr/buttonBarStyle on the parent) [ButtonStyle]
+            <Button
+             ~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:2304: Warning: Buttons in button bars should be borderless; use style="?android:attr/buttonBarButtonStyle" (and ?android:attr/buttonBarStyle on the parent) [ButtonStyle]
+            <Button
+             ~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:2312: Warning: Buttons in button bars should be borderless; use style="?android:attr/buttonBarButtonStyle" (and ?android:attr/buttonBarStyle on the parent) [ButtonStyle]
+            <Button
+             ~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_log.xml:147: Warning: Buttons in button bars should be borderless; use style="?android:attr/buttonBarButtonStyle" (and ?android:attr/buttonBarStyle on the parent) [ButtonStyle]
+            <Button
+             ~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_log.xml:158: Warning: Buttons in button bars should be borderless; use style="?android:attr/buttonBarButtonStyle" (and ?android:attr/buttonBarStyle on the parent) [ButtonStyle]
+            <Button
+             ~~~~~~
+
+   Explanation for issues of type "ButtonStyle":
+   Button bars typically use a borderless style for the buttons. Set the
+   style="?android:attr/buttonBarButtonStyle" attribute on each of the
+   buttons, and set style="?android:attr/buttonBarStyle" on the parent layout
+
+   https://material.io/components/dialogs/
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:2287: Warning: Avoid using sizes smaller than 11sp: 10sp [SmallSp]
+                android:textSize="10sp" />
+                ~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:2295: Warning: Avoid using sizes smaller than 11sp: 10sp [SmallSp]
+                android:textSize="10sp" />
+                ~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:2303: Warning: Avoid using sizes smaller than 11sp: 10sp [SmallSp]
+                android:textSize="10sp" />
+                ~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:2311: Warning: Avoid using sizes smaller than 11sp: 10sp [SmallSp]
+                android:textSize="10sp" />
+                ~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:2319: Warning: Avoid using sizes smaller than 11sp: 10sp [SmallSp]
+                android:textSize="10sp" />
+                ~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "SmallSp":
+   Avoid using sizes smaller than 11sp.
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\grid_tracker\GridInfoWindow.java:83: Warning: onTouch should call View#performClick when a click is detected [ClickableViewAccessibility]
+            public boolean onTouch(View v, MotionEvent e) {
+                           ~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\grid_tracker\GridMarkerInfoWindow.java:106: Warning: onTouch should call View#performClick when a click is detected [ClickableViewAccessibility]
+            public boolean onTouch(View v, MotionEvent e) {
+                           ~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\grid_tracker\GridRecordInfoWindow.java:54: Warning: onTouch should call View#performClick when a click is detected [ClickableViewAccessibility]
+            public boolean onTouch(View v, MotionEvent e) {
+                           ~~~~~~~
+
+   Explanation for issues of type "ClickableViewAccessibility":
+   If a View that overrides onTouchEvent or uses an OnTouchListener does not
+   also implement performClick and call it when clicks are detected, the View
+   may not handle accessibility actions properly. Logic handling the click
+   actions should ideally be placed in View#performClick as some accessibility
+   services invoke performClick when a click action should occur.
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\ui\CallingListAdapter.java:314: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+            holder.callingListFreqTextView.setText("TX");
+                                                   ~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\ui\ConfigFragment.java:1878: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+                binding.testHrdlogButton.setText("Testing...");
+                                                 ~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\ui\ConfigFragment.java:1887: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+                                    binding.testHrdlogButton.setText("OK");
+                                                                     ~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\ui\ConfigFragment.java:1890: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+                                    binding.testHrdlogButton.setText("Fail");
+                                                                     ~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\ui\ConfigFragment.java:1897: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+                                        binding.testHrdlogButton.setText("Test");
+                                                                         ~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\ui\SpectrumFragment.java:243: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+        spectrumLocTimeText.setText("Loc: " + loc);
+                                    ~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\java\com\bg7yoz\ft8cn\ui\SpectrumFragment.java:243: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+        spectrumLocTimeText.setText("Loc: " + loc);
+                                    ~~~~~~~
+
+   Explanation for issues of type "SetTextI18n":
+   When calling TextView#setText
+   * Never call Number#toString() to format numbers; it will not handle
+   fraction separators and locale-specific digits properly. Consider using
+   String#format with proper format specifications (%d or %f) instead.
+   * Do not pass a string literal (e.g. "Hello") to display text. Hardcoded
+   text can not be properly translated to other languages. Consider using
+   Android resource strings instead.
+   * Do not build messages by concatenating text chunks. Such messages can not
+   be properly translated.
+
+   https://developer.android.com/guide/topics/resources/localization.html
+
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\call_list_holder_item.xml:90: Warning: Hardcoded string "--", should use @string resource [HardcodedText]
+        android:text="--"
+        ~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\call_list_holder_item.xml:228: Warning: Hardcoded string "dxcc", should use @string resource [HardcodedText]
+        android:contentDescription="dxcc"
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\call_list_holder_item.xml:239: Warning: Hardcoded string "itu", should use @string resource [HardcodedText]
+        android:contentDescription="itu"
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\call_list_holder_item.xml:250: Warning: Hardcoded string "cqzone", should use @string resource [HardcodedText]
+        android:contentDescription="cqzone"
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\call_list_holder_item.xml:262: Warning: Hardcoded string "cqzone", should use @string resource [HardcodedText]
+        android:contentDescription="cqzone"
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\call_list_holder_item.xml:273: Warning: Hardcoded string "itu", should use @string resource [HardcodedText]
+        android:contentDescription="itu"
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\call_list_holder_item.xml:284: Warning: Hardcoded string "dxcc", should use @string resource [HardcodedText]
+        android:contentDescription="dxcc"
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:273: Warning: Hardcoded string "-- ms", should use @string resource [HardcodedText]
+                            android:text="-- ms"
+                            ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:793: Warning: Hardcoded string "HRDLog.net Settings", should use @string resource [HardcodedText]
+                            android:text="HRDLog.net Settings"
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:808: Warning: Hardcoded string "Enable HRDLog", should use @string resource [HardcodedText]
+                            android:text="Enable HRDLog"
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:825: Warning: Hardcoded string "API URL", should use @string resource [HardcodedText]
+                            android:text="API URL"
+                            ~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:842: Warning: Hardcoded string "https://api.hrdlog.net", should use @string resource [HardcodedText]
+                            android:hint="https://api.hrdlog.net"
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:859: Warning: Hardcoded string "API Key", should use @string resource [HardcodedText]
+                            android:text="API Key"
+                            ~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:874: Warning: Hardcoded string "Your API Key", should use @string resource [HardcodedText]
+                            android:hint="Your API Key"
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:891: Warning: Hardcoded string "Username", should use @string resource [HardcodedText]
+                            android:text="Username"
+                            ~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:906: Warning: Hardcoded string "HRDLog username", should use @string resource [HardcodedText]
+                            android:hint="HRDLog username"
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:923: Warning: Hardcoded string "Password", should use @string resource [HardcodedText]
+                            android:text="Password"
+                            ~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:938: Warning: Hardcoded string "••••••••", should use @string resource [HardcodedText]
+                            android:hint="••••••••"
+                            ~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:955: Warning: Hardcoded string "Callsign", should use @string resource [HardcodedText]
+                            android:text="Callsign"
+                            ~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:970: Warning: Hardcoded string "YOUR/CALL", should use @string resource [HardcodedText]
+                            android:hint="YOUR/CALL"
+                            ~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:986: Warning: Hardcoded string "Test", should use @string resource [HardcodedText]
+                            android:text="Test"
+                            ~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:1351: Warning: Hardcoded string "Connect", should use @string resource [HardcodedText]
+                            android:text="Connect"
+                            ~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:1715: Warning: Hardcoded string "OFF", should use @string resource [HardcodedText]
+                            android:text="OFF"
+                            ~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:1749: Warning: Hardcoded string "Disconnected", should use @string resource [HardcodedText]
+                        android:text="Disconnected"
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:2286: Warning: Hardcoded string "Save Conf", should use @string resource [HardcodedText]
+                android:text="Save Conf"
+                ~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:2294: Warning: Hardcoded string "Load Conf", should use @string resource [HardcodedText]
+                android:text="Load Conf"
+                ~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:2302: Warning: Hardcoded string "LogCat", should use @string resource [HardcodedText]
+                android:text="LogCat"
+                ~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:2310: Warning: Hardcoded string "About", should use @string resource [HardcodedText]
+                android:text="About"
+                ~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_config.xml:2318: Warning: Hardcoded string "FAQ", should use @string resource [HardcodedText]
+                android:text="FAQ"
+                ~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_my_calling.xml:50: Warning: Hardcoded string "--", should use @string resource [HardcodedText]
+                android:text="--"
+                ~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_spectrum.xml:57: Warning: Hardcoded string "Loc: --:--:--", should use @string resource [HardcodedText]
+            android:text="Loc: --:--:--"
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Z:\3d\GIT\FT8CN\ft8cn\app\src\main\res\layout\fragment_spectrum.xml:73: Warning: Hardcoded string "+0 ms", should use @string resource [HardcodedText]
+            android:text="+0 ms"
+            ~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "HardcodedText":
+   Hardcoding text attributes directly in layout files is bad for several
+   reasons:
+
+   * When creating configuration variations (for example for landscape or
+   portrait) you have to repeat the actual text (and keep it up to date when
+   making changes)
+
+   * The application cannot be translated to other languages by just adding
+   new translations for existing string resources.
+
+   There are quickfixes to automatically extract this hardcoded string into a
+   resource lookup.
+
+0 errors, 304 warnings

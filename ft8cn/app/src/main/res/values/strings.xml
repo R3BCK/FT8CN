@@ -559,6 +559,8 @@
     <string name="tune_command_label">TUNE command 1C 01 02</string>
     <string name="switch_on">ON</string>
     <string name="switch_off">OFF</string>
-
+    <!-- Settings: Clear Call Hist on Freq Change -->
+    <string name="config_clear_call_hist_on_freq_change">Clear Call Hist on Freq Change</string>
+    <string name="faq_clear_call_hist_on_freq_change">When enabled, automatically clear the Calling history buffer after radio frequency change and TUNE command. Prevents calling old callsigns on new frequency.</string>
 
 </resources>

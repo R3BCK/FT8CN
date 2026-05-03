@@ -236,7 +236,7 @@ public class CallsignDatabase extends SQLiteOpenHelper {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            Log.d(TAG, "开始导入呼号位置数据...");
+            Log.d(TAG, "Start importing call sign location data...");
             String insertCountriesSQL = "INSERT INTO countries (id,CountryNameEn,CountryNameCN,CQZone" +
                     ",ITUZone,Continent,Latitude,Longitude,GMT_offset,DXCC)\n" +
                     "VALUES(?,?,?,?,?,?,?,?,?,?)";
@@ -272,7 +272,7 @@ public class CallsignDatabase extends SQLiteOpenHelper {
                     Log.e(TAG, "错误：" + e.getMessage());
                 }
             }
-            Log.d(TAG, "呼号位置数据导入完毕！");
+            Log.d(TAG, "Call sign location data import completed!");
             return null;
         }
     }

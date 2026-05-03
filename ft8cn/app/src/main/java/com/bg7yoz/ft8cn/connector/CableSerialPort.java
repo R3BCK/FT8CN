@@ -217,7 +217,7 @@ public class CableSerialPort {
             // === КОНЕЦ НОВОГО БЛОКА ===
 
             usbIoManager.start();
-            Log.d(TAG, "串口打开成功！");
+            Log.d(TAG, "Serial port opened successfully!");
             connected = true;
 
             if (onStateChanged!=null){
@@ -226,7 +226,7 @@ public class CableSerialPort {
 
 
         } catch (Exception e) {
-            Log.e(TAG, "串口打开失败: " + e.getMessage());
+            Log.e(TAG, "Serial port open failed:" + e.getMessage());
             if (onStateChanged!=null){
                 onStateChanged.onRunError(GeneralVariables.getStringFromResource(R.string.serial_connect_failed)
                         + e.getMessage());

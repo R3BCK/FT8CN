@@ -25,9 +25,18 @@ public class CableConnector extends BaseRigConnector {
         void OnWaveReceived(int bufferLen, float[] buffer);
     }
 
+    /**
+     * Callback interface for USB error notifications.
+     * Allows notifying MainActivity about USB disconnects for RFI protection.
+     */
+    public interface OnUsbErrorListener {
+        void onUsbConnectionError(String errorMessage);
+    }
+
     private final CableSerialPort cableSerialPort;
     private final BaseRig cableConnectedRig;
     private OnCableDataReceived onCableDataReceived;
+    private OnUsbErrorListener onUsbErrorListener;
 
     public CableConnector(Context context,
                           CableSerialPort.SerialPort serialPort,
@@ -48,18 +57,41 @@ public class CableConnector extends BaseRigConnector {
 
             @Override
             public void onRunError(Exception e) {
-                Log.e(TAG, "CableConnector error: " + e.getMessage());
+                String errorMsg = e.getMessage();
+                Log.e(TAG, "CableConnector error: " + errorMsg);
+
+                // Detect USB-specific errors (RFI-induced disconnects)
+                if (errorMsg != null && (
+                        errorMsg.contains("USB get_status request failed") ||
+                                errorMsg.contains("USB device not found") ||
+                                errorMsg.contains("device 0x") ||
+                                errorMsg.contains("connection lost"))) {
+
+                    Log.w(TAG, "USB RFI disconnect detected: " + errorMsg);
+
+                    // Notify listener to increment disconnect counter
+                    if (onUsbErrorListener != null) {
+                        onUsbErrorListener.onUsbConnectionError(errorMsg);
+                    }
+                }
+
                 if (getOnConnectorStateChanged() != null) {
-                    getOnConnectorStateChanged().onRunError("Serial connection lost: " + e.getMessage());
+                    getOnConnectorStateChanged().onRunError("Serial connection lost: " + errorMsg);
                 }
             }
         };
     }
 
+    /**
+     * Set listener for USB error notifications.
+     * @param listener Listener to receive USB error callbacks
+     */
+    public void setOnUsbErrorListener(OnUsbErrorListener listener) {
+        this.onUsbErrorListener = listener;
+    }
+
     @Override
     public synchronized void sendData(byte[] data) {
-        // ✅ ИСПРАВЛЕНО: убрана проверка isOpen(), так как метода нет в CableSerialPort
-        // sendData() внутри сам обрабатывает состояние подключения
         if (cableSerialPort != null) {
             cableSerialPort.sendData(data);
         }
@@ -67,7 +99,6 @@ public class CableConnector extends BaseRigConnector {
 
     @Override
     public void setPttOn(boolean on) {
-        // Handle only RTS and DTR modes for PTT control
         switch (getControlMode()) {
             case ControlMode.DTR:
                 if (cableSerialPort != null) {
@@ -79,17 +110,13 @@ public class CableConnector extends BaseRigConnector {
                     cableSerialPort.setRTS_On(on);
                 }
                 break;
-            // CAT mode: PTT sent via CAT command in sendData()
         }
     }
 
     @Override
     public void setPttOn(byte[] command) {
-        // Send PTT as CAT command
         sendData(command);
     }
-
-    // === (tr)uSDX audio-over-CAT support (2023-08-16 by DS1UFX) ===
 
     @Override
     public void sendWaveData(byte[] data) {
@@ -133,10 +160,8 @@ public class CableConnector extends BaseRigConnector {
      */
     public void configureSmartPolling(BaseRig rig) {
         if (rig != null) {
-            // Set 1-second polling interval
             rig.setPollIntervalMs(1000);
 
-            // Enable Transceive mode for Icom rigs (if supported)
             if (rig instanceof com.bg7yoz.ft8cn.rigs.IcomRig) {
                 rig.setTransceiveEnabled(true);
                 rig.enableTransceiveMode();

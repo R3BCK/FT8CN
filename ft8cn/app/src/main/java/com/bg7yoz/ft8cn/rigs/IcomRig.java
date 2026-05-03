@@ -1,8 +1,8 @@
 package com.bg7yoz.ft8cn.rigs;
 
 /**
- * IcomRig是通用的Icom电台控制类。对于wifi模式，实际的控制是通过IComWifiConnector(继承于WifiConnector)
- * 在IComWifiConnector中，有IComWifiRig具体操作电台
+ * IcomRig is a generic Icom radio control class. For wifi mode, actual control is via IComWifiConnector
+ * (inheriting from WifiConnector). In IComWifiConnector, IComWifiRig performs specific radio operations.
  */
 
 import android.util.Log;
@@ -22,25 +22,23 @@ import java.util.TimerTask;
 public class IcomRig extends BaseRig {
     private static final String TAG = "IcomRig";
 
-    private final int ctrAddress = 0xE0;//接收地址，默认0xE0;电台回复命令有时也可以是0x00
-    private byte[] dataBuffer = new byte[0];//数据缓冲区
+    private final int ctrAddress = 0xE0; // Receiver address, default 0xE0; radio replies can also be 0x00
+    private byte[] dataBuffer = new byte[0]; // Data buffer
     private int alc = 0;
     private int swr = 0;
     private boolean alcMaxAlert = false;
     private boolean swrAlert = false;
-    private Timer meterTimer;//查询meter的Timer
+    private Timer meterTimer; // Timer for querying meter
 
-    private boolean oldVersion = false;//针对老电台，可能不支持SWR查询
-    //private boolean isPttOn = false;
+    private boolean oldVersion = false; // Old radios may not support SWR query
 
     @Override
     public void setPTT(boolean on) {
         super.setPTT(on);
-        //isPttOn = on;
         alcMaxAlert = false;
         swrAlert = false;
         if (on) {
-            //修正连接方式0x03是wlan,01是usb，0x02是usb+mic，确保声音能发送到电台
+            // Fix connection mode: 0x03=WLAN, 0x01=USB, 0x02=USB+mic to ensure audio reaches radio
             if (GeneralVariables.connectMode == ConnectMode.NETWORK) {
                 sendCivData(IcomRigConstant.setConnectorDataMode(ctrAddress, getCivAddress(), (byte) 0x03));
             } else if (GeneralVariables.connectMode == ConnectMode.USB_CABLE) {
@@ -57,14 +55,12 @@ public class IcomRig extends BaseRig {
             }
 
             switch (getControlMode()) {
-                case ControlMode.CAT://以CIV指令
+                case ControlMode.CAT: // Via CIV command
                     getConnector().setPttOn(IcomRigConstant.setPTTState(ctrAddress, getCivAddress()
                             , on ? IcomRigConstant.PTT_ON : IcomRigConstant.PTT_OFF));
                     break;
-                //case ControlMode.NETWORK:
                 case ControlMode.RTS:
                 case ControlMode.DTR:
-
                     getConnector().setPttOn(on);
                     break;
             }
@@ -82,12 +78,10 @@ public class IcomRig extends BaseRig {
     @Override
     public void setUsbModeToRig() {
         if (getConnector() != null) {
-            //因为担心老的ICOM电台不一定支持USB-D，所以，先做个一USB模式，再进入USB-D模式，
-            // 这样，如果USB-D模式不支持，USB-D的指令就是无效的，电台就停留在USB模式下了
-            //getConnector().sendData(IcomRigConstant.setOperationMode(ctrAddress
-            // , getCivAddress(), IcomRigConstant.USB));//usb
+            // For older Icom radios that may not support USB-D: set USB first, then USB-D.
+            // If USB-D is unsupported, the command is ignored and radio stays in USB mode.
             getConnector().sendData(IcomRigConstant.setOperationDataMode(ctrAddress
-                    , getCivAddress(), IcomRigConstant.USB));//usb-d
+                    , getCivAddress(), IcomRigConstant.USB)); // USB-D
         }
     }
 
@@ -106,10 +100,9 @@ public class IcomRig extends BaseRig {
     }
 
     /**
-     * 查找指令的结尾的位置，如果没找到，值是-1。
-     *
-     * @param data 数据
-     * @return 位置
+     * Find the end of a command (0xFD). Returns -1 if not found.
+     * @param data Data buffer
+     * @return Position of 0xFD or -1
      */
     private int getCommandEnd(byte[] data) {
         for (int i = 0; i < data.length; i++) {
@@ -121,10 +114,9 @@ public class IcomRig extends BaseRig {
     }
 
     /**
-     * 查找指令头，没找到返回-1，找到返回FE FE的第一个位置
-     *
-     * @param data 数据
-     * @return 位置
+     * Find command header (0xFE 0xFE). Returns -1 if not found, otherwise position of first 0xFE.
+     * @param data Data buffer
+     * @return Position or -1
      */
     private int getCommandHead(byte[] data) {
         if (data.length < 2) return -1;
@@ -137,10 +129,9 @@ public class IcomRig extends BaseRig {
     }
 
     @Override
-    public void sendWaveData(Ft8Message message) {//发送音频数据到电台，用于网络方式
-        if (getConnector() != null) {//把生成的具体音频数据传递到Connector，
-            float[] data = GenerateFT8.generateFt8(message, GeneralVariables.getBaseFrequency()
-                    , 12000);//此处icom电台发射音频的采样率是12000
+    public void sendWaveData(Ft8Message message) {
+        if (getConnector() != null) {
+            float[] data = GenerateFT8.generateFt8(message, GeneralVariables.getBaseFrequency(), 12000);
             if (data == null) {
                 setPTT(false);
                 return;
@@ -151,9 +142,8 @@ public class IcomRig extends BaseRig {
 
     private void analysisCommand(byte[] data) {
         int headIndex = getCommandHead(data);
-        if (headIndex == -1) {//说明没有指令头
-            return;
-        }
+        if (headIndex == -1) return; // No command header
+
         IcomCommand icomCommand;
         if (headIndex == 0) {
             icomCommand = IcomCommand.getCommand(ctrAddress, getCivAddress(), data);
@@ -162,34 +152,28 @@ public class IcomRig extends BaseRig {
             System.arraycopy(data, headIndex, temp, 0, temp.length);
             icomCommand = IcomCommand.getCommand(ctrAddress, getCivAddress(), temp);
         }
-        if (icomCommand == null) {
-            return;
-        }
+        if (icomCommand == null) return;
 
-        //目前只对频率和模式消息作反应
+        // React only to frequency and mode messages for now
         switch (icomCommand.getCommandID()) {
-
-            case IcomRigConstant.CMD_SEND_FREQUENCY_DATA://获取到的是频率数据
+            case IcomRigConstant.CMD_SEND_FREQUENCY_DATA:
             case IcomRigConstant.CMD_READ_OPERATING_FREQUENCY:
-                //获取频率
-                //ToastMessage.show(byteToStr(icomCommand.getData(false)));
                 setFreq(icomCommand.getFrequency(false));
                 break;
-            case IcomRigConstant.CMD_SEND_MODE_DATA://获取到的是模式数据
+            case IcomRigConstant.CMD_SEND_MODE_DATA:
             case IcomRigConstant.CMD_READ_OPERATING_MODE:
                 break;
-            case IcomRigConstant.CMD_READ_METER://读meter//此处的指令，只在网络模式实现，以后可能会在串口方面实现
+            case IcomRigConstant.CMD_READ_METER:
                 if (icomCommand.getSubCommand() == IcomRigConstant.CMD_READ_METER_ALC) {
                     alc = IcomRigConstant.twoByteBcdToInt(icomCommand.getData(true));
                 }
                 if (icomCommand.getSubCommand() == IcomRigConstant.CMD_READ_METER_SWR) {
                     swr = IcomRigConstant.twoByteBcdToInt(icomCommand.getData(true));
                 }
-                showAlert();//检查meter值是否在告警范围
+                showAlert();
                 break;
             case IcomRigConstant.CMD_CONNECTORS:
                 break;
-
         }
     }
 
@@ -202,7 +186,7 @@ public class IcomRig extends BaseRig {
         } else {
             swrAlert = false;
         }
-        if ((alc > IcomRigConstant.alc_alert_max) && GeneralVariables.alc_switch_on) {//网络模式下不警告ALC
+        if ((alc > IcomRigConstant.alc_alert_max) && GeneralVariables.alc_switch_on) {
             if (!alcMaxAlert) {
                 alcMaxAlert = true;
                 ToastMessage.show(GeneralVariables.getStringFromResource(R.string.alc_high_alert));
@@ -210,20 +194,19 @@ public class IcomRig extends BaseRig {
         } else {
             alcMaxAlert = false;
         }
-
     }
 
     @Override
     public void onReceiveData(byte[] data) {
-        //ToastMessage.show(byteToStr(data));
-
         int commandEnd = getCommandEnd(data);
-        if (commandEnd <= -1) {//这是没有指令结尾
+        if (commandEnd <= -1) {
+            // Incomplete command: append to buffer
             byte[] temp = new byte[dataBuffer.length + data.length];
             System.arraycopy(dataBuffer, 0, temp, 0, dataBuffer.length);
             System.arraycopy(data, 0, temp, dataBuffer.length, data.length);
             dataBuffer = temp;
         } else {
+            // Complete command found: process it
             byte[] temp = new byte[dataBuffer.length + commandEnd + 1];
             System.arraycopy(dataBuffer, 0, temp, 0, dataBuffer.length);
             dataBuffer = temp;
@@ -232,16 +215,13 @@ public class IcomRig extends BaseRig {
         if (commandEnd != -1) {
             analysisCommand(dataBuffer);
         }
-        dataBuffer = new byte[0];//清空缓冲区
+        dataBuffer = new byte[0]; // Clear buffer
         if (commandEnd <= -1 || commandEnd < data.length) {
-            byte[] temp = new byte[data.length - commandEnd + 1];
-            for (int i = 0; i < data.length - commandEnd - 1; i++) {
-                temp[i] = data[commandEnd + i + 1];
-            }
+            // Remaining data after command end: save for next parse
+            byte[] temp = new byte[data.length - commandEnd - 1];
+            System.arraycopy(data, commandEnd + 1, temp, 0, temp.length);
             dataBuffer = temp;
         }
-
-
     }
 
     @Override
@@ -261,7 +241,7 @@ public class IcomRig extends BaseRig {
         meterTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                if (isPttOn() && !oldVersion) {//当Ptt被按下去的时候测量,并且不是老版本的电台
+                if (isPttOn() && !oldVersion) {
                     sendCivData(IcomRigConstant.getSWRState(ctrAddress, getCivAddress()));
                     sendCivData(IcomRigConstant.getALCState(ctrAddress, getCivAddress()));
                 }
@@ -269,15 +249,13 @@ public class IcomRig extends BaseRig {
         }, 0, IComPacketTypes.METER_TIMER_PERIOD_MS);
     }
 
-
     public String getFrequencyStr() {
         return BaseRigOperation.getFrequencyStr(getFreq());
     }
 
-
     public IcomRig(int civAddress, boolean newRig) {
         Log.d(TAG, "IcomRig: Create.");
-        this.oldVersion = !newRig;//有的老电台不支持swr查询
+        this.oldVersion = !newRig;
         setCivAddress(civAddress);
         startMeterTimer();
     }
@@ -290,14 +268,12 @@ public class IcomRig extends BaseRig {
             return;
         }
 
-        // Build CI-V frame using constants
         byte[] tuneCmd = IcomRigConstant.setTuneCommand(
-                0xE0,                           // Controller address (standard for PC)
-                GeneralVariables.civAddress,    // Rig address from settings (e.g. 0x94)
-                action                          // TUNER_OFF / TUNER_ON / TUNER_START
+                0xE0,
+                GeneralVariables.civAddress,
+                action
         );
 
-        // Send via connector using the correct method: sendData(byte[])
         try {
             getConnector().sendData(tuneCmd);
             ToastMessage.show("TUNE command sent");
@@ -305,8 +281,13 @@ public class IcomRig extends BaseRig {
         } catch (Exception e) {
             Log.e(TAG, "Failed to send TUNE command: " + e.getMessage());
             ToastMessage.show("Failed to send TUNE command");
-
         }
     }
 
+    // === ✅ ДОБАВЛЕНО: Переопределение sendTuneCommand для совместимости с BaseRig ===
+    @Override
+    public void sendTuneCommand(byte action) {
+        setTune(action);
+    }
+    // ==============================================================================
 }

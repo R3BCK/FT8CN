@@ -248,13 +248,14 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
                 GeneralVariables.getMyMaidenheadGrid()
                 , holder.ft8Message.getMaidenheadGrid(mainViewModel.databaseOpr)));
 
-        // === NEW: Calculate and display azimuth ===
+        // === NEW: Calculate and display azimuth with degree symbol ===
         String myGrid = GeneralVariables.getMyMaidenheadGrid();
         String targetGrid = holder.ft8Message.getMaidenheadGrid(mainViewModel.databaseOpr);
         if (myGrid != null && !myGrid.isEmpty() && targetGrid != null && !targetGrid.isEmpty()) {
             double azimuth = MaidenheadGrid.getAzimuth(myGrid, targetGrid);
             if (azimuth >= 0) {
-                holder.callingListAzimuthTextView.setText(String.format(Locale.US, "%.0f", azimuth));
+                // \u00B0 = Unicode degree symbol (°) - safe for UTF-8 compilation
+                holder.callingListAzimuthTextView.setText(String.format(Locale.US, "%.0f\u00B0", azimuth));
             } else {
                 holder.callingListAzimuthTextView.setText("--");
             }
@@ -310,7 +311,9 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
         if (holder.ft8Message.freq_hz <= 0.01f) {//this is transmit interface
             holder.callingListIdBTextView.setVisibility(View.GONE);
             holder.callListDtTextView.setVisibility(View.GONE);
-            holder.callingListFreqTextView.setText("TX");
+            //holder.callingListFreqTextView.setText("TX");
+            float audioFreq = GeneralVariables.getBaseFrequency();
+            holder.callingListFreqTextView.setText(String.format(Locale.US, "TX  %04.0f", audioFreq));
             holder.bandItemTextView.setVisibility(View.GONE);
             holder.callingListDistTextView.setVisibility(View.GONE);
             holder.callingListCommandIInfoTextView.setVisibility(View.GONE);

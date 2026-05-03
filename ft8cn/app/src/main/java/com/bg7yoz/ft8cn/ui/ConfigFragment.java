@@ -605,6 +605,25 @@ public class ConfigFragment extends Fragment {
                 GeneralVariables.getStringFromResource(R.string.switch_on) :
                 GeneralVariables.getStringFromResource(R.string.switch_off));
 
+        // === Clear Call Hist on Freq Change Configuration ===
+        binding.clearCallHistOnFreqChangeSwitch.setOnCheckedChangeListener(null);
+        binding.clearCallHistOnFreqChangeSwitch.setChecked(GeneralVariables.clearCallHistOnFreqChange);
+        binding.clearCallHistOnFreqChangeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                GeneralVariables.clearCallHistOnFreqChange = isChecked;
+                buttonView.setText(isChecked ?
+                        GeneralVariables.getStringFromResource(R.string.switch_on) :
+                        GeneralVariables.getStringFromResource(R.string.switch_off));
+                writeConfig("clearCallHistOnFreqChange", isChecked ? "1" : "0");
+                Log.d(TAG, "ClearCallHistOnFreqChange set to: " + isChecked);
+            }
+        });
+        binding.clearCallHistOnFreqChangeSwitch.setText(GeneralVariables.clearCallHistOnFreqChange ?
+                GeneralVariables.getStringFromResource(R.string.switch_on) :
+                GeneralVariables.getStringFromResource(R.string.switch_off));
+        // === End Clear Call Hist Configuration ===
+
         // Transmit delay
         binding.inputTransDelayEdit.removeTextChangedListener(onTransDelayEditorChanged);
         binding.inputTransDelayEdit.setText(GeneralVariables.getTransmitDelayStr());
@@ -1615,6 +1634,16 @@ public class ConfigFragment extends Fragment {
             public void onClick(View view) {
                 new HelpDialog(requireContext(), requireActivity()
                         , GeneralVariables.getStringFromResource(R.string.faq_web_port)
+                        , true).show();
+            }
+        });
+
+        // Clear Call Hist help
+        binding.clearCallHistHelpButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.faq_clear_call_hist_on_freq_change)
                         , true).show();
             }
         });

@@ -1,333 +1,311 @@
-免责声明：
-   FT8CN旨在研究的目的，学习如何对FT8信号进行解码、发射等操作，不对使用者操作本APP所产生的后果负责。
-   在中华人民共和国境内，使用FT8CN请遵守《中华人民共和国无线电管理条例》等相关规定。
-   考虑到手机的性能和续航的限制，对信号的处理采用轻量化的运算，未做深度解码等处理。
-   如有好的建议或问题可以提交到到”有问题要吐槽“。
-
 Disclaimer
-FT8CN aims to learn how to decode, transmit FT8 signal for research purposes, which is not responsible for the consequences caused by the user's operation.
-Please comply with local laws and regulations when using FT8CN.
-Considering the performance and endurance limitations of the mobile phone, the processing of the signal adopts lightweight operations instead of deep decoding and other processing.
-Please click "FAQ" if you have good suggestions or questions .
-
-
+FT8CN is designed for research purposes to learn how to decode and transmit FT8 signals. The developer is not responsible for any consequences resulting from the user's operation of this application.
+When using FT8CN within the People's Republic of China, please comply with relevant regulations such as the "Regulations on Radio Management of the People's Republic of China".
+Considering the performance and battery life limitations of mobile devices, signal processing uses lightweight operations without deep decoding or other intensive processing.
+If you have good suggestions or questions, please submit them via "FAQ / Report Issues".
 BG7YOZ
 2022-07-01
-
- 2025-01-04(0.93)
-  1.修正发射监管时间计算错误。
-  2.修正下载日志数据缺少第一条数据的问题。
-  3.增加日志数据分享功能。
-  4.增加自动向QRZ、CloudLog上传日志的功能（由SydneyOwl贡献代码）。
-  5.增加SWR，ALC告警开关。
-
- 2024-01-22(0.92)
-  1.增加瀑布图中消息的已通联标识。
-  2.新增支持的电台型号。
-  3.增加串口参数设置。
-  4.新增解码的消息类型，支持全部FT8消息类型。
-  5.修正串口错误提示只有中文的问题。
-  6.完善SWL QSO日志记录。
-  7.完善消息中带有/P或/R后缀呼号的通联程序。
-
-
- 2023-09-14(0.91 patch 1)
-  1.修正Yaesu FT-891/991 选择USB-DATA模式错误。
-
- 2023-09-11(0.91)
-  1.修正发射非标准消息（i3=4）RR73被误发成73的问题。
-  2.修正因多重解码模式下，无法及时回复上一周期解码的消息以及漏发73的问题。
-  3.修正生成双方都是复合呼号的消息时，发送方的呼号可能不正确的问题。
-  4.优化自动程序。
-
-  5.增加（tr)uSDX Audio over cat功能，由DS1UFX贡献代码。
-  6.增加支持XieGu(协谷)X6100的Wifi模式（固件版本 1.1.7，发射音频还未解决）。
-  7.增加支持Kenwood TS-570D。
-  8.增加Yaesu FT-891/991 USB-DATA模式。
-  9.增加对消息列表上的呼号QSO日志一键查询。
-  10.增加消息列表精简显示模式。
-
- 2023-08-13(0.90)
-  1.增加日志导入时Web界面交互模式。
-  2.修正当日志数据量过大时，地图崩溃的问题。
-  3.优化数据库结构，提升日志数据导入、更新速度（更新此版本前，建议备份日志以防不测）。
-  4.修正部分单词拼写错误。
-  5.增加电台UA3REO Wolf SDR。
-  6.增加电台GUOHE(国赫) PMR-171。
-
- 2023-07-08(0.89)
-  1.增加多重解码功能，在多重解码模式下，提高解码深度，尝试解码叠加的信号。
-  2.解决导入ADI后通联过的分区没有及时更新的问题。
-  3.解决iCom电台在网络模式下，发射音频会出现破音的情况。
-  4.解决在某些情况下RR73卡死的问题。
-  5.提高解码稳定性。
-  6.改正解码消息的comment字段有时不正确显示的问题。
-  7.修改导出日志的提示。
-
-
- 2023-05-02(0.88 Patch 2)
-  1.增加音频输出设置（位深、采样率）。
-  2.增加日志可以按条件查询并导出。
-  3.修改日志查询以时间为降序显示。
-  4.修正SWL QSO记录重复的问题。
-  5.针对各主流浏览器优化后台UI。
-  patch 2
-  6.修正“通联记录”定位闪退问题。
-
- 2023-03-24(0.87)
-  1.增加查询的通联日志结果在地图中定位显示功能。
-  2.增加FlexRadio仪表显示和参数设置(目前暂不支持发射)。
-  3.增加时间自动同步功能（服务器是Microsoft NTP）。
-  4.增加SWL模式，对解码消息以及QSO有保存和导出的功能(SWL的QSO认定标准：至少要有双方的报告，以及结束语73、RR73、RRR)。
-  5.丰富后台数据的查询功能。
-  6.修正后台查询“呼号与网格映射表”中距离计算的错误。
-  7.针对协谷G90S未来的新固件，调整电台型号选项。
-  8.解决解码消息较多时界面会卡顿的问题。
-  9.优化日志查询性能。
-
- 2023-02-06(0.86)
-  1.提高日志导入的健壮性，反馈格式错误的日志信息。
-  2.修正在推算SNR时，偶尔会出现数组下标越界造成闪退的问题。
-  3.修正导入日志后数量计算不准确的问题。
-
- 2023-01-28(0.85)
-  1.增加排除的呼号前缀功能（排除的呼号前缀的动作具有最高优先级，为自动程序排除掉不需要的呼叫）。
-  2.增加GridTracker中地图的日落日出灰线。
-  3.增加清空关注呼号列表功能。
-  4.增加清空缓存的通联QSO消息功能。
-  5.增加呼叫修饰符功能。例如 CQ POTA xxxxxx xxxx、或CQ DX xxxxxx xxxx。修饰符范围是000-999,A-Z,AA-ZZ,AAA-ZZZ,AAAA-ZZZZ。
- 2023-01-08(0.84)
-  1.优化地图的色彩模式。
-  2.修补因线程不同步，导致提示消息操作闪退的问题。
-  3.解决部分日志字段表述不标准，造成导入日志失败的问题。
-  4.优化呼号的哈希表处理。
- 2023-01-07(0.83)
-  1.增加自由文本发射功能。
-  2.修改因Execute-only memory violation错误造成的闪退问题。
-  3.修改某型号电台设置错误的问题。
-  4.修改日志导入导出操作，增加导出日志中确认字段，通过导入日志自动更新确认项。
-  5.排除多个内存泄漏点。
-  6.解决部分日志QSO中对方网格不准确的问题。
-  7.解决长期在网格追踪的界面下，会息屏的问题。
- 2022-12-31(0.8.1)
-  再见，2022！愿明天更好！
-  注意！此版本数据库结构有更新，升级前，请导出日志备份，升级后，将无法回退到旧的版本。
-  注意！此版本开始支持ICOM的网络控制功能，建议使用电台的WIFI连接手机的AP（优先选项），或手机连接电台的AP。
-  注意！不建议使用路由器来连接，如果路由器的性能不够，会造成发射音频是丢包！！！
-  1.增加ICom系列电台的网络（Wifi）支持。
-  2.增加ICom系列电台驻波比、ALC值过高警告功能。
-  3.增加建伍TS系列电台驻波比、ALC值过高警告功能。
-  4.增加YAESU各系列电台驻波比、ALC值过高警告功能。
-  5.增加Elecraft系列电台驻波比、ALC值过高警告功能。
-  6.增加ICom部分电台在不同的连接方式下，自动切换Connectors的Data mode。
-  7.增加调整信号强度功能，用于调节ALC。
-  8.增加支持3位呼号的呼叫能力。
-  9.增加支持的电台。
-  10.增加获取最新版本的入口。https://github.com/N0BOY/FT8CN/releases
-  11.增加呼号与网格的映射表（升级数据库）。
-  12.增加地图可视化展示功能（类似于GridTracker）。
-  13.增加在地图中呼叫的能力。
-  14.解决部分设备在处理音频数据时，因内存抖动造成程序崩溃的问题。
-  15.解决部分消息的QTH不准确的问题。
-  16.修正了在一些情况下，发射条目上有分区图标显示的问题。
-  17.修正了发射含有3位呼号消息时闪退的问题。
-  18.优化频谱图，解决低辨率下文字信息显示不正常的问题，
-  19.更新部分地区的坐标
-  20.优化消息列表处理策略，减少内存抖动。
-  21.修正当达到无回应阈值，切换目标呼号后，提示消息没有随之变化的问题。
-  22.解决部分非标准呼号地理位置无法解析的问题。
-  23.修正因高版本安卓及高版本ARM64的内存访问机制造成异常崩溃的问题。
-2022-11-08(0.79)
-  1.协谷X6100的操作模式改为U-DIG模式。
-  2.把音频数据格式从16位整型改为32位浮点模式。
-  3.修正FFT过程存在内存泄漏的问题。
-  4.增加Flex-6000系列网络连接模式支持，目前仅支持接收，不支持发射。
-  5.增加禁止锁屏休眠。
-  6.控制历史消息数量（暂时设置在3000条以内）。
-  7.增加全屏模式。
-  8.增加快速切换频率。
-  9.修正部分电台（iCOM、协谷）因数据传输质量不好造成闪退的问题。
-  10.修正对小于6位的非标准呼号识别错误的问题。
-  存在的问题：
-  1.连接Flex电台，只能在同一网段内，暂时没有增加输入IP直接连接的方式。
-2022-11-18(0.79 Patch 4)
-  1.解决部分设备解码按钮失效的问题。
-  2.增加连接Flex电台，可以用输入IP的方式直接连接，解决跨网段连接的问题。
-2022-10-06(0.78)
-  1.继续优化自动程序逻辑，修正自动呼叫打开时，目标不专一的问题。
-  2.对日志删除动作，弹出删除确认对话框。
-2022-10-01(0.77)
-  1.修改统计按波段统计大小写被区分的问题。
-  2.对曾经通联过的呼号，不在当前波段的，以蓝色字体颜色显示。
-  3.新增电台型号。
-2022-09-24(0.76)
-  1.调整历史通联呼号规则，以波段（波长）区分。
-  2.修改发射监管会自减的错误。
-  3.继续解决日志信号报告不准确的问题。
-  4.继续优化自动程序策略。
-2022-09-17(0.75)
-  1.继续修改通联日志的信号报告问题（信号报告反了、数值不准确）。
-  2.增加针对安卓12，申请蓝牙连接权限。
-  3.针对某型号电台，USB线连接后指令反应不及时的问题，启用延时发送指令。
-  4.YAESU FT450D的操作模式改为USER-U模式。
-  5.继续优化自动程序，调整自动程序的运行机制，自动记录日志提前。
-  6.退出应用时，如果处于发射状态，自动关闭PTT。
-  7.解决带哈希呼号的消息因过采样造成重复的问题。
-  8.增加日文、希腊、西班牙UI。
-  9.修正关注的消息不在同一频段内自动呼叫的错误。
-2022-09-09(0.74)
-    1.增加英文版帮助。
-    2.呼号查询结果以时间降序显示。
-    3.ICOM电台，操作模式改为USB-D模式。
-    4.增加对呼号的QRZ查询功能。
-    5.修正了日志中信号报告值不严谨的问题。
-2022-09-03(0.73)
-  1.修正某些日志起始时间不准确的问题。
-  2.优化对为通联过的分区标注。
-  3.基于消息的历史，把没有网格报告的消息也标注出距离。
-2022-08-28(0.72)
-  1.解决自动程序中自己呼叫自己的问题。
-  2.对通联成功的呼号以通联成功的频率做出区分。
-  3.丰富了一下后台”跟踪运行信息“内容。
-  4.重新增加通联记录中呼号查询列表，并调整了显示的内容。
-  5.解决因数组下标溢出导致闪退的问题。
-  6.减少权限申请，取消存储权限，保留麦克风、位置权限（可以拒绝）。
-  7.解决没有麦克风权限造成闪退的问题。
-2022-08-27(0.71)
-  1.优化发射周期PTT打开的时长，确保接收消息周期的完整。
-  2.解决Q900蓝牙发送、接收音频适配的问题，真正实现蓝牙控制、音频收发能力。
-  3.美化在消息的分区标注。
-  4.新增电台支持。
-  5.解决有时新增消息后，消息列表不自动上移的问题。
-2022-08-22(0.7)
-  1.加入DXCC分区数据统计。
-  2.加入ITU分区数据统计。
-  3.加入CQ分区数据统计。
-  4.对各频段的距离做统计。
-  5.对未通联过的DXCC、ITU、CQ分区呼号做标注。
-  6.解决前缀1位字母2位数字呼号计算不准确的问题。
-2022-08-13(0.63)
-  1.修正了对非标准呼号的认定，解决对部分非标准呼号计算错误的问题。
-  2.继续优化了一些布局（尤其是横屏）。
-  3.增加了繁体位置信息。
-2022-08-11(0.62)
-  1.把FT-817/818系列的工作模式由USB改为DIGI模式。
-  2.把发射消息回显到呼叫栏中。
-  3.解决部分设备在手动中断发射时，闪退的问题。
-  4.解决我的呼号为空时，发射闪退的问题。
-  5.解决某型号电台控制问题。
-  6.增加英文语言包。
-  7.优化了布局。
-2022-08-06(0.6)
-  1.重构与电台有关的底层架构，适应多型号电台。
-  2.完成国赫，YAESU，KENWOOD部分型号电台的指令集。
-  3.完成通过蓝牙串口(SPP模式)进行控制功能。
-  4.实现对蓝牙音频的采集。
-  5.修改了规则，不能自己呼叫自己。
-  6.增加了对非标准呼号、复合呼号的支持。
-  7.增加了发射时，如果采集不到声音，会把发射的消息提交到呼叫列表。
-2022-07-17(0.51)
-  1.在BA2BI的帮助下，解决频段波长不正确的问题。
-  2.修复设置页面载波频段列表内容重复的问题。
-  3.解决DTR不能发射的问题。
-  4.增加电台频率变化后，保存电台的频率值，如果通联成功，以电台频率为准。
-  5.增加对WSPR-2频率的保护功能，当电台选择的频率在WSPR-2的范围内，禁止发射。
-  6.解决0.5版日志中对方呼号没有网格信息的问题。
-  7.解决0.5版对自动关注的CQ目标不自动呼叫的问题。
-  8.解决了后台无法删除关注的呼号问题。
-  9.添加发射、监听的进度条。
-  10.增加日志导入导出的同步功能，并自动LoTW确认。
-  11.增加手工确认。
-  12.增加电台PTT响应延迟设定。
-  13.增加在消息列表中向左滑动开始快速呼叫（本周期前2.5秒内起作用）。
-  14.对日志导出中，增加了”今天的日志“。
-  15.解决无法删除带斜线的呼号问题。
-  16.通联记录查询添加简单的过滤功能。
-2022-07-10(0.5)
-  此版本属重大更新。完善了自动程序，增加日志查询，导出功能。到此，基本完成一个可以具备通联能力的APP。
-  此外，还有如下变化：
-  1.修复瀑布图文字重叠问题。
-  2.增加电台支持，以及波特率。
-  3.修复当没有定位权限，启动崩溃问题。
-  4.增加DTR支持。
-  5.修复一些随时发现的小错误。
-  6.增加自动发射的监管。
-  7.增加自动关注CQ开关。
-  8.增加自动呼叫关注的呼号开关。
-  9.增加对消息偏移时间过长做标注。
-  存在的问题：
-  1.如果对方是从第2个消息开始呼号我，保存的日志中就没有对方的网格，其实在消息上下文中存在对方的网格信息。
-  2.如果自动关注CQ消息，并打开自动回复关注开关，当有CQ的消息时并不回复。
-  以上问题将在下一个版本中解决。
-2022-07-02(0.44)
-  1.增加问题收集反馈的入口。
-  2.修正在设置页面会闪退的BUG。
-  3.把x5105加到设备列表中。
-2022-07-01(0.43)
-  1.在BG7IKK的帮助下，解决部分电台使用RTS控制PTT的问题。
-  2.BI1NIZ注册了一个项目问题收集反馈和FAQ的账号。
-  3.在频谱的标尺上加了发射频率的红色标记。
-2022-06-30(0.42)
-  1.BH7ACO帮助解决了协谷X6100的驱动。（未解决的问题，协谷6100有时会莫名断开，解决办法：设置SSB模式的指令延迟1秒发送，解决得不够理想）
-2022-06-29(0.41)
-  1.反馈705、7100、7300控制测试成功。
-  2.BH2RSJ帮助建立了一个APP测试群，群成员在陆续反馈使用的情况，提出了一些修改意见。
-  3.修改了一下启动方式，确保配置参数能按时读入。
-  4.修改了对电台修改频率，会把filter变为FIL2的错误。
+Changelog
+2025-01-04 (0.93)
+Fixed calculation error in transmit supervision timer.
+Fixed issue where first log entry was missing when downloading log data.
+Added log data sharing feature.
+Added automatic log upload to QRZ and CloudLog (code contributed by SydneyOwl).
+Added SWR and ALC alarm switches.
+2024-01-22 (0.92)
+Added QSO confirmation indicator for messages in waterfall display.
+Added support for new radio models.
+Added serial port parameter settings.
+Added support for all FT8 message types in decoded messages.
+Fixed issue where serial port error messages were displayed only in Chinese.
+Improved SWL QSO logging.
+Improved QSO handling for messages containing callsigns with /P or /R suffixes.
+2023-09-14 (0.91 patch 1)
+Fixed USB-DATA mode selection error for Yaesu FT-891/991.
+2023-09-11 (0.91)
+Fixed issue where RR73 was incorrectly sent as 73 when transmitting non-standard messages (i3=4).
+Fixed issue where messages decoded in previous cycle could not be replied to in time, and 73 could be missed in multi-decode mode.
+Fixed issue where sender callsign might be incorrect when generating messages with both parties using compound callsigns.
+Optimized automatic program logic.
+Added (tr)uSDX Audio over CAT feature (code contributed by DS1UFX).
+Added WiFi mode support for XieGu (CoGu) X6100 (firmware version 1.1.7; transmit audio not yet resolved).
+Added support for Kenwood TS-570D.
+Added USB-DATA mode for Yaesu FT-891/991.
+Added one-click QSO log query for callsigns in message list.
+Added simplified display mode for message list.
+2023-08-13 (0.90)
+Added web interface interactive mode for log import.
+Fixed map crash issue when log data volume is too large.
+Optimized database structure to improve log import and update speed (backup logs before updating this version to prevent data loss).
+Fixed some spelling errors.
+Added support for UA3REO Wolf SDR radio.
+Added support for GUOHE (Guohe) PMR-171 radio.
+2023-07-08 (0.89)
+Added multi-decode feature; in multi-decode mode, increases decode depth to attempt decoding overlapping signals.
+Fixed issue where worked zones were not updated promptly after importing ADI files.
+Fixed issue where transmit audio could become distorted on ICOM radios in network mode.
+Fixed issue where RR73 could freeze in certain situations.
+Improved decode stability.
+Fixed issue where comment field in decoded messages sometimes displayed incorrectly.
+Modified export log prompts.
+2023-05-02 (0.88 Patch 2)
+Added audio output settings (bit depth, sample rate).
+Added conditional query and export for logs.
+Modified log query to display results in descending time order.
+Fixed issue with duplicate SWL QSO records.
+Optimized background UI for major browsers.
+Patch 2:
+Fixed crash issue when locating entries in "QSO Log".
+2023-03-24 (0.87)
+Added map location display feature for queried QSO log results.
+Added FlexRadio instrument display and parameter settings (transmit not currently supported).
+Added automatic time synchronization feature (server: Microsoft NTP).
+Added SWL mode with save and export functions for decoded messages and QSOs (SWL QSO recognition criteria: must have reports from both parties, plus closing 73, RR73, or RRR).
+Enhanced background data query functions.
+Fixed distance calculation error in "Callsign-Grid Mapping Table" background query.
+Adjusted radio model options for future new firmware of XieGu G90S.
+Fixed UI lag issue when many decoded messages are present.
+Optimized log query performance.
+2023-02-06 (0.86)
+Improved robustness of log import with feedback for malformed log entries.
+Fixed occasional crash issue caused by array index out of bounds during SNR calculation.
+Fixed inaccurate count calculation after log import.
+2023-01-28 (0.85)
+Added excluded callsign prefix feature (excluded prefixes have highest priority, filtering out unwanted calls in automatic mode).
+Added sunrise/sunset gray line to GridTracker map.
+Added function to clear followed callsign list.
+Added function to clear cached QSO messages.
+Added call modifier function. Examples: CQ POTA xxxxxx xxxx, or CQ DX xxxxxx xxxx. Modifier range: 000-999, A-Z, AA-ZZ, AAA-ZZZ, AAAA-ZZZZ.
+2023-01-08 (0.84)
+Optimized map color scheme.
+Fixed crash issue caused by thread synchronization problems in prompt message operations.
+Fixed log import failure caused by non-standard field descriptions in some logs.
+Optimized callsign hash table processing.
+2023-01-07 (0.83)
+Added free text transmit function.
+Fixed crash issue caused by Execute-only memory violation error.
+Fixed settings error for certain radio models.
+Modified log import/export operations; added confirmation field to exported logs, with automatic confirmation item update on import.
+Fixed multiple memory leak points.
+Fixed inaccurate grid information for counterpart in some QSO logs.
+Fixed issue where screen would turn off when staying on Grid Tracker interface for extended periods.
+2022-12-31 (0.8.1)
+Goodbye, 2022! May tomorrow be better!
+Important Notes:
+This version has updated database structure. Please export and backup logs before upgrading; downgrade to older versions will not be possible after upgrade.
+This version begins supporting ICOM network control function. Recommended: connect radio WiFi to phone AP (preferred), or phone to radio AP.
+Not recommended to use router for connection; if router performance is insufficient, transmit audio packet loss may occur!
+Added network (WiFi) support for ICOM series radios.
+Added SWR and ALC value over-limit warning for ICOM series radios.
+Added SWR and ALC value over-limit warning for Kenwood TS series radios.
+Added SWR and ALC value over-limit warning for YAESU series radios.
+Added SWR and ALC value over-limit warning for Elecraft series radios.
+Added automatic switching of connector Data mode for some ICOM radios under different connection methods.
+Added signal strength adjustment function for ALC tuning.
+Added support for calling 3-character callsigns.
+Added support for additional radio models.
+Added entry point to get latest version: https://github.com/N0BOY/FT8CN/releases
+Added callsign-grid mapping table (database upgrade).
+Added map visualization feature (similar to GridTracker).
+Added ability to call from within the map.
+Fixed crash issue on some devices caused by memory jitter during audio data processing.
+Fixed inaccurate QTH information for some messages.
+Fixed issue where zone icons incorrectly displayed on transmit entries in certain situations.
+Fixed crash issue when transmitting messages containing 3-character callsigns.
+Optimized spectrum display; fixed abnormal text display on low-resolution screens.
+Updated coordinates for some regions.
+Optimized message list processing strategy to reduce memory jitter.
+Fixed issue where prompt message did not update after switching target callsign upon reaching no-reply threshold.
+Fixed issue where geographic location could not be resolved for some non-standard callsigns.
+Fixed abnormal crash issue caused by memory access mechanisms in high-version Android and ARM64.
+2022-11-08 (0.79)
+Changed XieGu X6100 operation mode to U-DIG mode.
+Changed audio data format from 16-bit integer to 32-bit float mode.
+Fixed memory leak issue in FFT process.
+Added network connection mode support for Flex-6000 series (receive only, transmit not currently supported).
+Added prevention of screen lock/sleep.
+Limited historical message count (temporarily set to within 3000 entries).
+Added full-screen mode.
+Added quick frequency switching.
+Fixed crash issue on some radios (ICOM, XieGu) caused by poor data transmission quality.
+Fixed recognition error for non-standard callsigns shorter than 6 characters.
+Known Issues:
+Flex radio connection only works within same network segment; direct IP input connection method not yet added.
+2022-11-18 (0.79 Patch 4)
+Fixed issue where decode button was unresponsive on some devices.
+Added direct IP input connection method for Flex radios, resolving cross-network segment connection issues.
+2022-10-06 (0.78)
+Continued optimization of automatic program logic; fixed issue where target was not focused when auto-call was enabled.
+Added confirmation dialog for log deletion actions.
+2022-10-01 (0.77)
+Fixed case-sensitivity issue in band statistics.
+Callsigns previously worked but not on current band are now displayed in blue font.
+Added new radio models.
+2022-09-24 (0.76)
+Adjusted historical QSO callsign rules to distinguish by band (wavelength).
+Fixed error where transmit supervision counter would auto-decrement.
+Continued fixing inaccurate signal report issue in logs.
+Continued optimizing automatic program strategy.
+2022-09-17 (0.75)
+Continued fixing signal report issues in QSO logs (reversed reports, inaccurate values).
+Added Bluetooth connection permission request for Android 12.
+Enabled delayed command transmission for certain radio models with slow USB command response.
+Changed YAESU FT450D operation mode to USER-U mode.
+Continued optimizing automatic program; adjusted operational mechanism, moved automatic log recording earlier.
+Automatically closes PTT when exiting application if in transmit state.
+Fixed duplicate message issue for hashed callsigns caused by oversampling.
+Added Japanese, Greek, and Spanish UI support.
+Fixed error where followed messages on different frequencies would trigger auto-call.
+2022-09-09 (0.74)
+Added English version help documentation.
+Callsign query results now displayed in descending time order.
+Changed ICOM radio operation mode to USB-D mode.
+Added QRZ query function for callsigns.
+Fixed imprecise signal report values in logs.
+2022-09-03 (0.73)
+Fixed issue with inaccurate start times for some logs.
+Optimized annotation for previously worked zones.
+Based on message history, added distance annotation for messages without grid reports.
+2022-08-28 (0.72)
+Fixed issue in automatic program where app would call itself.
+Differentiated successfully worked callsigns by QSO frequency.
+Enriched content of background "Track Operation Information".
+Re-added callsign query list in QSO log and adjusted displayed content.
+Fixed crash issue caused by array index overflow.
+Reduced permission requests; removed storage permission, retained microphone and location permissions (can be denied).
+Fixed crash issue caused by missing microphone permission.
+2022-08-27 (0.71)
+Optimized PTT-on duration during transmit cycle to ensure complete receive message cycle.
+Fixed Bluetooth transmit/receive audio adaptation for Q900, enabling true Bluetooth control and audio capability.
+Beautified zone annotation in messages.
+Added support for new radio models.
+Fixed issue where message list would not auto-scroll up after new messages arrived.
+2022-08-22 (0.7)
+Added DXCC zone statistics.
+Added ITU zone statistics.
+Added CQ zone statistics.
+Added distance statistics per band.
+Added annotation for callsigns in unworked DXCC, ITU, CQ zones.
+Fixed inaccurate calculation for callsigns with 1-letter prefix and 2-digit suffix.
+2022-08-13 (0.63)
+Fixed recognition criteria for non-standard callsigns; resolved calculation errors for some non-standard callsigns.
+Continued layout optimizations (especially landscape mode).
+Added traditional Chinese location information.
+2022-08-11 (0.62)
+Changed FT-817/818 series operation mode from USB to DIGI mode.
+Added echo of transmitted messages to call bar.
+Fixed crash issue on some devices when manually interrupting transmit.
+Fixed crash issue when my callsign was empty during transmit.
+Fixed control issue for certain radio models.
+Added English language pack.
+Optimized layout.
+2022-08-06 (0.6)
+Refactored radio-related low-level architecture to support multiple radio models.
+Completed command sets for Guohe, YAESU, and KENWOOD partial models.
+Completed control function via Bluetooth serial port (SPP mode).
+Implemented Bluetooth audio capture.
+Modified rules to prevent calling oneself.
+Added support for non-standard and compound callsigns.
+Added feature to submit transmit message to call list if no audio is captured during transmit.
+2022-07-17 (0.51)
+With help from BA2BI, fixed incorrect band wavelength issue.
+Fixed duplicate content in carrier band list on settings page.
+Fixed DTR transmit issue.
+Added saving of radio frequency value after frequency change; if QSO successful, use radio frequency as reference.
+Added protection for WSPR-2 frequencies; transmit is disabled when radio frequency is within WSPR-2 range.
+Fixed issue where counterpart callsign lacked grid information in v0.5 logs.
+Fixed issue where auto-followed CQ targets were not auto-called in v0.5.
+Fixed issue where followed callsigns could not be deleted in background.
+Added progress bars for transmit and receive.
+Added synchronization for log import/export with automatic LoTW confirmation.
+Added manual confirmation.
+Added radio PTT response delay setting.
+Added quick call feature via left-swipe in message list (effective within first 2.5 seconds of cycle).
+Added "Today's Log" option to log export.
+Fixed issue where callsigns with slashes could not be deleted.
+Added simple filter function to QSO log query.
+2022-07-10 (0.5)
+This is a major update. Improved automatic program, added log query and export functions. At this point, the app basically completes capabilities for QSO operation.
+Additional changes:
+Fixed text overlap issue in waterfall display.
+Added radio support and baud rates.
+Fixed crash on startup when location permission was not granted.
+Added DTR support.
+Fixed various minor bugs discovered during testing.
+Added supervision for automatic transmit.
+Added auto-follow CQ switch.
+Added auto-call followed callsigns switch.
+Added annotation for messages with excessive time offset.
+Known Issues:
+If counterpart calls me starting from the second message, the saved log lacks their grid information, though grid info exists in message context.
+If auto-follow CQ messages is enabled with auto-reply to followed callsigns, CQ messages are not replied to.
+The above issues will be resolved in the next version.
+2022-07-02 (0.44)
+Added entry point for issue collection and feedback.
+Fixed crash bug on settings page.
+Added x5105 to device list.
+2022-07-01 (0.43)
+With help from BG7IKK, fixed RTS-controlled PTT issue for some radios.
+BI1NIZ registered an account for project issue collection, feedback, and FAQ.
+Added red marker for transmit frequency on spectrum scale.
+2022-06-30 (0.42)
+BH7ACO helped resolve driver for XieGu X6100. (Unresolved issue: X6100 sometimes disconnects unexpectedly; workaround: set 1-second delay for SSB mode commands; solution not ideal).
+2022-06-29 (0.41)
+Confirmed successful control testing for IC-705, IC-7100, IC-7300.
+BH2RSJ helped establish an app testing group; members are providing usage feedback and modification suggestions.
+Modified startup method to ensure configuration parameters are read in on time.
+Fixed error where changing radio frequency would incorrectly change filter to FIL2.
 2022-06-27
-  1.增加了电台CAT控制功能，目前支持部分ICOM系列电台。目前只对IC-705做测试成功，因为手中没有ICOM的其他型号，不清楚串口的驱动能否识别并使用。
-  2.查找到可以支持CI-V指令控制的ICOM电台列表，以及各型号电台的默认地址。
+Added radio CAT control function; currently supports partial ICOM series radios. Testing successful only on IC-705; other ICOM models not available for testing, unclear if serial drivers are recognized.
+Compiled list of ICOM radios supporting CI-V command control, with default addresses for each model.
 2022-06-20
-  1.增加了帮助功能
-  2.增加了瀑布图的标记功能
-  3.对android 10版本以上的深色模式做了一些适配
-  4.更换了图标（BG7YOY设计）
-
-
-
-致敬：
-   Steve Franke(K9AN)、Bill Somerville(G4WJS)、Joe Taylor(K1JT)，提出FT8和FT4协议（FT是Franke和Taylor的首字母），并在论文《The FT4 and FT8 Communication Protocols》详细介绍了FT4和FT8的设计初衷和在WSJT-X中的具体实现细节，成为完成本APP的根本指南。
-   Karlis Goba(YL3JG)在代码的具体实现上提供了参考。
-鸣谢：
-   BG7YOY，在FT8CN开发阶段为我在无线电基本理论上作出指导，并为FT8CN设计了图标。
-   BG4IGX，在我刚刚入门业余无线电时为我在具体实践上作出指导。抖音上您可以搜到很多他的教学视频。
-   BD7MXN，帮助我对部分电台的连接控制做了一些测试，并提出改进建议。
-   BH2RSJ，帮助我建立了一个FT8CN测试群，为测试和后续改进提出了很多宝贵意见。
-   BH7ACO，帮助解决了某电台的驱动和相关的配置参数。
-   BG7IKK，帮助解决了只支持通过RTS控制PTT发射的电台的测试。
-   BI1NIZ，帮助注册账号，用于收集问题反馈和FAQ的功能。
-   BD3OOX以及石家庄业余无线电俱乐部，FT8CN的呼号地区归属数据提取至JTDX石家庄版，使呼号定位可以精确到中国的省级。
-   VR2UPU(BD7MJO)，在FT8的开发和使用经验上提供指导，并在多语言方面给予帮助。
-   BA2BI，在业余无线电的基础知识和通联的日志处理方面上给予帮助和指导。
-   BI3QXJ，在对某品牌系列电台的指令集上给予专业性的指导。
-   BG6TQD，在对某型号电台的指令集测试上给予帮助。
-   BG5CSS，提供某型号电台用于测试。
-   BG7YXN，提供某型号电台用于测试。
-   BG7YRB，对呼号规则运算提供帮助。
-   BG8KAH，提供设备用于测试。
-   BA7LVG，完成日文的翻译校对工作。
-   JE6WUD，完成日文的翻译校对工作。
-   BG6RI，帮助解决日志的信号报告问题。
-   SV1EEX，完成希腊文、西班牙文UI的翻译工作。
-   VR2VRC，帮助修正历史呼号读取规则。
-   BA7NQ，提供设备用于测试。
-   BD7MYM，对某型号的电台测试给予指导。
-   NØBOY，帮助提供Github源，以及翻译工作。
-   BG5JNT，帮助修正非标准呼号的识别问题。
-   BH3NEK，协助对某型号电台进行测试。
-   BG2ALB，协助对某型号电台进行测试。
-   BG6DRU，协助对某型号电台进行测试。
-   BG7NQF，提供某型号电台的隐藏指令，对一些设备做兼容性测试。
-   BH2VSQ，协助对某型号电台进行测试。
-   BG7YBW，协助对部分功能进行测试。
-   BH1RNN，协助对部分功能进行测试。
-   BG7BSM，协助对一些BUG进行调试。
-   BH4FTI，发现并协助对一些BUG进行调试。
-   BG8BXM（M哥），为FT8CN的使用做推广，抖音和B站上有很多他的教学视频。
-   BG7MFQ，为FT8CN的使用做推广，帮助测试。
-   BG2EFX，提供大数据量的日志用于测试。
-   DS1UFX，贡献(tr)uSDX audio over cat代码。
-   BG8HT，提供某型号电台进行测试。
-   UB6LUM，帮助解决某型号电台的操作模式设置。
-   SydneyOwl，提供向QRZ、Cloudlog上传日志的代码。
-
+Added help function.
+Added marking function for waterfall display.
+Added adaptations for dark mode on Android 10 and above.
+Updated app icon (designed by BG7YOY).
+Acknowledgments
+With Respect:
+Steve Franke (K9AN), Bill Somerville (G4WJS), Joe Taylor (K1JT): Proposed the FT8 and FT4 protocols (FT from Franke and Taylor initials), and detailed the design rationale and WSJT-X implementation details of FT4 and FT8 in the paper "The FT4 and FT8 Communication Protocols", which became the fundamental guide for completing this app.
+Karlis Goba (YL3JG): Provided reference for specific code implementation.
+Special Thanks:
+BG7YOY: Provided guidance on fundamental radio theory during FT8CN development, and designed the FT8CN icon.
+BG4IGX: Provided practical guidance when I first entered amateur radio. Many of his tutorial videos can be found on Douyin.
+BD7MXN: Helped test connection control for some radios and provided improvement suggestions.
+BH2RSJ: Helped establish an FT8CN testing group, providing many valuable opinions for testing and subsequent improvements.
+BH7ACO: Helped resolve driver and related configuration parameters for a certain radio.
+BG7IKK: Helped resolve testing for radios supporting only RTS-controlled PTT transmit.
+BI1NIZ: Helped register account for collecting issue feedback and FAQ functionality.
+BD3OOX and Shijiazhuang Amateur Radio Club: FT8CN callsign region attribution data extracted from JTDX Shijiazhuang edition, enabling callsign location precision to Chinese provincial level.
+VR2UPU (BD7MJO): Provided guidance on FT8 development and usage experience, and assisted with multi-language support.
+BA2BI: Provided help and guidance on amateur radio fundamentals and QSO log processing.
+BI3QXJ: Provided professional guidance on command sets for a certain brand series of radios.
+BG6TQD: Assisted with command set testing for a certain radio model.
+BG5CSS: Provided a certain radio model for testing.
+BG7YXN: Provided a certain radio model for testing.
+BG7YRB: Assisted with callsign rule calculations.
+BG8KAH: Provided equipment for testing.
+BA7LVG: Completed Japanese translation proofreading.
+JE6WUD: Completed Japanese translation proofreading.
+BG6RI: Helped resolve signal report issues in logs.
+SV1EEX: Completed Greek and Spanish UI translation work.
+VR2VRC: Helped correct historical callsign reading rules.
+BA7NQ: Provided equipment for testing.
+BD7MYM: Provided guidance for testing a certain radio model.
+N0BOY: Helped provide Github repository and translation work.
+BG5JNT: Helped fix non-standard callsign recognition issues.
+BH3NEK: Assisted with testing for a certain radio model.
+BG2ALB: Assisted with testing for a certain radio model.
+BG6DRU: Assisted with testing for a certain radio model.
+BG7NQF: Provided hidden commands for a certain radio model for compatibility testing.
+BH2VSQ: Assisted with testing for a certain radio model.
+BG7YBW: Assisted with testing for some features.
+BH1RNN: Assisted with testing for some features.
+BG7BSM: Assisted with debugging some bugs.
+BH4FTI: Discovered and assisted with debugging some bugs.
+BG8BXM (Brother M): Promoted FT8CN usage; many tutorial videos on Douyin and Bilibili.
+BG7MFQ: Promoted FT8CN usage and assisted with testing.
+BG2EFX: Provided large-volume logs for testing.
+DS1UFX: Contributed (tr)uSDX audio over CAT code.
+BG8HT: Provided a certain radio model for testing.
+UB6LUM: Helped resolve operation mode settings for a certain radio model.
+SydneyOwl: Provided code for uploading logs to QRZ and CloudLog.
