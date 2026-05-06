@@ -66,6 +66,7 @@ import com.bg7yoz.ft8cn.log.OnShareLogEvents;
 import com.bg7yoz.ft8cn.maidenhead.MaidenheadGrid;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
 import com.bg7yoz.ft8cn.ui.FreqDialog;
+import com.bg7yoz.ft8cn.ui.ScanFragment;  // [NEW] Импорт для ScanFragment
 import com.bg7yoz.ft8cn.ui.SetVolumeDialog;
 import com.bg7yoz.ft8cn.ui.ShareLogsProgressDialog;
 import com.bg7yoz.ft8cn.ui.ToastMessage;
@@ -207,6 +208,11 @@ public class MainActivity extends AppCompatActivity {
         binding.navView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                // [NEW] Обработка перехода на ScanFragment
+                if (item.getItemId() == R.id.nav_scan) {
+                    navController.navigate(R.id.nav_scan);
+                    return true;
+                }
                 navController.navigate(item.getItemId());
                 return true;
             }

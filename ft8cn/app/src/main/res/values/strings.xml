@@ -572,4 +572,7 @@
     <string name="multiple_ans_dx">DX</string>
     <string name="multiple_ans_remember">Remember</string>
 
+    <!-- Navigation menu titles -->
+    <string name="nav_menu_title_scan">Scan</string>
+
 </resources>

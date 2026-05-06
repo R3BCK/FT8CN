@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?android:attr/windowBackground"
+    tools:context=".ui.ScanFragment">
+
+    <!-- Header: Start/Stop + Dwell Cycles -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:gravity="center_vertical"
+        android:background="?attr/colorPrimary">
+
+        <Button
+            android:id="@+id/btnScanStartStop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Start"
+            android:textSize="12sp"
+            android:minHeight="36dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="Dwell cycles:"
+            android:textColor="@android:color/white"
+            android:textSize="12sp" />
+
+        <EditText
+            android:id="@+id/etDwellCycles"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:inputType="number"
+            android:text="2"
+            android:textSize="12sp"
+            android:gravity="center"
+            android:minHeight="36dp" />
+    </LinearLayout>
+
+    <!-- Table Header -->
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="6dp"
+        android:background="@color/editor_background"
+        android:stretchColumns="1">
+
+        <TableRow>
+            <!-- Hide/Show (Leftmost) -->
+            <CheckBox
+                android:id="@+id/cbHeaderHideShow"
+                android:layout_width="32dp"
+                android:layout_height="wrap_content"
+                android:checked="true" />
+            <!-- Freq -->
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:text="Freq"
+                android:textStyle="bold"
+                android:gravity="center" />
+            <!-- D, C, I, Total -->
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="D" android:textStyle="bold" android:gravity="center"/>
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="C" android:textStyle="bold" android:gravity="center"/>
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="I" android:textStyle="bold" android:gravity="center"/>
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Total" android:textStyle="bold" android:gravity="center"/>
+            <!-- Switch to (Rightmost) -->
+            <Button
+                android:id="@+id/btnHeaderGo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Go"
+                android:textSize="10sp"
+                android:minHeight="32dp" />
+        </TableRow>
+    </TableLayout>
+
+    <!-- Scrollable Content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@color/editor_background">
+
+        <TableLayout
+            android:id="@+id/tableScanContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="4dp"
+            android:stretchColumns="1" />
+    </ScrollView>
+
+    <!-- Totals Row (Bold) -->
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="6dp"
+        android:background="@color/editor_background"
+        android:stretchColumns="1">
+
+        <TableRow>
+            <TextView android:layout_width="32dp" android:layout_height="wrap_content" />
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="2" android:text="TOTAL" android:textStyle="bold" android:gravity="center"/>
+            <TextView android:id="@+id/tvTotalD" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="0" android:textStyle="bold" android:gravity="center"/>
+            <TextView android:id="@+id/tvTotalC" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="0" android:textStyle="bold" android:gravity="center"/>
+            <TextView android:id="@+id/tvTotalI" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="0" android:textStyle="bold" android:gravity="center"/>
+            <TextView android:id="@+id/tvTotalAll" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="0" android:textStyle="bold" android:gravity="center"/>
+            <View android:layout_width="wrap_content" android:layout_height="match_parent" />
+        </TableRow>
+    </TableLayout>
+</LinearLayout>
