@@ -8,7 +8,24 @@ package com.bg7yoz.ft8cn.wave;
 public class FT8Resample {
 
     static {
-        System.loadLibrary("ft8cn");
+        try {
+            // Пытаемся загрузить библиотеку в зависимости от настройки
+            boolean dxMode = com.bg7yoz.ft8cn.GeneralVariables.acceptDxCalls;
+            String libName = dxMode ? "ft8cn_dx" : "ft8cn_std";
+            System.loadLibrary(libName);
+        } catch (UnsatisfiedLinkError e) {
+            // Fallback: пробуем загрузить стандартную
+            try {
+                System.loadLibrary("ft8cn_std");
+            } catch (UnsatisfiedLinkError e2) {
+                // Если не удалось, пробуем старое имя для совместимости
+                try {
+                    System.loadLibrary("ft8cn");
+                } catch (UnsatisfiedLinkError e3) {
+                    android.util.Log.e("ReBuildSignal", "Failed to load any native library", e3);
+                }
+            }
+        }
     }
 
     public static native short[] get16Resample16(short[] inputData, int inputRate

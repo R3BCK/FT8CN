@@ -54,7 +54,24 @@ public class SpectrumFragment extends Fragment {
     private int frequencyLineTimeOut = 0;
 
     static {
-        System.loadLibrary("ft8cn");
+        try {
+            // Пытаемся загрузить библиотеку в зависимости от настройки
+            boolean dxMode = com.bg7yoz.ft8cn.GeneralVariables.acceptDxCalls;
+            String libName = dxMode ? "ft8cn_dx" : "ft8cn_std";
+            System.loadLibrary(libName);
+        } catch (UnsatisfiedLinkError e) {
+            // Fallback: пробуем загрузить стандартную
+            try {
+                System.loadLibrary("ft8cn_std");
+            } catch (UnsatisfiedLinkError e2) {
+                // Если не удалось, пробуем старое имя для совместимости
+                try {
+                    System.loadLibrary("ft8cn");
+                } catch (UnsatisfiedLinkError e3) {
+                    android.util.Log.e("ReBuildSignal", "Failed to load any native library", e3);
+                }
+            }
+        }
     }
 
     @Override
@@ -69,7 +86,7 @@ public class SpectrumFragment extends Fragment {
         mainViewModel = MainViewModel.getInstance(this);
         binding = FragmentSpectrumBinding.inflate(inflater, container, false);
 
-        Log.e("ft8cn Spectrum", ">>> SpectrumFragment: binding created");
+        //Log.d("ft8cn Spectrum", ">>> SpectrumFragment: binding created");
 
         binding.columnarView.setShowBlock(true);
         binding.deNoiseSwitch.setChecked(mainViewModel.deNoise);

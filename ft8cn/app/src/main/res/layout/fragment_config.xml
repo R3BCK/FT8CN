@@ -2,13 +2,16 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
+
     <data>
     </data>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/configFrameLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".ui.ConfigFragment">
+
         <!-- Top Navigation Bar -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/config_fragment_bar"
@@ -17,8 +20,8 @@
             android:background="@color/purple_500"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:ignore="TextSizeCheck">
+            app:layout_constraintTop_toTopOf="parent">
+
             <TextView
                 android:id="@+id/textView7"
                 android:layout_width="wrap_content"
@@ -31,6 +34,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
+
         <!-- Scroll Up Indicator -->
         <ImageView
             android:id="@+id/configScrollUpImageView"
@@ -43,6 +47,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/config_fragment_bar"
             app:srcCompat="@drawable/config_ic_baseline_keyboard_arrow_up_24" />
+
         <!-- Main Settings ScrollView -->
         <ScrollView
             android:id="@+id/scrollView3"
@@ -53,996 +58,18 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/config_fragment_bar">
+
             <LinearLayout
                 android:id="@+id/scrollLinearLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
+
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/configConstraintLayout"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
-                    <!-- Grid Location Section -->
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/gridConstraintLayout3"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:background="@drawable/editor_layout_style"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/mycallsignConstraintLayout2">
-                        <TextView
-                            android:id="@+id/locationTextView"
-                            android:layout_width="75dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:text="@string/headGrid"
-                            android:textAlignment="textEnd"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toBottomOf="@+id/inputMyGridEdit"
-                            app:layout_constraintEnd_toStartOf="@+id/inputMyGridEdit"
-                            app:layout_constraintHorizontal_bias="0.5"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="@+id/inputMyGridEdit"
-                            tools:ignore="TextContrastCheck" />
-                        <EditText
-                            android:id="@+id/inputMyGridEdit"
-                            android:layout_width="100dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="6dp"
-                            android:layout_marginBottom="6dp"
-                            android:autofillHints=""
-                            android:background="@drawable/editor_style"
-                            android:ems="10"
-                            android:hint="@string/pl_grid"
-                            android:inputType="textEmailAddress"
-                            android:minHeight="32dp"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintStart_toEndOf="@+id/locationTextView"
-                            app:layout_constraintTop_toTopOf="parent"
-                            tools:ignore="TouchTargetSizeCheck,TextContrastCheck" />
-                        <ImageButton
-                            android:id="@+id/configGetGridImageButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:background="@drawable/imagebutton_transparent_style"
-                            android:contentDescription="@string/locate"
-                            android:src="@drawable/ic_baseline_not_listed_location_32"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintStart_toEndOf="@+id/inputMyGridEdit"
-                            app:layout_constraintTop_toTopOf="parent"
-                            tools:ignore="TouchTargetSizeCheck" />
-                        <ImageButton
-                            android:id="@+id/maidenGridImageButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:background="@drawable/imagebutton_transparent_style"
-                            android:contentDescription="@string/help"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:srcCompat="@drawable/ic_baseline_info_32"
-                            tools:ignore="DuplicateSpeakableTextCheck,TouchTargetSizeCheck" />
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-                    <!-- Frequency Section -->
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/freqConstraintLayout4"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:background="@drawable/editor_layout_style"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/gridConstraintLayout3">
-                        <TextView
-                            android:id="@+id/freqText"
-                            android:layout_width="75dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:text="@string/sendDefaultFreq"
-                            android:textAlignment="textEnd"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toBottomOf="@+id/inputFreqEditor"
-                            app:layout_constraintEnd_toStartOf="@+id/inputFreqEditor"
-                            app:layout_constraintHorizontal_bias="0.5"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="@+id/inputFreqEditor" />
-                        <EditText
-                            android:id="@+id/inputFreqEditor"
-                            android:layout_width="100dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="6dp"
-                            android:layout_marginBottom="6dp"
-                            android:autofillHints=""
-                            android:background="@drawable/editor_style"
-                            android:ems="10"
-                            android:hint="@string/pl_sendFreq"
-                            android:inputType="number|textCapCharacters"
-                            android:minHeight="32dp"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintStart_toEndOf="@+id/freqText"
-                            app:layout_constraintTop_toTopOf="parent"
-                            tools:ignore="TextContrastCheck,TouchTargetSizeCheck" />
-                        <Switch
-                            android:id="@+id/synFrequencySwitch"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:checked="true"
-                            android:text="@string/synFrequency"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            android:thumbTint="?attr/colorPrimary"
-                            android:thumbTintMode="multiply"
-                            android:trackTint="@color/button_start_color"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintStart_toEndOf="@+id/inputFreqEditor"
-                            app:layout_constraintTop_toTopOf="parent"
-                            tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
-                        <ImageButton
-                            android:id="@+id/frequencyImageButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:background="@drawable/imagebutton_transparent_style"
-                            android:contentDescription="@string/help"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:srcCompat="@drawable/ic_baseline_info_32"
-                            tools:ignore="TouchTargetSizeCheck" />
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-                    <!-- UTC Time Offset Section -->
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/utcDelayLayout"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:background="@drawable/editor_layout_style"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/transDelayLayout2">
-                        <TextView
-                            android:id="@+id/utcDelayText"
-                            android:layout_width="75dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:text="@string/timeOffset"
-                            android:textAlignment="textEnd"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toBottomOf="@+id/utcDelayLayout"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="@+id/utcDelayLayout" />
-                        <Spinner
-                            android:id="@+id/utcTimeOffsetSpinner"
-                            android:layout_width="100dp"
-                            android:layout_height="32dp"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="6dp"
-                            android:layout_marginBottom="6dp"
-                            android:background="@drawable/editor_style"
-                            android:dropDownWidth="match_parent"
-                            android:popupBackground="@drawable/spinner_style"
-                            android:prompt="@string/timeOffset"
-                            android:spinnerMode="dropdown"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintStart_toEndOf="@+id/utcDelayText"
-                            app:layout_constraintTop_toTopOf="parent"
-                            tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck,DuplicateSpeakableTextCheck"
-                            tools:listitem="@layout/utc_time_offset_spinner_item" />
-                        <ImageButton
-                            android:id="@+id/timeOffsetImageButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:background="@drawable/imagebutton_transparent_style"
-                            android:contentDescription="@string/help"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:srcCompat="@drawable/ic_baseline_info_32"
-                            tools:ignore="TouchTargetSizeCheck" />
-                        <Button
-                            android:id="@+id/synTImeButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:text="@string/config_Syn_time"
-                            android:textSize="12sp"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintStart_toEndOf="@+id/utcTimeOffsetSpinner"
-                            app:layout_constraintTop_toTopOf="parent" />
-                        <TextView
-                            android:id="@+id/utcCalculatedOffsetText"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="4dp"
-                            android:layout_marginEnd="4dp"
-                            android:text="-- ms"
-                            android:textAlignment="center"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="12sp"
-                            android:fontFamily="monospace"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toStartOf="@+id/timeOffsetImageButton"
-                            app:layout_constraintStart_toEndOf="@+id/synTImeButton"
-                            app:layout_constraintTop_toTopOf="parent" />
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-                    <!-- PTT Delay Section -->
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/pttDelayLayout"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:background="@drawable/editor_layout_style"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/utcDelayLayout">
-                        <TextView
-                            android:id="@+id/pttDelayText"
-                            android:layout_width="75dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:text="@string/ptt_delay"
-                            android:textAlignment="textEnd"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
-                        <Spinner
-                            android:id="@+id/pttDelayOffsetSpinner"
-                            android:layout_width="100dp"
-                            android:layout_height="32dp"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="6dp"
-                            android:layout_marginBottom="6dp"
-                            android:background="@drawable/editor_style"
-                            android:dropDownWidth="match_parent"
-                            android:popupBackground="@drawable/spinner_style"
-                            android:prompt="@string/timeOffset"
-                            android:spinnerMode="dropdown"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintStart_toEndOf="@+id/pttDelayText"
-                            app:layout_constraintTop_toTopOf="parent"
-                            tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck,DuplicateSpeakableTextCheck"
-                            tools:listitem="@layout/utc_time_offset_spinner_item" />
-                        <ImageButton
-                            android:id="@+id/pttDelayImageButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:background="@drawable/imagebutton_transparent_style"
-                            android:contentDescription="@string/help"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:srcCompat="@drawable/ic_baseline_info_32"
-                            tools:ignore="TouchTargetSizeCheck" />
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-                    <!-- Web Port Section -->
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/webPortLayout"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:background="@drawable/editor_layout_style"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/pttDelayLayout">
-                        <TextView
-                            android:id="@+id/webPortText"
-                            android:layout_width="75dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:text="@string/web_port"
-                            android:textAlignment="textEnd"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toBottomOf="@+id/inputWebPortEdit"
-                            app:layout_constraintEnd_toStartOf="@+id/inputWebPortEdit"
-                            app:layout_constraintHorizontal_bias="0.5"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="@+id/inputWebPortEdit" />
-                        <EditText
-                            android:id="@+id/inputWebPortEdit"
-                            android:layout_width="100dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="6dp"
-                            android:layout_marginBottom="6dp"
-                            android:autofillHints=""
-                            android:background="@drawable/editor_style"
-                            android:ems="10"
-                            android:hint="@string/pl_web_port"
-                            android:inputType="number"
-                            android:minHeight="32dp"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintStart_toEndOf="@+id/webPortText"
-                            app:layout_constraintTop_toTopOf="parent"
-                            tools:ignore="TextContrastCheck,TouchTargetSizeCheck" />
-                        <ImageButton
-                            android:id="@+id/webPortHelpImageButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:background="@drawable/imagebutton_transparent_style"
-                            android:contentDescription="@string/help"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:srcCompat="@drawable/ic_baseline_info_32"
-                            tools:ignore="TouchTargetSizeCheck" />
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-                    <!-- Audio Output Section -->
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/audioOutputLayout"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:background="@drawable/editor_layout_style"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/swlOprLayout">
-                        <TextView
-                            android:id="@+id/audioOutputText"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:text="@string/audioOutput"
-                            android:textAlignment="textEnd"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
-                        <com.bg7yoz.ft8cn.ui.RadioGroupFt8cn
-                            android:id="@+id/audioBitsRadioGroup"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginEnd="8dp"
-                            android:background="@drawable/editor_layout_style"
-                            android:orientation="horizontal"
-                            app:layout_constraintEnd_toStartOf="@+id/audioOutputImageButton"
-                            app:layout_constraintStart_toEndOf="@+id/audioOutputText"
-                            app:layout_constraintTop_toTopOf="parent">
-                            <RadioButton
-                                android:id="@+id/audio16BitsRadioButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="2dp"
-                                android:buttonTint="?attr/colorPrimary"
-                                android:text="@string/audio16_bit"
-                                android:textColor="@color/text_view_color"
-                                android:textSize="12sp"
-                                app:layout_constraintBottom_toBottomOf="parent"
-                                app:layout_constraintStart_toEndOf="@+id/audioOutputText"
-                                app:layout_constraintTop_toTopOf="parent" />
-                            <RadioButton
-                                android:id="@+id/audio32BitsRadioButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
-                                android:buttonTint="?attr/colorPrimary"
-                                android:text="@string/audio32_bit"
-                                android:textColor="@color/text_view_color"
-                                android:textSize="12sp"
-                                app:layout_constraintBottom_toBottomOf="@+id/audio16BitsRadioButton"
-                                app:layout_constraintStart_toEndOf="@+id/audio16BitsRadioButton"
-                                app:layout_constraintTop_toTopOf="@+id/audio16BitsRadioButton" />
-                        </com.bg7yoz.ft8cn.ui.RadioGroupFt8cn>
-                        <com.bg7yoz.ft8cn.ui.RadioGroupFt8cn
-                            android:id="@+id/audioRateRadioGroup"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="2dp"
-                            android:layout_marginEnd="8dp"
-                            android:background="@drawable/editor_layout_style"
-                            android:orientation="horizontal"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toStartOf="@+id/audioOutputImageButton"
-                            app:layout_constraintStart_toEndOf="@+id/audioOutputText"
-                            app:layout_constraintTop_toBottomOf="@+id/audioBitsRadioGroup">
-                            <RadioButton
-                                android:id="@+id/audio12kRadioButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="2dp"
-                                android:layout_marginTop="3dp"
-                                android:buttonTint="?attr/colorPrimary"
-                                android:text="@string/audio_rate_12k"
-                                android:textColor="@color/text_view_color"
-                                android:textSize="12sp"
-                                app:layout_constraintBottom_toBottomOf="parent"
-                                app:layout_constraintStart_toEndOf="@+id/audioOutputText"
-                                app:layout_constraintTop_toTopOf="parent" />
-                            <RadioButton
-                                android:id="@+id/audio24kRadioButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
-                                android:layout_marginTop="3dp"
-                                android:buttonTint="?attr/colorPrimary"
-                                android:text="@string/audio_rate_24k"
-                                android:textColor="@color/text_view_color"
-                                android:textSize="12sp"
-                                app:layout_constraintBottom_toBottomOf="parent"
-                                app:layout_constraintStart_toEndOf="@+id/audioOutputText"
-                                app:layout_constraintTop_toTopOf="parent" />
-                            <RadioButton
-                                android:id="@+id/audio48kRadioButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
-                                android:layout_marginTop="3dp"
-                                android:buttonTint="?attr/colorPrimary"
-                                android:text="@string/audio_rate_48k"
-                                android:textColor="@color/text_view_color"
-                                android:textSize="12sp"
-                                app:layout_constraintBottom_toBottomOf="parent"
-                                app:layout_constraintStart_toEndOf="@+id/audioOutputText"
-                                app:layout_constraintTop_toTopOf="parent" />
-                        </com.bg7yoz.ft8cn.ui.RadioGroupFt8cn>
-                        <ImageButton
-                            android:id="@+id/audioOutputImageButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:background="@drawable/imagebutton_transparent_style"
-                            android:contentDescription="@string/help"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:srcCompat="@drawable/ic_baseline_info_32"
-                            tools:ignore="TouchTargetSizeCheck" />
-                        <TextView
-                            android:id="@+id/sampleRateLableTextView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:layout_weight="1"
-                            android:text="@string/audio_rate"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="12sp"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toStartOf="@+id/audioRateRadioGroup"
-                            app:layout_constraintTop_toBottomOf="@+id/audioOutputText" />
-                        <TextView
-                            android:id="@+id/bitDepthTextView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:text="@string/audio_bit_depth"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="12sp"
-                            app:layout_constraintBottom_toTopOf="@+id/audioOutputText"
-                            app:layout_constraintEnd_toStartOf="@+id/audioBitsRadioGroup"
-                            app:layout_constraintTop_toTopOf="parent" />
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-                    <!-- Cloudlog Section -->
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/cloudlogLayout"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="2dp"
-                        android:background="@drawable/editor_layout_style"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintHorizontal_bias="0.333"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/audioOutputLayout">
-                        <TextView
-                            android:id="@+id/cloudlogSettingsTextView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/cloudlog_settings"
-                            android:textAlignment="textEnd"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toTopOf="@+id/testCloudlogButton"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
-                        <Switch
-                            android:id="@+id/enableCloudlogSwitch"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="12dp"
-                            android:layout_marginTop="4dp"
-                            android:layout_marginBottom="4dp"
-                            android:checked="false"
-                            android:text="@string/config_enable_cloudlog"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            android:thumbTint="?attr/colorPrimary"
-                            android:thumbTintMode="multiply"
-                            android:trackTint="@color/button_start_color"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintStart_toEndOf="@+id/cloudlogSettingsTextView"
-                            app:layout_constraintTop_toBottomOf="@+id/cloudlogStationIdEdit"
-                            tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
-                        <TextView
-                            android:id="@+id/cloudlogServerAddressTextView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="12dp"
-                            android:text="@string/cloudlog_addr"
-                            android:textAlignment="textEnd"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toBottomOf="@+id/cloudlogServerAddressEdit"
-                            app:layout_constraintStart_toEndOf="@+id/cloudlogSettingsTextView"
-                            app:layout_constraintTop_toTopOf="@+id/cloudlogServerAddressEdit" />
-                        <EditText
-                            android:id="@+id/cloudlogServerAddressEdit"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="4dp"
-                            android:layout_marginEnd="8dp"
-                            android:background="@drawable/editor_style"
-                            android:ems="10"
-                            android:inputType="text|textUri"
-                            android:minHeight="14dp"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="18sp"
-                            app:layout_constraintEnd_toStartOf="@+id/cloudlogSettingsImageButton"
-                            app:layout_constraintStart_toEndOf="@+id/cloudlogServerAddressTextView"
-                            app:layout_constraintTop_toTopOf="parent"
-                            tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck,SpeakableTextPresentCheck"
-                            android:importantForAutofill="no" />
-                        <TextView
-                            android:id="@+id/cloudlogServerApiKeyTextView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="12dp"
-                            android:text="@string/cloudlog_api_key"
-                            android:textAlignment="textEnd"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toTopOf="@+id/cloudlogStationIdEdit"
-                            app:layout_constraintStart_toEndOf="@+id/cloudlogSettingsTextView"
-                            app:layout_constraintTop_toBottomOf="@+id/cloudlogServerAddressEdit" />
-                        <EditText
-                            android:id="@+id/cloudlogServerApiKeyEdit"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:background="@drawable/editor_style"
-                            android:ems="10"
-                            android:inputType="text"
-                            android:minHeight="15dp"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="18sp"
-                            app:layout_constraintEnd_toEndOf="@+id/cloudlogServerAddressEdit"
-                            app:layout_constraintStart_toStartOf="@+id/cloudlogServerAddressEdit"
-                            app:layout_constraintTop_toBottomOf="@+id/cloudlogServerAddressEdit"
-                            tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck,SpeakableTextPresentCheck"
-                            android:importantForAutofill="no" />
-                        <TextView
-                            android:id="@+id/cloudlogStationIdTextView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="12dp"
-                            android:text="@string/cloudlog_station_id"
-                            android:textAlignment="textEnd"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toBottomOf="@+id/cloudlogStationIdEdit"
-                            app:layout_constraintStart_toEndOf="@+id/cloudlogSettingsTextView"
-                            app:layout_constraintTop_toBottomOf="@+id/cloudlogServerApiKeyEdit" />
-                        <EditText
-                            android:id="@+id/cloudlogStationIdEdit"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:background="@drawable/editor_style"
-                            android:ems="10"
-                            android:inputType="text|textUri"
-                            android:minHeight="15dp"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="18sp"
-                            app:layout_constraintEnd_toEndOf="@+id/cloudlogServerApiKeyEdit"
-                            app:layout_constraintStart_toStartOf="@+id/cloudlogServerApiKeyEdit"
-                            app:layout_constraintTop_toBottomOf="@+id/cloudlogServerApiKeyEdit"
-                            tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck,SpeakableTextPresentCheck"
-                            android:importantForAutofill="no" />
-                        <Button
-                            android:id="@+id/testCloudlogButton"
-                            android:layout_width="90dp"
-                            android:layout_height="wrap_content"
-                            android:text="@string/test_cloudlog_config"
-                            android:textSize="12sp"
-                            app:layout_constraintBottom_toBottomOf="@id/enableCloudlogSwitch"
-                            app:layout_constraintLeft_toLeftOf="@id/cloudlogSettingsTextView"
-                            tools:ignore="DuplicateSpeakableTextCheck" />
-                        <ImageButton
-                            android:id="@+id/cloudlogSettingsImageButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:background="@drawable/imagebutton_transparent_style"
-                            android:contentDescription="@string/help"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:srcCompat="@drawable/ic_baseline_info_32"
-                            tools:ignore="TouchTargetSizeCheck" />
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-                    <!-- QRZ Section -->
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/qrzLayout"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="2dp"
-                        android:background="@drawable/editor_layout_style"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintHorizontal_bias="0.333"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/cloudlogLayout">
-                        <TextView
-                            android:id="@+id/qrzSettingsTextView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/qrz_settings"
-                            android:textAlignment="textEnd"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toTopOf="@+id/testQrzButton"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
-                        <Switch
-                            android:id="@+id/enableQrzSwitch"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="12dp"
-                            android:layout_marginTop="5dp"
-                            android:checked="false"
-                            android:text="@string/config_enable_qrz"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            android:thumbTint="?attr/colorPrimary"
-                            android:thumbTintMode="multiply"
-                            android:trackTint="@color/button_start_color"
-                            app:layout_constraintBottom_toBottomOf="@id/testQrzButton"
-                            app:layout_constraintHorizontal_bias="0.5"
-                            app:layout_constraintStart_toEndOf="@+id/qrzSettingsTextView"
-                            tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
-                        <TextView
-                            android:id="@+id/qrzApiKeyTextView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="12dp"
-                            android:layout_marginTop="4dp"
-                            android:text="@string/qrz_api_key"
-                            android:textAlignment="textEnd"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintStart_toEndOf="@+id/qrzSettingsTextView"
-                            app:layout_constraintTop_toTopOf="parent" />
-                        <EditText
-                            android:id="@+id/qrzApiKeyTextEdit"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="4dp"
-                            android:layout_marginEnd="8dp"
-                            android:background="@drawable/editor_style"
-                            android:ems="10"
-                            android:importantForAutofill="no"
-                            android:inputType="text|textUri"
-                            android:minHeight="14dp"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="18sp"
-                            app:layout_constraintEnd_toStartOf="@+id/qrzSettingsImageButton"
-                            app:layout_constraintStart_toEndOf="@+id/qrzApiKeyTextView"
-                            app:layout_constraintTop_toTopOf="parent"
-                            tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck,SpeakableTextPresentCheck" />
-                        <Button
-                            android:id="@+id/testQrzButton"
-                            android:layout_width="90dp"
-                            android:layout_height="wrap_content"
-                            android:text="@string/test_cloudlog_config"
-                            android:textSize="12sp"
-                            app:layout_constraintHorizontal_bias="0.5"
-                            app:layout_constraintLeft_toLeftOf="@id/qrzSettingsTextView"
-                            app:layout_constraintTop_toBottomOf="@id/qrzSettingsTextView"/>
-                        <ImageButton
-                            android:id="@+id/qrzSettingsImageButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:background="@drawable/imagebutton_transparent_style"
-                            android:contentDescription="@string/help"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:srcCompat="@drawable/ic_baseline_info_32"
-                            tools:ignore="TouchTargetSizeCheck" />
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-                    <!-- HRDLog.net Section -->
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/hrdlogLayout"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="2dp"
-                        android:background="@drawable/editor_layout_style"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/qrzLayout">
-                        <TextView
-                            android:id="@+id/hrdlogSettingsTextView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="HRDLog.net Settings"
-                            android:textAlignment="textEnd"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toTopOf="@+id/testHrdlogButton"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
-                        <Switch
-                            android:id="@+id/enableHrdlogSwitch"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="12dp"
-                            android:layout_marginTop="4dp"
-                            android:checked="false"
-                            android:text="Enable HRDLog"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            android:thumbTint="?attr/colorPrimary"
-                            android:thumbTintMode="multiply"
-                            android:trackTint="@color/button_start_color"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintStart_toEndOf="@+id/hrdlogSettingsTextView"
-                            app:layout_constraintTop_toBottomOf="@+id/hrdlogCallsignEdit"
-                            tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
-                        <!-- URL -->
-                        <TextView
-                            android:id="@+id/hrdlogUrlTextView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="12dp"
-                            android:text="API URL"
-                            android:textAlignment="textEnd"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toBottomOf="@+id/hrdlogUrlEdit"
-                            app:layout_constraintStart_toEndOf="@+id/hrdlogSettingsTextView"
-                            app:layout_constraintTop_toTopOf="@+id/hrdlogUrlEdit" />
-                        <EditText
-                            android:id="@+id/hrdlogUrlEdit"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="4dp"
-                            android:layout_marginEnd="8dp"
-                            android:background="@drawable/editor_style"
-                            android:ems="10"
-                            android:hint="https://api.hrdlog.net"
-                            android:inputType="text|textUri"
-                            android:minHeight="14dp"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="18sp"
-                            app:layout_constraintEnd_toStartOf="@+id/hrdlogSettingsImageButton"
-                            app:layout_constraintStart_toEndOf="@+id/hrdlogUrlTextView"
-                            app:layout_constraintTop_toTopOf="parent"
-                            tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck,SpeakableTextPresentCheck"
-                            android:importantForAutofill="no" />
-                        <!-- API Key -->
-                        <TextView
-                            android:id="@+id/hrdlogApiKeyTextView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="12dp"
-                            android:text="API Key"
-                            android:textAlignment="textEnd"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toTopOf="@+id/hrdlogUsernameEdit"
-                            app:layout_constraintStart_toEndOf="@+id/hrdlogSettingsTextView"
-                            app:layout_constraintTop_toBottomOf="@+id/hrdlogUrlEdit" />
-                        <EditText
-                            android:id="@+id/hrdlogApiKeyEdit"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:background="@drawable/editor_style"
-                            android:ems="10"
-                            android:hint="Your API Key"
-                            android:inputType="text"
-                            android:minHeight="15dp"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="18sp"
-                            app:layout_constraintEnd_toEndOf="@+id/hrdlogUrlEdit"
-                            app:layout_constraintStart_toStartOf="@+id/hrdlogUrlEdit"
-                            app:layout_constraintTop_toBottomOf="@+id/hrdlogUrlEdit"
-                            tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck,SpeakableTextPresentCheck"
-                            android:importantForAutofill="no" />
-                        <!-- Username -->
-                        <TextView
-                            android:id="@+id/hrdlogUsernameTextView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="12dp"
-                            android:text="Username"
-                            android:textAlignment="textEnd"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toTopOf="@+id/hrdlogPasswordEdit"
-                            app:layout_constraintStart_toEndOf="@+id/hrdlogSettingsTextView"
-                            app:layout_constraintTop_toBottomOf="@+id/hrdlogApiKeyEdit" />
-                        <EditText
-                            android:id="@+id/hrdlogUsernameEdit"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:background="@drawable/editor_style"
-                            android:ems="10"
-                            android:hint="HRDLog username"
-                            android:inputType="text"
-                            android:minHeight="15dp"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="18sp"
-                            app:layout_constraintEnd_toEndOf="@+id/hrdlogApiKeyEdit"
-                            app:layout_constraintStart_toStartOf="@+id/hrdlogApiKeyEdit"
-                            app:layout_constraintTop_toBottomOf="@+id/hrdlogApiKeyEdit"
-                            tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck,SpeakableTextPresentCheck"
-                            android:importantForAutofill="no" />
-                        <!-- Password -->
-                        <TextView
-                            android:id="@+id/hrdlogPasswordTextView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="12dp"
-                            android:text="Password"
-                            android:textAlignment="textEnd"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toTopOf="@+id/hrdlogCallsignEdit"
-                            app:layout_constraintStart_toEndOf="@+id/hrdlogSettingsTextView"
-                            app:layout_constraintTop_toBottomOf="@+id/hrdlogUsernameEdit" />
-                        <EditText
-                            android:id="@+id/hrdlogPasswordEdit"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:background="@drawable/editor_style"
-                            android:ems="10"
-                            android:hint="••••••••"
-                            android:inputType="textPassword"
-                            android:minHeight="15dp"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="18sp"
-                            app:layout_constraintEnd_toEndOf="@+id/hrdlogUsernameEdit"
-                            app:layout_constraintStart_toStartOf="@+id/hrdlogUsernameEdit"
-                            app:layout_constraintTop_toBottomOf="@+id/hrdlogUsernameEdit"
-                            tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck,SpeakableTextPresentCheck"
-                            android:importantForAutofill="no" />
-                        <!-- Callsign -->
-                        <TextView
-                            android:id="@+id/hrdlogCallsignTextView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="12dp"
-                            android:text="Callsign"
-                            android:textAlignment="textEnd"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toBottomOf="@+id/hrdlogCallsignEdit"
-                            app:layout_constraintStart_toEndOf="@+id/hrdlogSettingsTextView"
-                            app:layout_constraintTop_toBottomOf="@+id/hrdlogPasswordEdit" />
-                        <EditText
-                            android:id="@+id/hrdlogCallsignEdit"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:background="@drawable/editor_style"
-                            android:ems="10"
-                            android:hint="YOUR/CALL"
-                            android:inputType="textCapCharacters"
-                            android:minHeight="15dp"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="18sp"
-                            app:layout_constraintEnd_toEndOf="@+id/hrdlogPasswordEdit"
-                            app:layout_constraintStart_toStartOf="@+id/hrdlogPasswordEdit"
-                            app:layout_constraintTop_toBottomOf="@+id/hrdlogPasswordEdit"
-                            tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck,SpeakableTextPresentCheck"
-                            android:importantForAutofill="no" />
-                        <!-- Test Button -->
-                        <Button
-                            android:id="@+id/testHrdlogButton"
-                            android:layout_width="90dp"
-                            android:layout_height="wrap_content"
-                            android:text="Test"
-                            android:textSize="12sp"
-                            app:layout_constraintBottom_toBottomOf="@id/enableHrdlogSwitch"
-                            app:layout_constraintStart_toStartOf="@id/hrdlogSettingsTextView"
-                            tools:ignore="DuplicateSpeakableTextCheck" />
-                        <!-- Help Button -->
-                        <ImageButton
-                            android:id="@+id/hrdlogSettingsImageButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:background="@drawable/imagebutton_transparent_style"
-                            android:contentDescription="@string/help"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:srcCompat="@drawable/ic_baseline_info_32"
-                            tools:ignore="TouchTargetSizeCheck" />
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-                    <!-- Operation Band Section -->
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/operatonBandLayout"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:background="@drawable/editor_layout_style"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/webPortLayout">
-                        <TextView
-                            android:id="@+id/operationFreqText"
-                            android:layout_width="75dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:text="@string/operationBand"
-                            android:textAlignment="textEnd"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            tools:ignore="TextContrastCheck" />
-                        <Spinner
-                            android:id="@+id/operationBandSpinner"
-                            android:layout_width="0dp"
-                            android:layout_height="32dp"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="6dp"
-                            android:layout_marginEnd="8dp"
-                            android:layout_marginBottom="6dp"
-                            android:background="@drawable/editor_style"
-                            android:dropDownWidth="match_parent"
-                            android:popupBackground="@drawable/spinner_style"
-                            android:prompt="@string/timeOffset"
-                            android:spinnerMode="dropdown"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toStartOf="@+id/operationHelpImageButton"
-                            app:layout_constraintStart_toEndOf="@+id/operationFreqText"
-                            app:layout_constraintTop_toTopOf="parent"
-                            tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck"
-                            tools:listitem="@layout/operation_band_spinner_item" />
-                        <ImageButton
-                            android:id="@+id/operationHelpImageButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:background="@drawable/imagebutton_transparent_style"
-                            android:contentDescription="@string/help"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:srcCompat="@drawable/ic_baseline_info_32"
-                            tools:ignore="TouchTargetSizeCheck" />
-                    </androidx.constraintlayout.widget.ConstraintLayout>
+
                     <!-- My Callsign Section -->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/mycallsignConstraintLayout2"
@@ -1053,6 +80,7 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent">
+
                         <TextView
                             android:id="@+id/mycallText"
                             android:layout_width="75dp"
@@ -1067,6 +95,7 @@
                             app:layout_constraintHorizontal_bias="0.5"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="@+id/inputMycallEdit" />
+
                         <EditText
                             android:id="@+id/inputMycallEdit"
                             android:layout_width="90dp"
@@ -1086,6 +115,7 @@
                             app:layout_constraintStart_toEndOf="@+id/mycallText"
                             app:layout_constraintTop_toTopOf="parent"
                             tools:ignore="TextContrastCheck,TouchTargetSizeCheck" />
+
                         <TextView
                             android:id="@+id/modifierText"
                             android:layout_width="wrap_content"
@@ -1098,6 +128,7 @@
                             app:layout_constraintBottom_toBottomOf="@+id/inputMycallEdit"
                             app:layout_constraintStart_toEndOf="@+id/inputMycallEdit"
                             app:layout_constraintTop_toTopOf="@+id/inputMycallEdit" />
+
                         <EditText
                             android:id="@+id/modifierEdit"
                             android:layout_width="0dp"
@@ -1119,6 +150,7 @@
                             app:layout_constraintStart_toEndOf="@+id/modifierText"
                             app:layout_constraintTop_toTopOf="parent"
                             tools:ignore="TextContrastCheck,TouchTargetSizeCheck" />
+
                         <ImageButton
                             android:id="@+id/callsignHelpImageButton"
                             android:layout_width="wrap_content"
@@ -1132,6 +164,158 @@
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="DuplicateSpeakableTextCheck,TouchTargetSizeCheck" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- Grid Location Section -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/gridConstraintLayout3"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/mycallsignConstraintLayout2">
+
+                        <TextView
+                            android:id="@+id/locationTextView"
+                            android:layout_width="75dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/headGrid"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="@+id/inputMyGridEdit"
+                            app:layout_constraintEnd_toStartOf="@+id/inputMyGridEdit"
+                            app:layout_constraintHorizontal_bias="0.5"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="@+id/inputMyGridEdit"
+                            tools:ignore="TextContrastCheck" />
+
+                        <EditText
+                            android:id="@+id/inputMyGridEdit"
+                            android:layout_width="100dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="6dp"
+                            android:layout_marginBottom="6dp"
+                            android:autofillHints=""
+                            android:background="@drawable/editor_style"
+                            android:ems="10"
+                            android:hint="@string/pl_grid"
+                            android:inputType="textEmailAddress"
+                            android:minHeight="32dp"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/locationTextView"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="TouchTargetSizeCheck,TextContrastCheck" />
+
+                        <ImageButton
+                            android:id="@+id/configGetGridImageButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/imagebutton_transparent_style"
+                            android:contentDescription="@string/locate"
+                            android:src="@drawable/ic_baseline_not_listed_location_32"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/inputMyGridEdit"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="TouchTargetSizeCheck" />
+
+                        <ImageButton
+                            android:id="@+id/maidenGridImageButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/imagebutton_transparent_style"
+                            android:contentDescription="@string/help"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:srcCompat="@drawable/ic_baseline_info_32"
+                            tools:ignore="DuplicateSpeakableTextCheck,TouchTargetSizeCheck" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- Frequency Section -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/freqConstraintLayout4"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/gridConstraintLayout3">
+
+                        <TextView
+                            android:id="@+id/freqText"
+                            android:layout_width="75dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/sendDefaultFreq"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="@+id/inputFreqEditor"
+                            app:layout_constraintEnd_toStartOf="@+id/inputFreqEditor"
+                            app:layout_constraintHorizontal_bias="0.5"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="@+id/inputFreqEditor" />
+
+                        <EditText
+                            android:id="@+id/inputFreqEditor"
+                            android:layout_width="100dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="6dp"
+                            android:layout_marginBottom="6dp"
+                            android:autofillHints=""
+                            android:background="@drawable/editor_style"
+                            android:ems="10"
+                            android:hint="@string/pl_sendFreq"
+                            android:inputType="number|textCapCharacters"
+                            android:minHeight="32dp"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/freqText"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="TextContrastCheck,TouchTargetSizeCheck" />
+
+                        <Switch
+                            android:id="@+id/synFrequencySwitch"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:checked="true"
+                            android:text="@string/synFrequency"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            android:thumbTint="?attr/colorPrimary"
+                            android:thumbTintMode="multiply"
+                            android:trackTint="@color/button_start_color"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/inputFreqEditor"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
+
+                        <ImageButton
+                            android:id="@+id/frequencyImageButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/imagebutton_transparent_style"
+                            android:contentDescription="@string/help"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:srcCompat="@drawable/ic_baseline_info_32"
+                            tools:ignore="TouchTargetSizeCheck" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
                     <!-- Transmit Delay Section -->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/transDelayLayout2"
@@ -1142,6 +326,7 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/freqConstraintLayout4">
+
                         <TextView
                             android:id="@+id/transDelayText"
                             android:layout_width="75dp"
@@ -1154,6 +339,7 @@
                             app:layout_constraintBottom_toBottomOf="@+id/transDelayLayout2"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="@+id/transDelayLayout2" />
+
                         <EditText
                             android:id="@+id/inputTransDelayEdit"
                             android:layout_width="100dp"
@@ -1174,6 +360,7 @@
                             app:layout_constraintTop_toTopOf="parent"
                             app:layout_constraintVertical_bias="0.0"
                             tools:ignore="TextContrastCheck,TouchTargetSizeCheck" />
+
                         <ImageButton
                             android:id="@+id/transDelayImageButton"
                             android:layout_width="wrap_content"
@@ -1187,6 +374,265 @@
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- UTC Time Offset Section -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/utcDelayLayout"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/transDelayLayout2">
+
+                        <TextView
+                            android:id="@+id/utcDelayText"
+                            android:layout_width="75dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/timeOffset"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="@+id/utcDelayLayout"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="@+id/utcDelayLayout" />
+
+                        <Spinner
+                            android:id="@+id/utcTimeOffsetSpinner"
+                            android:layout_width="100dp"
+                            android:layout_height="32dp"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="6dp"
+                            android:layout_marginBottom="6dp"
+                            android:background="@drawable/editor_style"
+                            android:dropDownWidth="match_parent"
+                            android:popupBackground="@drawable/spinner_style"
+                            android:prompt="@string/timeOffset"
+                            android:spinnerMode="dropdown"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/utcDelayText"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck,DuplicateSpeakableTextCheck"
+                            tools:listitem="@layout/utc_time_offset_spinner_item" />
+
+                        <ImageButton
+                            android:id="@+id/timeOffsetImageButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/imagebutton_transparent_style"
+                            android:contentDescription="@string/help"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:srcCompat="@drawable/ic_baseline_info_32"
+                            tools:ignore="TouchTargetSizeCheck" />
+
+                        <Button
+                            android:id="@+id/synTImeButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/config_Syn_time"
+                            android:textSize="12sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/utcTimeOffsetSpinner"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <TextView
+                            android:id="@+id/utcCalculatedOffsetText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:layout_marginEnd="4dp"
+                            android:text="-- ms"
+                            android:textAlignment="center"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="12sp"
+                            android:fontFamily="monospace"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/timeOffsetImageButton"
+                            app:layout_constraintStart_toEndOf="@+id/synTImeButton"
+                            app:layout_constraintTop_toTopOf="parent" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- PTT Delay Section -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/pttDelayLayout"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/utcDelayLayout">
+
+                        <TextView
+                            android:id="@+id/pttDelayText"
+                            android:layout_width="75dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/ptt_delay"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <Spinner
+                            android:id="@+id/pttDelayOffsetSpinner"
+                            android:layout_width="100dp"
+                            android:layout_height="32dp"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="6dp"
+                            android:layout_marginBottom="6dp"
+                            android:background="@drawable/editor_style"
+                            android:dropDownWidth="match_parent"
+                            android:popupBackground="@drawable/spinner_style"
+                            android:prompt="@string/timeOffset"
+                            android:spinnerMode="dropdown"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/pttDelayText"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck,DuplicateSpeakableTextCheck"
+                            tools:listitem="@layout/utc_time_offset_spinner_item" />
+
+                        <ImageButton
+                            android:id="@+id/pttDelayImageButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/imagebutton_transparent_style"
+                            android:contentDescription="@string/help"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:srcCompat="@drawable/ic_baseline_info_32"
+                            tools:ignore="TouchTargetSizeCheck" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- Web Port Section -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/webPortLayout"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/pttDelayLayout">
+
+                        <TextView
+                            android:id="@+id/webPortText"
+                            android:layout_width="75dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/web_port"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="@+id/inputWebPortEdit"
+                            app:layout_constraintEnd_toStartOf="@+id/inputWebPortEdit"
+                            app:layout_constraintHorizontal_bias="0.5"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="@+id/inputWebPortEdit" />
+
+                        <EditText
+                            android:id="@+id/inputWebPortEdit"
+                            android:layout_width="100dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="6dp"
+                            android:layout_marginBottom="6dp"
+                            android:autofillHints=""
+                            android:background="@drawable/editor_style"
+                            android:ems="10"
+                            android:hint="@string/pl_web_port"
+                            android:inputType="number"
+                            android:minHeight="32dp"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/webPortText"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="TextContrastCheck,TouchTargetSizeCheck" />
+
+                        <ImageButton
+                            android:id="@+id/webPortHelpImageButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/imagebutton_transparent_style"
+                            android:contentDescription="@string/help"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:srcCompat="@drawable/ic_baseline_info_32"
+                            tools:ignore="TouchTargetSizeCheck" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- Operation Band Section -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/operatonBandLayout"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/webPortLayout">
+
+                        <TextView
+                            android:id="@+id/operationFreqText"
+                            android:layout_width="75dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/operationBand"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="TextContrastCheck" />
+
+                        <Spinner
+                            android:id="@+id/operationBandSpinner"
+                            android:layout_width="0dp"
+                            android:layout_height="32dp"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="6dp"
+                            android:layout_marginEnd="8dp"
+                            android:layout_marginBottom="6dp"
+                            android:background="@drawable/editor_style"
+                            android:dropDownWidth="match_parent"
+                            android:popupBackground="@drawable/spinner_style"
+                            android:prompt="@string/timeOffset"
+                            android:spinnerMode="dropdown"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/operationHelpImageButton"
+                            app:layout_constraintStart_toEndOf="@+id/operationFreqText"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck"
+                            tools:listitem="@layout/operation_band_spinner_item" />
+
+                        <ImageButton
+                            android:id="@+id/operationHelpImageButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/imagebutton_transparent_style"
+                            android:contentDescription="@string/help"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:srcCompat="@drawable/ic_baseline_info_32"
+                            tools:ignore="TouchTargetSizeCheck" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
                     <!-- Message Mode Section -->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/messageModeLayout"
@@ -1197,6 +643,7 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/operatonBandLayout">
+
                         <TextView
                             android:id="@+id/messageModeText"
                             android:layout_width="wrap_content"
@@ -1208,6 +655,7 @@
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
+
                         <ImageButton
                             android:id="@+id/messageModeeHelpImageButton"
                             android:layout_width="wrap_content"
@@ -1220,6 +668,7 @@
                             app:layout_constraintTop_toTopOf="parent"
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck" />
+
                         <com.bg7yoz.ft8cn.ui.RadioGroupFt8cn
                             android:id="@+id/messageModeRadioGroup"
                             android:layout_width="0dp"
@@ -1230,6 +679,7 @@
                             app:layout_constraintEnd_toStartOf="@+id/messageModeeHelpImageButton"
                             app:layout_constraintStart_toEndOf="@+id/messageModeText"
                             app:layout_constraintTop_toTopOf="parent">
+
                             <RadioButton
                                 android:id="@+id/msgStandardRadioButton"
                                 android:layout_width="wrap_content"
@@ -1238,6 +688,7 @@
                                 android:text="@string/config_msg_std_mode"
                                 android:textColor="@color/text_view_color"
                                 android:textSize="12sp" />
+
                             <RadioButton
                                 android:id="@+id/msgSimpleRadioButton"
                                 android:layout_width="wrap_content"
@@ -1248,6 +699,7 @@
                                 android:textSize="12sp" />
                         </com.bg7yoz.ft8cn.ui.RadioGroupFt8cn>
                     </androidx.constraintlayout.widget.ConstraintLayout>
+
                     <!-- Control Mode Section -->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/controlModeLayout"
@@ -1258,6 +710,7 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/messageModeLayout">
+
                         <TextView
                             android:id="@+id/controlModeDelayText"
                             android:layout_width="wrap_content"
@@ -1270,6 +723,7 @@
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent"
                             tools:ignore="TooManyViews" />
+
                         <ImageButton
                             android:id="@+id/controlModeHelpImageButton"
                             android:layout_width="wrap_content"
@@ -1282,6 +736,7 @@
                             app:layout_constraintTop_toTopOf="parent"
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck" />
+
                         <com.bg7yoz.ft8cn.ui.RadioGroupFt8cn
                             android:id="@+id/controlModeRadioGroup"
                             android:layout_width="0dp"
@@ -1292,6 +747,7 @@
                             app:layout_constraintEnd_toStartOf="@+id/btnConnectRig"
                             app:layout_constraintStart_toEndOf="@+id/controlModeDelayText"
                             app:layout_constraintTop_toTopOf="parent">
+
                             <RadioButton
                                 android:id="@+id/ctrVOXradioButton"
                                 android:layout_width="wrap_content"
@@ -1300,6 +756,7 @@
                                 android:text="@string/VOX"
                                 android:textColor="@color/text_view_color"
                                 android:textSize="12sp" />
+
                             <RadioButton
                                 android:id="@+id/ctrCATradioButton"
                                 android:layout_width="wrap_content"
@@ -1308,6 +765,7 @@
                                 android:text="@string/CAT"
                                 android:textColor="@color/text_view_color"
                                 android:textSize="12sp" />
+
                             <RadioButton
                                 android:id="@+id/ctrRTSradioButton"
                                 android:layout_width="wrap_content"
@@ -1316,6 +774,7 @@
                                 android:text="@string/RTS"
                                 android:textColor="@color/text_view_color"
                                 android:textSize="12sp" />
+
                             <RadioButton
                                 android:id="@+id/ctrDTRradioButton"
                                 android:layout_width="wrap_content"
@@ -1325,7 +784,7 @@
                                 android:textColor="@color/text_view_color"
                                 android:textSize="12sp" />
                         </com.bg7yoz.ft8cn.ui.RadioGroupFt8cn>
-                        <!-- ДОБАВЛЕНО: Кнопка Connect/Disconnect -->
+
                         <Button
                             android:id="@+id/btnConnectRig"
                             android:layout_width="wrap_content"
@@ -1339,7 +798,7 @@
                             app:layout_constraintTop_toTopOf="parent" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
-                    <!-- ✅ Риг статус: ПЕРЕМЕЩЁН СЮДА (между Control и Connection type) -->
+                    <!-- Rig Status -->
                     <TextView
                         android:id="@+id/tvRigConnectionStatus"
                         android:layout_width="0dp"
@@ -1365,6 +824,7 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/tvRigConnectionStatus">
+
                         <TextView
                             android:id="@+id/connectModeDelayText"
                             android:layout_width="wrap_content"
@@ -1376,6 +836,7 @@
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
+
                         <ImageButton
                             android:id="@+id/connectModeHelpImageButton"
                             android:layout_width="wrap_content"
@@ -1388,6 +849,7 @@
                             app:layout_constraintTop_toTopOf="parent"
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck" />
+
                         <com.bg7yoz.ft8cn.ui.RadioGroupFt8cn
                             android:id="@+id/connectModeRadioGroup"
                             android:layout_width="0dp"
@@ -1398,6 +860,7 @@
                             app:layout_constraintEnd_toStartOf="@+id/connectModeHelpImageButton"
                             app:layout_constraintStart_toEndOf="@+id/connectModeDelayText"
                             app:layout_constraintTop_toTopOf="parent">
+
                             <RadioButton
                                 android:id="@+id/cableConnectRadioButton"
                                 android:layout_width="wrap_content"
@@ -1406,6 +869,7 @@
                                 android:text="@string/cable_connect"
                                 android:textColor="@color/text_view_color"
                                 android:textSize="12sp" />
+
                             <RadioButton
                                 android:id="@+id/bluetoothConnectRadioButton"
                                 android:layout_width="wrap_content"
@@ -1414,6 +878,7 @@
                                 android:text="@string/bluetooth_connect"
                                 android:textColor="@color/text_view_color"
                                 android:textSize="12sp" />
+
                             <RadioButton
                                 android:id="@+id/networkConnectRadioButton"
                                 android:layout_width="wrap_content"
@@ -1424,6 +889,7 @@
                                 android:textSize="12sp" />
                         </com.bg7yoz.ft8cn.ui.RadioGroupFt8cn>
                     </androidx.constraintlayout.widget.ConstraintLayout>
+
                     <!-- Serial Port Section -->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/serialLayout"
@@ -1434,6 +900,7 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/connectModeLayout">
+
                         <TextView
                             android:id="@+id/serialDataBitsTextView"
                             android:layout_width="wrap_content"
@@ -1443,6 +910,7 @@
                             app:layout_constraintBottom_toBottomOf="@+id/dataBitsSpinner"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="@+id/dataBitsSpinner" />
+
                         <Spinner
                             android:id="@+id/dataBitsSpinner"
                             android:layout_width="48dp"
@@ -1458,6 +926,7 @@
                             app:layout_constraintTop_toTopOf="parent"
                             tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck,DuplicateSpeakableTextCheck"
                             tools:listitem="@layout/serial_data_bits_spinner_item" />
+
                         <TextView
                             android:id="@+id/parityTextView"
                             android:layout_width="wrap_content"
@@ -1469,6 +938,7 @@
                             app:layout_constraintStart_toEndOf="@+id/dataBitsSpinner"
                             app:layout_constraintStart_toStartOf="@+id/serialDataBitsTextView"
                             app:layout_constraintTop_toTopOf="@+id/parityBitsSpinner" />
+
                         <Spinner
                             android:id="@+id/parityBitsSpinner"
                             android:layout_width="wrap_content"
@@ -1487,6 +957,7 @@
                             app:layout_constraintVertical_bias="1.0"
                             tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck,DuplicateSpeakableTextCheck"
                             tools:listitem="@layout/serial_parity_bits_spinner_item" />
+
                         <TextView
                             android:id="@+id/stopBitsTextView"
                             android:layout_width="wrap_content"
@@ -1498,6 +969,7 @@
                             app:layout_constraintBottom_toBottomOf="@+id/serialDataBitsTextView"
                             app:layout_constraintStart_toEndOf="@+id/dataBitsSpinner"
                             app:layout_constraintTop_toTopOf="@+id/serialDataBitsTextView" />
+
                         <Spinner
                             android:id="@+id/stopBitsSpinner"
                             android:layout_width="48dp"
@@ -1513,6 +985,7 @@
                             app:layout_constraintTop_toTopOf="@+id/stopBitsTextView"
                             tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck,DuplicateSpeakableTextCheck"
                             tools:listitem="@layout/serial_stop_bits_spinner_item" />
+
                         <ImageButton
                             android:id="@+id/serialHelpImageButton"
                             android:layout_width="wrap_content"
@@ -1525,6 +998,7 @@
                             app:layout_constraintTop_toTopOf="parent"
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck" />
+
                         <Button
                             android:id="@+id/serialDefaultButton"
                             android:layout_width="wrap_content"
@@ -1536,6 +1010,7 @@
                             app:layout_constraintStart_toEndOf="@+id/parityBitsSpinner"
                             app:layout_constraintTop_toBottomOf="@+id/dataBitsSpinner" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
+
                     <!-- CIV Address Section -->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/civAddressLayout"
@@ -1546,6 +1021,7 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/serialLayout">
+
                         <TextView
                             android:id="@+id/civAddressText"
                             android:layout_width="wrap_content"
@@ -1558,6 +1034,7 @@
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent"
                             tools:ignore="TextContrastCheck" />
+
                         <EditText
                             android:id="@+id/civAddressEdit"
                             android:layout_width="50dp"
@@ -1578,6 +1055,7 @@
                             app:layout_constraintTop_toTopOf="parent"
                             app:layout_constraintVertical_bias="0.0"
                             tools:ignore="TextContrastCheck,TouchTargetSizeCheck" />
+
                         <TextView
                             android:id="@+id/baudRateText"
                             android:layout_width="wrap_content"
@@ -1589,6 +1067,7 @@
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintStart_toEndOf="@+id/civAddressEdit"
                             app:layout_constraintTop_toTopOf="parent" />
+
                         <Spinner
                             android:id="@+id/baudRateSpinner"
                             android:layout_width="0dp"
@@ -1608,6 +1087,7 @@
                             app:layout_constraintTop_toTopOf="parent"
                             tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck,DuplicateSpeakableTextCheck"
                             tools:listitem="@layout/bau_rate_spinner_item" />
+
                         <ImageButton
                             android:id="@+id/baudRateHelpImageButton"
                             android:layout_width="wrap_content"
@@ -1621,6 +1101,7 @@
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck,DuplicateSpeakableTextCheck" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
+
                     <!-- Rig Name Section -->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/rigNameLayout"
@@ -1632,6 +1113,7 @@
                         app:layout_constraintHorizontal_bias="0.0"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/civAddressLayout">
+
                         <TextView
                             android:id="@+id/rigNameText"
                             android:layout_width="wrap_content"
@@ -1643,6 +1125,7 @@
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
+
                         <Spinner
                             android:id="@+id/rigNameSpinner"
                             android:layout_width="0dp"
@@ -1662,6 +1145,7 @@
                             app:layout_constraintTop_toTopOf="parent"
                             tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck,DuplicateSpeakableTextCheck"
                             tools:listitem="@layout/rig_name_spinner_item" />
+
                         <ImageButton
                             android:id="@+id/rigNameHelpImageButton"
                             android:layout_width="wrap_content"
@@ -1675,6 +1159,7 @@
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
+
                     <!-- TUNE Command Section -->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/tuneAndClearLayout"
@@ -1686,7 +1171,6 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/rigNameLayout">
 
-                        <!-- TUNE Label -->
                         <TextView
                             android:id="@+id/tuneCommandLabel"
                             android:layout_width="75dp"
@@ -1700,7 +1184,6 @@
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
 
-                        <!-- TUNE Switch -->
                         <Switch
                             android:id="@+id/sendTuneOnFreqChangeSwitch"
                             android:layout_width="70dp"
@@ -1717,7 +1200,6 @@
                             app:layout_constraintTop_toTopOf="parent"
                             tools:ignore="UseSwitchCompatOrMaterialXml" />
 
-                        <!-- CLEAR Label -->
                         <TextView
                             android:id="@+id/clearCallHistLabel"
                             android:layout_width="75dp"
@@ -1731,7 +1213,6 @@
                             app:layout_constraintStart_toEndOf="@+id/sendTuneOnFreqChangeSwitch"
                             app:layout_constraintTop_toTopOf="parent" />
 
-                        <!-- CLEAR Switch -->
                         <Switch
                             android:id="@+id/clearCallHistOnFreqChangeSwitch"
                             android:layout_width="70dp"
@@ -1748,7 +1229,6 @@
                             app:layout_constraintTop_toTopOf="parent"
                             tools:ignore="UseSwitchCompatOrMaterialXml" />
 
-                        <!-- Help Button (выровнена по правому краю, как в других секциях) -->
                         <ImageButton
                             android:id="@+id/clearCallHistHelpButton"
                             android:layout_width="wrap_content"
@@ -1761,11 +1241,9 @@
                             app:layout_constraintTop_toTopOf="parent"
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck" />
-
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
-                    <!-- ⚠️ tvRigConnectionStatus УДАЛЁН отсюда (был между tuneCommandLayout и decodeModeLayout) -->
-
+                    <!-- Decode Mode Section -->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/decodeModeLayout"
                         android:layout_width="0dp"
@@ -1775,6 +1253,7 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/tuneAndClearLayout">
+
                         <TextView
                             android:id="@+id/decodeModeText"
                             android:layout_width="wrap_content"
@@ -1786,6 +1265,7 @@
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
+
                         <com.bg7yoz.ft8cn.ui.RadioGroupFt8cn
                             android:id="@+id/decodeModeRadioGroup"
                             android:layout_width="0dp"
@@ -1796,6 +1276,7 @@
                             app:layout_constraintEnd_toStartOf="@+id/decodeModeHelpButton"
                             app:layout_constraintStart_toEndOf="@+id/decodeModeText"
                             app:layout_constraintTop_toTopOf="parent">
+
                             <RadioButton
                                 android:id="@+id/fastDecodeRadioButton"
                                 android:layout_width="wrap_content"
@@ -1804,6 +1285,7 @@
                                 android:text="@string/fast_mode"
                                 android:textColor="@color/text_view_color"
                                 android:textSize="12sp" />
+
                             <RadioButton
                                 android:id="@+id/deepDecodeRadioButton"
                                 android:layout_width="wrap_content"
@@ -1813,6 +1295,7 @@
                                 android:textColor="@color/text_view_color"
                                 android:textSize="12sp" />
                         </com.bg7yoz.ft8cn.ui.RadioGroupFt8cn>
+
                         <ImageButton
                             android:id="@+id/decodeModeHelpButton"
                             android:layout_width="wrap_content"
@@ -1826,6 +1309,7 @@
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck,DuplicateSpeakableTextCheck" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
+
                     <!-- Alarm Switch Section -->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/alarmSwitchLayout"
@@ -1836,6 +1320,7 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/decodeModeLayout">
+
                         <TextView
                             android:id="@+id/alarmSwitchText"
                             android:layout_width="wrap_content"
@@ -1847,6 +1332,7 @@
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
+
                         <Switch
                             android:id="@+id/swrAlarmSwitch"
                             android:layout_width="wrap_content"
@@ -1867,6 +1353,7 @@
                             app:layout_constraintStart_toEndOf="@+id/alarmSwitchText"
                             app:layout_constraintTop_toTopOf="parent"
                             tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
+
                         <Switch
                             android:id="@+id/alcAlarmSwitch"
                             android:layout_width="wrap_content"
@@ -1885,6 +1372,7 @@
                             app:layout_constraintStart_toEndOf="@+id/swrAlarmSwitch"
                             app:layout_constraintTop_toTopOf="@+id/swrAlarmSwitch"
                             tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
+
                         <ImageButton
                             android:id="@+id/alarmSwitchHelpButton"
                             android:layout_width="wrap_content"
@@ -1898,6 +1386,7 @@
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck,DuplicateSpeakableTextCheck" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
+
                     <!-- Launch Supervision Section -->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/launchSupervisionLayout"
@@ -1908,6 +1397,7 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/alarmSwitchLayout">
+
                         <TextView
                             android:id="@+id/launchSupervisionText"
                             android:layout_width="90dp"
@@ -1919,6 +1409,7 @@
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
+
                         <Spinner
                             android:id="@+id/launchSupervisionSpinner"
                             android:layout_width="80dp"
@@ -1936,6 +1427,7 @@
                             app:layout_constraintTop_toTopOf="parent"
                             tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck,DuplicateSpeakableTextCheck,TextSizeCheck"
                             tools:listitem="@layout/launch_supervision_spinner_item" />
+
                         <ImageButton
                             android:id="@+id/launchSupervisionImageButton"
                             android:layout_width="wrap_content"
@@ -1949,6 +1441,7 @@
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
+
                     <!-- No Response Count Section -->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/noResponseCountLayout"
@@ -1959,6 +1452,7 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/launchSupervisionLayout">
+
                         <TextView
                             android:id="@+id/noResponseCountText"
                             android:layout_width="90dp"
@@ -1970,6 +1464,7 @@
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
+
                         <Spinner
                             android:id="@+id/noResponseCountSpinner"
                             android:layout_width="80dp"
@@ -1987,6 +1482,7 @@
                             app:layout_constraintTop_toTopOf="parent"
                             tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck,DuplicateSpeakableTextCheck,TextSizeCheck"
                             tools:listitem="@layout/no_reply_limit_spinner_item" />
+
                         <TextView
                             android:id="@+id/noResponseCount2Text"
                             android:layout_width="wrap_content"
@@ -1998,6 +1494,7 @@
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintStart_toEndOf="@+id/noResponseCountSpinner"
                             app:layout_constraintTop_toTopOf="parent" />
+
                         <ImageButton
                             android:id="@+id/noResponseCountButton"
                             android:layout_width="wrap_content"
@@ -2011,6 +1508,7 @@
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="ImageContrastCheck,TouchTargetSizeCheck" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
+
                     <!-- Auto Follow Section -->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/autoFollowLayout"
@@ -2021,6 +1519,7 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/noResponseCountLayout">
+
                         <Switch
                             android:id="@+id/followCQSwitch"
                             android:layout_width="wrap_content"
@@ -2037,6 +1536,7 @@
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent"
                             tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
+
                         <Switch
                             android:id="@+id/autoCallfollowSwitch"
                             android:layout_width="wrap_content"
@@ -2053,6 +1553,7 @@
                             app:layout_constraintStart_toEndOf="@+id/followCQSwitch"
                             app:layout_constraintTop_toTopOf="parent"
                             tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
+
                         <ImageButton
                             android:id="@+id/autoFollowCountButton"
                             android:layout_width="wrap_content"
@@ -2066,6 +1567,49 @@
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- Accept DX Calls Section (NEW - replaces multipleAnswersLayout) -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/acceptDxCallsLayout"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/autoFollowLayout">
+
+                        <Switch
+                            android:id="@+id/acceptDxCallsSwitch"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginEnd="8dp"
+                            android:checked="false"
+                            android:text="@string/accept_dx_calls"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            android:thumbTint="?attr/colorPrimary"
+                            android:trackTint="@color/button_start_color"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="UseSwitchCompatOrMaterialXml" />
+
+                        <ImageButton
+                            android:id="@+id/dxCallsHelpButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/imagebutton_transparent_style"
+                            android:contentDescription="@string/help"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:srcCompat="@drawable/ic_baseline_info_32"
+                            tools:ignore="TouchTargetSizeCheck" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
                     <!-- Excluded Callsigns Section -->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/excludedLayout"
@@ -2075,7 +1619,8 @@
                         android:background="@drawable/editor_layout_style"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/autoFollowLayout">
+                        app:layout_constraintTop_toBottomOf="@+id/acceptDxCallsLayout">
+
                         <TextView
                             android:id="@+id/excludedText"
                             android:layout_width="wrap_content"
@@ -2090,6 +1635,7 @@
                             app:layout_constraintHorizontal_bias="0.5"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="@+id/excludedCallsignEdit" />
+
                         <EditText
                             android:id="@+id/excludedCallsignEdit"
                             android:layout_width="0dp"
@@ -2111,6 +1657,7 @@
                             app:layout_constraintStart_toEndOf="@+id/excludedText"
                             app:layout_constraintTop_toTopOf="parent"
                             tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck" />
+
                         <ImageButton
                             android:id="@+id/excludedHelpButton"
                             android:layout_width="wrap_content"
@@ -2124,6 +1671,7 @@
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
+
                     <!-- SWL Operation Section -->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/swlOprLayout"
@@ -2134,6 +1682,7 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/excludedLayout">
+
                         <Switch
                             android:id="@+id/saveSWLSwitch"
                             android:layout_width="wrap_content"
@@ -2152,6 +1701,7 @@
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent"
                             tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
+
                         <Switch
                             android:id="@+id/saveSWLQSOSwitch"
                             android:layout_width="wrap_content"
@@ -2169,6 +1719,7 @@
                             app:layout_constraintStart_toEndOf="@+id/saveSWLSwitch"
                             app:layout_constraintTop_toTopOf="parent"
                             tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
+
                         <ImageButton
                             android:id="@+id/swlHelpButton"
                             android:layout_width="wrap_content"
@@ -2182,6 +1733,645 @@
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- Audio Output Section -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/audioOutputLayout"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/swlOprLayout">
+
+                        <TextView
+                            android:id="@+id/audioOutputText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/audioOutput"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <com.bg7yoz.ft8cn.ui.RadioGroupFt8cn
+                            android:id="@+id/audioBitsRadioGroup"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/editor_layout_style"
+                            android:orientation="horizontal"
+                            app:layout_constraintEnd_toStartOf="@+id/audioOutputImageButton"
+                            app:layout_constraintStart_toEndOf="@+id/audioOutputText"
+                            app:layout_constraintTop_toTopOf="parent">
+
+                            <RadioButton
+                                android:id="@+id/audio16BitsRadioButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="2dp"
+                                android:buttonTint="?attr/colorPrimary"
+                                android:text="@string/audio16_bit"
+                                android:textColor="@color/text_view_color"
+                                android:textSize="12sp"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintStart_toEndOf="@+id/audioOutputText"
+                                app:layout_constraintTop_toTopOf="parent" />
+
+                            <RadioButton
+                                android:id="@+id/audio32BitsRadioButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:buttonTint="?attr/colorPrimary"
+                                android:text="@string/audio32_bit"
+                                android:textColor="@color/text_view_color"
+                                android:textSize="12sp"
+                                app:layout_constraintBottom_toBottomOf="@+id/audio16BitsRadioButton"
+                                app:layout_constraintStart_toEndOf="@+id/audio16BitsRadioButton"
+                                app:layout_constraintTop_toTopOf="@+id/audio16BitsRadioButton" />
+                        </com.bg7yoz.ft8cn.ui.RadioGroupFt8cn>
+
+                        <com.bg7yoz.ft8cn.ui.RadioGroupFt8cn
+                            android:id="@+id/audioRateRadioGroup"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="2dp"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/editor_layout_style"
+                            android:orientation="horizontal"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/audioOutputImageButton"
+                            app:layout_constraintStart_toEndOf="@+id/audioOutputText"
+                            app:layout_constraintTop_toBottomOf="@+id/audioBitsRadioGroup">
+
+                            <RadioButton
+                                android:id="@+id/audio12kRadioButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="2dp"
+                                android:layout_marginTop="3dp"
+                                android:buttonTint="?attr/colorPrimary"
+                                android:text="@string/audio_rate_12k"
+                                android:textColor="@color/text_view_color"
+                                android:textSize="12sp"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintStart_toEndOf="@+id/audioOutputText"
+                                app:layout_constraintTop_toTopOf="parent" />
+
+                            <RadioButton
+                                android:id="@+id/audio24kRadioButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:layout_marginTop="3dp"
+                                android:buttonTint="?attr/colorPrimary"
+                                android:text="@string/audio_rate_24k"
+                                android:textColor="@color/text_view_color"
+                                android:textSize="12sp"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintStart_toEndOf="@+id/audioOutputText"
+                                app:layout_constraintTop_toTopOf="parent" />
+
+                            <RadioButton
+                                android:id="@+id/audio48kRadioButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:layout_marginTop="3dp"
+                                android:buttonTint="?attr/colorPrimary"
+                                android:text="@string/audio_rate_48k"
+                                android:textColor="@color/text_view_color"
+                                android:textSize="12sp"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintStart_toEndOf="@+id/audioOutputText"
+                                app:layout_constraintTop_toTopOf="parent" />
+                        </com.bg7yoz.ft8cn.ui.RadioGroupFt8cn>
+
+                        <ImageButton
+                            android:id="@+id/audioOutputImageButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/imagebutton_transparent_style"
+                            android:contentDescription="@string/help"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:srcCompat="@drawable/ic_baseline_info_32"
+                            tools:ignore="TouchTargetSizeCheck" />
+
+                        <TextView
+                            android:id="@+id/sampleRateLableTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:layout_weight="1"
+                            android:text="@string/audio_rate"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="12sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/audioRateRadioGroup"
+                            app:layout_constraintTop_toBottomOf="@+id/audioOutputText" />
+
+                        <TextView
+                            android:id="@+id/bitDepthTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:text="@string/audio_bit_depth"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="12sp"
+                            app:layout_constraintBottom_toTopOf="@+id/audioOutputText"
+                            app:layout_constraintEnd_toStartOf="@+id/audioBitsRadioGroup"
+                            app:layout_constraintTop_toTopOf="parent" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- Cloudlog Section -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/cloudlogLayout"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintHorizontal_bias="0.333"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/audioOutputLayout">
+
+                        <TextView
+                            android:id="@+id/cloudlogSettingsTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/cloudlog_settings"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toTopOf="@+id/testCloudlogButton"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <Switch
+                            android:id="@+id/enableCloudlogSwitch"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_marginTop="4dp"
+                            android:layout_marginBottom="4dp"
+                            android:checked="false"
+                            android:text="@string/config_enable_cloudlog"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            android:thumbTint="?attr/colorPrimary"
+                            android:thumbTintMode="multiply"
+                            android:trackTint="@color/button_start_color"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/cloudlogSettingsTextView"
+                            app:layout_constraintTop_toBottomOf="@+id/cloudlogStationIdEdit"
+                            tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
+
+                        <TextView
+                            android:id="@+id/cloudlogServerAddressTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:text="@string/cloudlog_addr"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="@+id/cloudlogServerAddressEdit"
+                            app:layout_constraintStart_toEndOf="@+id/cloudlogSettingsTextView"
+                            app:layout_constraintTop_toTopOf="@+id/cloudlogServerAddressEdit" />
+
+                        <EditText
+                            android:id="@+id/cloudlogServerAddressEdit"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="4dp"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/editor_style"
+                            android:ems="10"
+                            android:inputType="text|textUri"
+                            android:minHeight="14dp"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="18sp"
+                            app:layout_constraintEnd_toStartOf="@+id/cloudlogSettingsImageButton"
+                            app:layout_constraintStart_toEndOf="@+id/cloudlogServerAddressTextView"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck,SpeakableTextPresentCheck"
+                            android:importantForAutofill="no" />
+
+                        <TextView
+                            android:id="@+id/cloudlogServerApiKeyTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:text="@string/cloudlog_api_key"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toTopOf="@+id/cloudlogStationIdEdit"
+                            app:layout_constraintStart_toEndOf="@+id/cloudlogSettingsTextView"
+                            app:layout_constraintTop_toBottomOf="@+id/cloudlogServerAddressEdit" />
+
+                        <EditText
+                            android:id="@+id/cloudlogServerApiKeyEdit"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:background="@drawable/editor_style"
+                            android:ems="10"
+                            android:inputType="text"
+                            android:minHeight="15dp"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="18sp"
+                            app:layout_constraintEnd_toEndOf="@+id/cloudlogServerAddressEdit"
+                            app:layout_constraintStart_toStartOf="@+id/cloudlogServerAddressEdit"
+                            app:layout_constraintTop_toBottomOf="@+id/cloudlogServerAddressEdit"
+                            tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck,SpeakableTextPresentCheck"
+                            android:importantForAutofill="no" />
+
+                        <TextView
+                            android:id="@+id/cloudlogStationIdTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:text="@string/cloudlog_station_id"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="@+id/cloudlogStationIdEdit"
+                            app:layout_constraintStart_toEndOf="@+id/cloudlogSettingsTextView"
+                            app:layout_constraintTop_toBottomOf="@+id/cloudlogServerApiKeyEdit" />
+
+                        <EditText
+                            android:id="@+id/cloudlogStationIdEdit"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:background="@drawable/editor_style"
+                            android:ems="10"
+                            android:inputType="text|textUri"
+                            android:minHeight="15dp"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="18sp"
+                            app:layout_constraintEnd_toEndOf="@+id/cloudlogServerApiKeyEdit"
+                            app:layout_constraintStart_toStartOf="@+id/cloudlogServerApiKeyEdit"
+                            app:layout_constraintTop_toBottomOf="@+id/cloudlogServerApiKeyEdit"
+                            tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck,SpeakableTextPresentCheck"
+                            android:importantForAutofill="no" />
+
+                        <Button
+                            android:id="@+id/testCloudlogButton"
+                            android:layout_width="90dp"
+                            android:layout_height="wrap_content"
+                            android:text="@string/test_cloudlog_config"
+                            android:textSize="12sp"
+                            app:layout_constraintBottom_toBottomOf="@id/enableCloudlogSwitch"
+                            app:layout_constraintLeft_toLeftOf="@id/cloudlogSettingsTextView"
+                            tools:ignore="DuplicateSpeakableTextCheck" />
+
+                        <ImageButton
+                            android:id="@+id/cloudlogSettingsImageButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/imagebutton_transparent_style"
+                            android:contentDescription="@string/help"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:srcCompat="@drawable/ic_baseline_info_32"
+                            tools:ignore="TouchTargetSizeCheck" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- QRZ Section -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/qrzLayout"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintHorizontal_bias="0.333"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/cloudlogLayout">
+
+                        <TextView
+                            android:id="@+id/qrzSettingsTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/qrz_settings"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toTopOf="@+id/testQrzButton"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <Switch
+                            android:id="@+id/enableQrzSwitch"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_marginTop="5dp"
+                            android:checked="false"
+                            android:text="@string/config_enable_qrz"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            android:thumbTint="?attr/colorPrimary"
+                            android:thumbTintMode="multiply"
+                            android:trackTint="@color/button_start_color"
+                            app:layout_constraintBottom_toBottomOf="@id/testQrzButton"
+                            app:layout_constraintHorizontal_bias="0.5"
+                            app:layout_constraintStart_toEndOf="@+id/qrzSettingsTextView"
+                            tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
+
+                        <TextView
+                            android:id="@+id/qrzApiKeyTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_marginTop="4dp"
+                            android:text="@string/qrz_api_key"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintStart_toEndOf="@+id/qrzSettingsTextView"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <EditText
+                            android:id="@+id/qrzApiKeyTextEdit"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="4dp"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/editor_style"
+                            android:ems="10"
+                            android:importantForAutofill="no"
+                            android:inputType="text|textUri"
+                            android:minHeight="14dp"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="18sp"
+                            app:layout_constraintEnd_toStartOf="@+id/qrzSettingsImageButton"
+                            app:layout_constraintStart_toEndOf="@+id/qrzApiKeyTextView"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck,SpeakableTextPresentCheck" />
+
+                        <Button
+                            android:id="@+id/testQrzButton"
+                            android:layout_width="90dp"
+                            android:layout_height="wrap_content"
+                            android:text="@string/test_cloudlog_config"
+                            android:textSize="12sp"
+                            app:layout_constraintHorizontal_bias="0.5"
+                            app:layout_constraintLeft_toLeftOf="@id/qrzSettingsTextView"
+                            app:layout_constraintTop_toBottomOf="@id/qrzSettingsTextView"/>
+
+                        <ImageButton
+                            android:id="@+id/qrzSettingsImageButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/imagebutton_transparent_style"
+                            android:contentDescription="@string/help"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:srcCompat="@drawable/ic_baseline_info_32"
+                            tools:ignore="TouchTargetSizeCheck" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- HRDLog.net Section -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/hrdlogLayout"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/qrzLayout">
+
+                        <TextView
+                            android:id="@+id/hrdlogSettingsTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="HRDLog.net Settings"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toTopOf="@+id/testHrdlogButton"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <Switch
+                            android:id="@+id/enableHrdlogSwitch"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_marginTop="4dp"
+                            android:checked="false"
+                            android:text="Enable HRDLog"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            android:thumbTint="?attr/colorPrimary"
+                            android:thumbTintMode="multiply"
+                            android:trackTint="@color/button_start_color"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/hrdlogSettingsTextView"
+                            app:layout_constraintTop_toBottomOf="@+id/hrdlogCallsignEdit"
+                            tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
+
+                        <TextView
+                            android:id="@+id/hrdlogUrlTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:text="API URL"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="@+id/hrdlogUrlEdit"
+                            app:layout_constraintStart_toEndOf="@+id/hrdlogSettingsTextView"
+                            app:layout_constraintTop_toTopOf="@+id/hrdlogUrlEdit" />
+
+                        <EditText
+                            android:id="@+id/hrdlogUrlEdit"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="4dp"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/editor_style"
+                            android:ems="10"
+                            android:hint="https://api.hrdlog.net"
+                            android:inputType="text|textUri"
+                            android:minHeight="14dp"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="18sp"
+                            app:layout_constraintEnd_toStartOf="@+id/hrdlogSettingsImageButton"
+                            app:layout_constraintStart_toEndOf="@+id/hrdlogUrlTextView"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck,SpeakableTextPresentCheck"
+                            android:importantForAutofill="no" />
+
+                        <TextView
+                            android:id="@+id/hrdlogApiKeyTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:text="API Key"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toTopOf="@+id/hrdlogUsernameEdit"
+                            app:layout_constraintStart_toEndOf="@+id/hrdlogSettingsTextView"
+                            app:layout_constraintTop_toBottomOf="@+id/hrdlogUrlEdit" />
+
+                        <EditText
+                            android:id="@+id/hrdlogApiKeyEdit"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:background="@drawable/editor_style"
+                            android:ems="10"
+                            android:hint="Your API Key"
+                            android:inputType="text"
+                            android:minHeight="15dp"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="18sp"
+                            app:layout_constraintEnd_toEndOf="@+id/hrdlogUrlEdit"
+                            app:layout_constraintStart_toStartOf="@+id/hrdlogUrlEdit"
+                            app:layout_constraintTop_toBottomOf="@+id/hrdlogUrlEdit"
+                            tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck,SpeakableTextPresentCheck"
+                            android:importantForAutofill="no" />
+
+                        <TextView
+                            android:id="@+id/hrdlogUsernameTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:text="Username"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toTopOf="@+id/hrdlogPasswordEdit"
+                            app:layout_constraintStart_toEndOf="@+id/hrdlogSettingsTextView"
+                            app:layout_constraintTop_toBottomOf="@+id/hrdlogApiKeyEdit" />
+
+                        <EditText
+                            android:id="@+id/hrdlogUsernameEdit"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:background="@drawable/editor_style"
+                            android:ems="10"
+                            android:hint="HRDLog username"
+                            android:inputType="text"
+                            android:minHeight="15dp"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="18sp"
+                            app:layout_constraintEnd_toEndOf="@+id/hrdlogApiKeyEdit"
+                            app:layout_constraintStart_toStartOf="@+id/hrdlogApiKeyEdit"
+                            app:layout_constraintTop_toBottomOf="@+id/hrdlogApiKeyEdit"
+                            tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck,SpeakableTextPresentCheck"
+                            android:importantForAutofill="no" />
+
+                        <TextView
+                            android:id="@+id/hrdlogPasswordTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:text="Password"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toTopOf="@+id/hrdlogCallsignEdit"
+                            app:layout_constraintStart_toEndOf="@+id/hrdlogSettingsTextView"
+                            app:layout_constraintTop_toBottomOf="@+id/hrdlogUsernameEdit" />
+
+                        <EditText
+                            android:id="@+id/hrdlogPasswordEdit"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:background="@drawable/editor_style"
+                            android:ems="10"
+                            android:hint="••••••••"
+                            android:inputType="textPassword"
+                            android:minHeight="15dp"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="18sp"
+                            app:layout_constraintEnd_toEndOf="@+id/hrdlogUsernameEdit"
+                            app:layout_constraintStart_toStartOf="@+id/hrdlogUsernameEdit"
+                            app:layout_constraintTop_toBottomOf="@+id/hrdlogUsernameEdit"
+                            tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck,SpeakableTextPresentCheck"
+                            android:importantForAutofill="no" />
+
+                        <TextView
+                            android:id="@+id/hrdlogCallsignTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:text="Callsign"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="@+id/hrdlogCallsignEdit"
+                            app:layout_constraintStart_toEndOf="@+id/hrdlogSettingsTextView"
+                            app:layout_constraintTop_toBottomOf="@+id/hrdlogPasswordEdit" />
+
+                        <EditText
+                            android:id="@+id/hrdlogCallsignEdit"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:background="@drawable/editor_style"
+                            android:ems="10"
+                            android:hint="YOUR/CALL"
+                            android:inputType="textCapCharacters"
+                            android:minHeight="15dp"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="18sp"
+                            app:layout_constraintEnd_toEndOf="@+id/hrdlogPasswordEdit"
+                            app:layout_constraintStart_toStartOf="@+id/hrdlogPasswordEdit"
+                            app:layout_constraintTop_toBottomOf="@+id/hrdlogPasswordEdit"
+                            tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck,SpeakableTextPresentCheck"
+                            android:importantForAutofill="no" />
+
+                        <Button
+                            android:id="@+id/testHrdlogButton"
+                            android:layout_width="90dp"
+                            android:layout_height="wrap_content"
+                            android:text="Test"
+                            android:textSize="12sp"
+                            app:layout_constraintBottom_toBottomOf="@id/enableHrdlogSwitch"
+                            app:layout_constraintStart_toStartOf="@id/hrdlogSettingsTextView"
+                            tools:ignore="DuplicateSpeakableTextCheck" />
+
+                        <ImageButton
+                            android:id="@+id/hrdlogSettingsImageButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/imagebutton_transparent_style"
+                            android:contentDescription="@string/help"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:srcCompat="@drawable/ic_baseline_info_32"
+                            tools:ignore="TouchTargetSizeCheck" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
                     <!-- Clear Cache Section -->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/clearCacheLayout"
@@ -2192,6 +2382,7 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/hrdlogLayout">
+
                         <TextView
                             android:id="@+id/clearCacheText"
                             android:layout_width="wrap_content"
@@ -2204,6 +2395,7 @@
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
+
                         <ImageButton
                             android:id="@+id/clearCacheHelpButton"
                             android:layout_width="wrap_content"
@@ -2216,6 +2408,7 @@
                             app:layout_constraintTop_toTopOf="parent"
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck" />
+
                         <Button
                             android:id="@+id/clearFollowButton"
                             android:layout_width="wrap_content"
@@ -2227,6 +2420,17 @@
                             app:layout_constraintHorizontal_bias="0.5"
                             app:layout_constraintStart_toEndOf="@+id/clearCacheText"
                             app:layout_constraintTop_toTopOf="parent" />
+
+                        <Button
+                            android:id="@+id/clearSWlQsoButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/config_clear_swl_qso"
+                            app:layout_constraintEnd_toStartOf="@+id/clearCacheHelpButton"
+                            app:layout_constraintStart_toEndOf="@+id/clearCacheText"
+                            app:layout_constraintTop_toBottomOf="@+id/clearFollowButton" />
+
                         <Button
                             android:id="@+id/clearLogCacheButton"
                             android:layout_width="wrap_content"
@@ -2238,15 +2442,7 @@
                             app:layout_constraintHorizontal_bias="0.5"
                             app:layout_constraintStart_toEndOf="@+id/clearCacheText"
                             app:layout_constraintTop_toBottomOf="@+id/clearSWlQsoButton" />
-                        <Button
-                            android:id="@+id/clearSWlQsoButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="@string/config_clear_swl_qso"
-                            app:layout_constraintEnd_toStartOf="@+id/clearCacheHelpButton"
-                            app:layout_constraintStart_toEndOf="@+id/clearCacheText"
-                            app:layout_constraintTop_toBottomOf="@+id/clearFollowButton" />
+
                         <Button
                             android:id="@+id/clearShareDataButton"
                             android:layout_width="wrap_content"
@@ -2259,10 +2455,35 @@
                             app:layout_constraintStart_toEndOf="@+id/clearCacheText"
                             app:layout_constraintTop_toBottomOf="@+id/clearLogCacheButton" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
-                    <!-- Advanced Settings Section -->
+
+                    <!-- Advanced Settings Section placeholder -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/advancedSettingsLayout"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/clearCacheLayout">
+
+                        <TextView
+                            android:id="@+id/advancedSettingsText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/advanced_settings"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </LinearLayout>
         </ScrollView>
+
         <!-- Scroll Down Indicator -->
         <ImageView
             android:id="@+id/configScrollDownImageView"
@@ -2275,6 +2496,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:srcCompat="@drawable/config_ic_baseline_keyboard_arrow_down_24" />
+
         <!-- Bottom Action Buttons -->
         <LinearLayout
             android:id="@+id/bottomButtonsPanel"
@@ -2288,6 +2510,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
+
             <Button
                 android:id="@+id/btnSaveConf"
                 android:layout_width="0dp"
@@ -2296,6 +2519,7 @@
                 android:layout_marginHorizontal="2dp"
                 android:text="Save Conf"
                 android:textSize="10sp" />
+
             <Button
                 android:id="@+id/btnLoadConf"
                 android:layout_width="0dp"
@@ -2304,6 +2528,7 @@
                 android:layout_marginHorizontal="2dp"
                 android:text="Load Conf"
                 android:textSize="10sp" />
+
             <Button
                 android:id="@+id/btnLogcat"
                 android:layout_width="0dp"
@@ -2312,6 +2537,7 @@
                 android:layout_marginHorizontal="2dp"
                 android:text="LogCat"
                 android:textSize="10sp" />
+
             <Button
                 android:id="@+id/aboutButton"
                 android:layout_width="0dp"
@@ -2320,6 +2546,7 @@
                 android:layout_marginHorizontal="2dp"
                 android:text="About"
                 android:textSize="10sp" />
+
             <Button
                 android:id="@+id/faqButton"
                 android:layout_width="0dp"
@@ -2329,5 +2556,6 @@
                 android:text="FAQ"
                 android:textSize="10sp" />
         </LinearLayout>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

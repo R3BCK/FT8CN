@@ -1,69 +1,109 @@
-
 # For more information about using CMake with Android Studio, read the
 # documentation: https://d.android.com/studio/projects/add-native-code.html
 
 # Sets the minimum version of CMake required to build the native library.
-
 cmake_minimum_required(VERSION 3.18.1)
 
 # Declares and names the project.
-
 project("ft8cn")
 
-# Creates and names a library, sets it as either STATIC
-# or SHARED, and provides the relative paths to its source code.
-# You can define multiple libraries, and CMake builds them for you.
-# Gradle automatically packages shared libraries with your APK.
+# ============================================================================
+# === ОБЩИЕ НАСТРОЙКИ (используются обеими библиотеками) ===
+# ============================================================================
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/common
+    ${CMAKE_CURRENT_SOURCE_DIR}/fft
+    ${CMAKE_CURRENT_SOURCE_DIR}/ft8_std
+    ${CMAKE_CURRENT_SOURCE_DIR}/ft8_dx
+)
 
-add_library( # Sets the name of the library.
-             ft8cn
+# Общие файлы (одинаковые для обеих библиотек)
+# ВАЖНО: Эти файлы-обёртки используют #ifdef FT8_DX_MODE для условной компиляции
+set(COMMON_SOURCES
+    # FFT библиотеки
+    fft/kiss_fft.c
+    fft/kiss_fftr.c
 
-             # Sets the library as a shared library.
-             SHARED
+    # Общие утилиты
+    common/wave.c
 
-             # Provides a relative path to your source file(s).
+    # JNI wrappers и высокоуровневая логика
+    # Эти файлы содержат #ifdef FT8_DX_MODE для выбора реализации
+    ft8Decoder.c
+    ft8Encoder.c
+    generate_ft8.cpp
+    ft8Listener.cpp
+    ft8Spectrum.cpp
+    monitor_opr.c
+    spectrum_data.c
+)
 
-        generate_ft8.cpp
-        ft8Listener.cpp
-        ft8Spectrum.cpp
-        fft/kiss_fftr.c
-        fft/kiss_fft.c
+# ============================================================================
+# === СТАНДАРТНАЯ БИБЛИОТЕКА (стабильная, без изменений) ===
+# ============================================================================
+add_library(ft8cn_std SHARED
+    # Core FT8 implementation (standard version)
+    ft8_std/constants.c
+    ft8_std/crc.c
+    ft8_std/decode.c
+    ft8_std/encode.c
+    ft8_std/hash22.c
+    ft8_std/ldpc.c
+    ft8_std/pack.c
+    ft8_std/text.c
+    ft8_std/unpack.c
 
-        ft8/decode.c
-        ft8/crc.c
-        ft8/constants.c
-        ft8/ldpc.c
-        ft8/unpack.c
-        ft8/text.c
-        ft8/hash22.c
-        ft8/encode.c
-        ft8/pack.c
-        monitor_opr.c
-        ft8Decoder.c
-        ft8Encoder.c
-        spectrum_data.c
-              )
+    # Общие файлы (wrapper'ы, которые подхватят стандартную реализацию)
+    ${COMMON_SOURCES}
+)
 
-# Searches for a specified prebuilt library and stores the path as a
-# variable. Because CMake includes system libraries in the search path by
-# default, you only need to specify the name of the public NDK library
-# you want to add. CMake verifies that the library exists before
-# completing its build.
+# Линковка стандартной библиотеки
+target_link_libraries(ft8cn_std log android m)
 
-find_library( # Sets the name of the path variable.
-              log-lib
+# ============================================================================
+# === DX-БИБЛИОТЕКА (с поддержкой 76-го бита, multistream) ===
+# ============================================================================
+add_library(ft8cn_dx SHARED
+    # Core FT8 DX implementation (modified for multistream/76-bit)
+    ft8_dx/constants.c
+    ft8_dx/crc.c
+    ft8_dx/decode.c      # <-- Поддержка парсинга 76-го бита
+    ft8_dx/encode.c      # <-- Установка 76-го бита при кодировании
+    ft8_dx/hash22.c
+    ft8_dx/ldpc.c
+    ft8_dx/pack.c        # <-- Упаковка мульти-сообщений
+    ft8_dx/text.c
+    ft8_dx/unpack.c      # <-- Распаковка мульти-сообщений
 
-              # Specifies the name of the NDK library that
-              # you want CMake to locate.
-              log )
+    # Общие файлы (те же wrapper'ы, но с флагом FT8_DX_MODE)
+    ${COMMON_SOURCES}
+)
 
-# Specifies libraries CMake should link to your target library. You
-# can link multiple libraries, such as libraries you define in this
-# build script, prebuilt third-party libraries, or system libraries.
+# Флаг для условной компиляции в коде
+# В .c/.cpp файлах используйте: #ifdef FT8_DX_MODE ... #endif
+target_compile_definitions(ft8cn_dx PRIVATE FT8_DX_MODE=1)
 
-target_link_libraries( # Specifies the target library.
-                       ft8cn
+# Линковка DX-библиотеки
+target_link_libraries(ft8cn_dx log android m)
 
-                       # Links the target library to the log library
-                       # included in the NDK.
-                       ${log-lib} )
+# ============================================================================
+# === ОПТИМИЗАЦИИ КОМПИЛЯЦИИ (опционально) ===
+# ============================================================================
+# Добавляем флаги оптимизации для release-сборок
+# (CMake автоматически применяет их при сборке Release)
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    target_compile_options(ft8cn_std PRIVATE -O3 -ffast-math)
+    target_compile_options(ft8cn_dx PRIVATE -O3 -ffast-math)
+endif()
+
+# ============================================================================
+# === ПРОВЕРКА СУЩЕСТВОВАНИЯ ФАЙЛОВ (для отладки) ===
+# ============================================================================
+# Раскомментируйте эти строки, если хотите видеть предупреждения при отсутствии файлов
+# if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/ft8_std/decode.c")
+#     message(WARNING "ft8_std/decode.c not found! Check your source paths.")
+# endif()
+# if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/ft8_dx/decode.c")
+#     message(WARNING "ft8_dx/decode.c not found! Check your source paths.")
+# endif()

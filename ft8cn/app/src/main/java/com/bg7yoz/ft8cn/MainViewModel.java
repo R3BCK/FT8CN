@@ -284,6 +284,24 @@ public class MainViewModel extends ViewModel {
 
         mutableFt8MessageList.setValue(ft8Messages);
 
+        // [CHANGED] Инициализируем библиотеку ПЕРЕД созданием FT8SignalListener
+        // Загружаем ft8cn_dx или ft8cn_std в зависимости от настройки acceptDxCalls
+        try {
+            String libName = GeneralVariables.acceptDxCalls ? "ft8cn_dx" : "ft8cn_std";
+            System.loadLibrary(libName);
+            Log.d(TAG, "Loaded native library: " + libName);
+        } catch (UnsatisfiedLinkError e) {
+            Log.e(TAG, "Failed to load library: " + e.getMessage());
+            // Fallback: пробуем загрузить стандартную библиотеку
+            try {
+                System.loadLibrary("ft8cn_std");
+                Log.d(TAG, "Fallback: loaded ft8cn_std");
+            } catch (UnsatisfiedLinkError e2) {
+                Log.e(TAG, "Fallback failed: " + e2.getMessage());
+                // Не выбрасываем исключение, чтобы приложение не упало сразу
+            }
+        }
+
         ft8SignalListener = new FT8SignalListener(databaseOpr, new OnFt8Listen() {
             @Override
             public void beforeListen(long utc) {
@@ -1058,7 +1076,7 @@ public class MainViewModel extends ViewModel {
 
                 // === Clear Calling history if enabled ===
                 if (GeneralVariables.clearCallHistOnFreqChange) {
-                    clearTransmittingMessage();
+                    clearTransmittingMessage(); //Critical: НЕ ТРОГАТЬ! НЕ УДАЛЯТЬ, НЕ ИЗМЕНЯТЬ
                     ToastMessage.show("Calling history cleared");
                 }
                 // =======================================

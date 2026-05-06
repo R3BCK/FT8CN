@@ -25,7 +25,24 @@ public class FT8Package {
     private static final String A5 = " 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ/";
 
     static {
-        System.loadLibrary("ft8cn");
+        try {
+            // Пытаемся загрузить библиотеку в зависимости от настройки
+            boolean dxMode = com.bg7yoz.ft8cn.GeneralVariables.acceptDxCalls;
+            String libName = dxMode ? "ft8cn_dx" : "ft8cn_std";
+            System.loadLibrary(libName);
+        } catch (UnsatisfiedLinkError e) {
+            // Fallback: пробуем загрузить стандартную
+            try {
+                System.loadLibrary("ft8cn_std");
+            } catch (UnsatisfiedLinkError e2) {
+                // Если не удалось, пробуем старое имя для совместимости
+                try {
+                    System.loadLibrary("ft8cn");
+                } catch (UnsatisfiedLinkError e3) {
+                    android.util.Log.e("FT8Package", "Failed to load any native library", e3);
+                }
+            }
+        }
     }
 
 

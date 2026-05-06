@@ -419,6 +419,7 @@ public class ConfigFragment extends Fragment {
                 }
             });
         }
+        // =================================================
 
         // Connect/Disconnect button handler
         if (btnConnectRig != null) {
@@ -911,6 +912,22 @@ public class ConfigFragment extends Fragment {
                     }
                 });
         // ==================================================
+
+        // [NEW] Accept DX Calls: восстановление значения при загрузке
+        binding.acceptDxCallsSwitch.setChecked(GeneralVariables.acceptDxCalls);
+
+        // [NEW] Accept DX Calls: обработчик изменения
+        binding.acceptDxCallsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            GeneralVariables.acceptDxCalls = isChecked;
+            // Сохраняем в базу
+            GeneralVariables.saveAcceptDxCallsToDatabase(mainViewModel.databaseOpr);
+
+            // Показываем уведомление о необходимости перезапуска
+            ToastMessage.show(isChecked ?
+                    "DX Multistream: ON (restart recommended)" :
+                    "DX Multistream: OFF");
+        });
+        // [END NEW]
 
         return binding.getRoot();
     }

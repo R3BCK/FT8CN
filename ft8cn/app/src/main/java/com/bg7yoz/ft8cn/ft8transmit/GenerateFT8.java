@@ -40,7 +40,24 @@ public class GenerateFT8 {
     private static final int POOL_MAX_SIZE = 3;
 
     static {
-        System.loadLibrary("ft8cn");
+        try {
+            // Пытаемся загрузить библиотеку в зависимости от настройки
+            boolean dxMode = com.bg7yoz.ft8cn.GeneralVariables.acceptDxCalls;
+            String libName = dxMode ? "ft8cn_dx" : "ft8cn_std";
+            System.loadLibrary(libName);
+        } catch (UnsatisfiedLinkError e) {
+            // Fallback: пробуем загрузить стандартную
+            try {
+                System.loadLibrary("ft8cn_std");
+            } catch (UnsatisfiedLinkError e2) {
+                // Если не удалось, пробуем старое имя для совместимости
+                try {
+                    System.loadLibrary("ft8cn");
+                } catch (UnsatisfiedLinkError e3) {
+                    android.util.Log.e("ReBuildSignal", "Failed to load any native library", e3);
+                }
+            }
+        }
     }
 
     // OPTIMIZATION: Acquire audio buffer from pool or allocate new if pool is empty

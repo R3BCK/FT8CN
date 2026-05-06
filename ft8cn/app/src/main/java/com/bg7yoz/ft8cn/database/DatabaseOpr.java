@@ -105,6 +105,11 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         // Create indexes
         createIndex(sqLiteDatabase);
 
+        // [NEW] Add default value for acceptDxCalls
+        sqLiteDatabase.execSQL("INSERT OR IGNORE INTO config (KeyName, Value) VALUES ('acceptDxCalls', '0')");
+
+        // [REMOVED] Old setting no longer used
+        // sqLiteDatabase.execSQL("INSERT OR IGNORE INTO config (KeyName, Value) VALUES ('multipleAnswersMode', '0')");
     }
 
     @Override
@@ -129,6 +134,12 @@ public class DatabaseOpr extends SQLiteOpenHelper {
 
         // Create indexes
         createIndex(sqLiteDatabase);
+
+        // [NEW] Add setting for existing users upgrading app
+        sqLiteDatabase.execSQL("INSERT OR IGNORE INTO config (KeyName, Value) VALUES ('acceptDxCalls', '0')");
+
+        // [REMOVED] Old setting no longer used
+        // sqLiteDatabase.execSQL("INSERT OR IGNORE INTO config (KeyName, Value) VALUES ('multipleAnswersMode', '0')");
 
         // Delete equals sign from DXCC prefix list
         //deleteDxccPrefixEqual(sqLiteDatabase);
@@ -286,8 +297,9 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     , "isLotW_import INTEGER DEFAULT 0");
             alterTable(sqLiteDatabase, "QslCallsigns", "isLotW_QSL"
                     , "isLotW_QSL INTEGER DEFAULT 0");
+            // [FIX] Заменены двойные кавычки на одинарные для значения по умолчанию
             alterTable(sqLiteDatabase, "QslCallsigns", "startTime"
-                    , "startTime TEXT DEFAULT \"0\"");
+                    , "startTime TEXT DEFAULT '0'");
         } else {
             sqLiteDatabase.execSQL("CREATE TABLE QslCallsigns (" +
                     "ID INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
@@ -565,9 +577,10 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         }
 
         if (!checkTableExists(sqLiteDatabase, "SWLQSOTable")) {
+            // [FIX] Заменены двойные кавычки на квадратные скобки для имени колонки call (SQLite keyword)
             sqLiteDatabase.execSQL("CREATE TABLE SWLQSOTable (\n" +
                     "\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
-                    "\t\"call\" TEXT,\n" +
+                    "\t[call] TEXT,\n" +
                     "\tgridsquare TEXT,\n" +
                     "\tmode TEXT,\n" +
                     "\trst_sent TEXT,\n" +
@@ -598,7 +611,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             sqLiteDatabase.execSQL("CREATE INDEX QslCallsigns_callsign_IDX ON QslCallsigns (callsign,startTime,finishTime,mode)");
         }
         if (!checkIndexExists(sqLiteDatabase, "QSLTable_call_IDX")) {
-            sqLiteDatabase.execSQL("CREATE INDEX QSLTable_call_IDX ON QSLTable (\"call\",qso_date,time_on,mode)");
+            // [FIX] Заменены двойные кавычки на квадратные скобки для имени колонки call
+            sqLiteDatabase.execSQL("CREATE INDEX QSLTable_call_IDX ON QSLTable ([call],qso_date,time_on,mode)");
         }
         // OPTIMIZATION: Add index for DXCC prefix lookups to speed up fallback queries
         if (!checkIndexExists(sqLiteDatabase, "dxcc_prefix_prefix_IDX")) {
@@ -610,7 +624,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         }
         // OPTIMIZATION: Add composite index for common QSL queries
         if (!checkIndexExists(sqLiteDatabase, "QSLTable_band_call_IDX")) {
-            sqLiteDatabase.execSQL("CREATE INDEX QSLTable_band_call_IDX ON QSLTable (band,\"call\")");
+            // [FIX] Заменены двойные кавычки на квадратные скобки для имени колонки call
+            sqLiteDatabase.execSQL("CREATE INDEX QSLTable_band_call_IDX ON QSLTable (band,[call])");
         }
     }
 
@@ -1283,7 +1298,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         cursor.close();
 //        if (newRecord.id != -1) {// Record already exists
 //            querySQL = "UPDATE   QslCallsigns set isLotW_QSL=? WHERE ID=?";
-//            db.execSQL(querySQL, new Object[]{newRecord.isLotW_QSL ? "1" : "0", newRecord.id});
+//            db.execSQL(querySQL, new Object[]{newRecord.isLotW_QSL ? '1' : '0', newRecord.id});
 //        }
         return newRecord.id != -1;//
     }
@@ -1311,7 +1326,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
 
 //        if (newRecord.id != -1) {// Record already exists
 //            querySQL = "UPDATE   QSLTable set isLotW_QSL=? WHERE ID=?";
-//            db.execSQL(querySQL, new Object[]{newRecord.isLotW_QSL ? "1" : "0", newRecord.id});
+//            db.execSQL(querySQL, new Object[]{newRecord.isLotW_QSL ? '1' : '0', newRecord.id});
 //        }
         return newRecord.id != -1;//
     }
@@ -1524,7 +1539,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         @SuppressLint("Range")
         @Override
         protected Void doInBackground(Void... voids) {
-            String sql = String.format("select count(%s) as a FROM %s where %s=\"%s\" limit 1"
+            // [FIX] Заменены двойные кавычки на одинарные для строкового литерала
+            String sql = String.format("select count(%s) as a FROM %s where %s='%s' limit 1"
                     , fieldName, tableName, fieldName, callSign);
             Cursor cursor = db.rawQuery(sql, null);
             if (cursor.moveToFirst()) {
@@ -2066,8 +2082,9 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             if (!showAll){
                 limitStr="limit 100 offset "+offset;
             }
+            // [FIX] Заменены двойные кавычки на одинарные в строке конкатенации для названия единицы измерения
             String querySQL = "select q.[call] as callsign ,q.gridsquare as grid" +
-                    ",q.band||\"(\"||q.freq||\" MHz)\" as band \n" +
+                    ",q.band||' ('||q.freq||' MHz)' as band \n" +
                     ",q.qso_date as last_time ,q.mode ,q.isQSL,q.isLotW_QSL\n" +
                     "from QSLTable q inner join QSLTable q2 ON q.id =q2.id \n" +
                     "where (q.[call] like ?)\n" +
@@ -2444,6 +2461,11 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     GeneralVariables.alc_switch_on = result.equals("1");
                 }
 
+                // [NEW] Load acceptDxCalls setting
+                if (name.equalsIgnoreCase("acceptDxCalls")) {
+                    GeneralVariables.acceptDxCalls = result.equals("1");
+                }
+
             }
 
             cursor.close();
@@ -2458,5 +2480,28 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         }
     }
 
+    // [NEW] Helper method to read config value with default fallback
+    public String readConfig(String keyName, String defaultValue) {
+        String querySQL = "SELECT Value FROM config WHERE KeyName = ?";
+        Cursor cursor = db.rawQuery(querySQL, new String[]{keyName});
+        String result = defaultValue;
+        if (cursor != null && cursor.moveToFirst()) {
+            result = cursor.getString(0);
+            cursor.close();
+        }
+        return result;
+    }
+
+    // [NEW] Migration method to remove old settings
+    public void migrateRemoveOldSettings() {
+        try {
+            // Remove deprecated settings
+            db.execSQL("DELETE FROM config WHERE KeyName IN ('multipleAnswersMode', 'multipleAnswersLayout')");
+            Log.d(TAG, "Migrated: removed old settings from database");
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to migrate old settings", e);
+            // Not critical, can be ignored
+        }
+    }
 
 }

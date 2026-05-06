@@ -563,4 +563,13 @@
     <string name="config_clear_call_hist_on_freq_change">Clear Call Hist on Freq Change</string>
     <string name="faq_clear_call_hist_on_freq_change">When enabled, automatically clear the Calling history buffer after radio frequency change and TUNE command. Prevents calling old callsigns on new frequency.</string>
 
+    <string name="accept_dx_calls">Accept DX Calls (Fox/Hound)</string>
+    <string name="accept_dx_calls_summary">Enable 76-bit multistream decoding &amp; queue responses</string>
+    <string name="advanced_settings">Advanced Settings</string>
+
+    <string name="multiple_answers_title">Multiple answers</string>
+    <string name="multiple_ans_ignore">Ignore</string>
+    <string name="multiple_ans_dx">DX</string>
+    <string name="multiple_ans_remember">Remember</string>
+
 </resources>

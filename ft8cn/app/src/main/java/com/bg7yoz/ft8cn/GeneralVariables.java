@@ -55,6 +55,13 @@ public class GeneralVariables {
     public static boolean sendTuneOnFreqChange = false;
     public static boolean isUserRequestedCQ = false;
     // ================================
+
+    // [REMOVED] Устаревшая настройка, больше не используется
+    // public static int multipleAnswersMode = 0; // 0=Ignore, 1=DX, 2=Remember
+
+    // [NEW] DX/Hound mode switch (с поддержкой загрузки/сохранения)
+    public static boolean acceptDxCalls = false;
+
     // Web server port configuration
     public static final int DEFAULT_WEB_PORT = 7050;
     public static final int MIN_WEB_PORT = 1024;
@@ -820,4 +827,43 @@ public class GeneralVariables {
         }
     }
 
+    // [NEW] Метод для загрузки состояния acceptDxCalls из базы данных
+    // Вызывается при инициализации приложения или после загрузки DatabaseOpr
+    public static void loadAcceptDxCallsFromDatabase(DatabaseOpr db) {
+        if (db == null) return;
+        try {
+            String value = db.readConfig("acceptDxCalls", "0");
+            acceptDxCalls = "1".equals(value);
+            Log.d(TAG, "Loaded acceptDxCalls from database: " + acceptDxCalls);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to load acceptDxCalls from database", e);
+            // Значение по умолчанию остаётся false
+        }
+    }
+
+    // [NEW] Метод для сохранения состояния acceptDxCalls в базу данных
+    // Вызывается при изменении переключателя в UI
+    public static void saveAcceptDxCallsToDatabase(DatabaseOpr db) {
+        if (db == null) return;
+        try {
+            db.writeConfig("acceptDxCalls", acceptDxCalls ? "1" : "0", null);
+            Log.d(TAG, "Saved acceptDxCalls to database: " + acceptDxCalls);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to save acceptDxCalls to database", e);
+        }
+    }
+
+    // [NEW] Метод миграции: удаление устаревших настроек из базы данных
+    // Вызывается один раз при обновлении приложения
+    public static void migrateRemoveOldSettings(DatabaseOpr db) {
+        if (db == null) return;
+        try {
+            // Удаляем устаревшие ключи конфигурации
+            db.getDb().execSQL("DELETE FROM config WHERE KeyName IN ('multipleAnswersMode', 'multipleAnswersLayout')");
+            Log.d(TAG, "Migrated: removed old settings from database");
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to migrate old settings", e);
+            // Не критично, можно проигнорировать
+        }
+    }
 }

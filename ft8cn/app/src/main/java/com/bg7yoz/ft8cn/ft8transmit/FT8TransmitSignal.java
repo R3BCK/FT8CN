@@ -83,6 +83,7 @@ public class FT8TransmitSignal {
     private final ExecutorService doTransmitThreadPool = Executors.newCachedThreadPool();
     private final DoTransmitRunnable doTransmitRunnable = new DoTransmitRunnable(this);
 
+    // [CHANGED] Pending QSO structure for DX mode (queue for multiple answers)
     private static class PendingQSO {
         String callsign;
         int functionOrder;
@@ -92,10 +93,12 @@ public class FT8TransmitSignal {
             callsign = c; functionOrder = fo; sequential = sq; ageCycles = 0;
         }
     }
+    // [CHANGED] Queue for pending QSOs in DX mode
     private final ArrayList<PendingQSO> pendingQSOs = new ArrayList<>();
-    private static final int MAX_PENDING_CYCLES = 10;
-    private static final int MAX_PENDING_COUNT = 10;
+    private static final int MAX_PENDING_CYCLES = 14;
+    private static final int MAX_PENDING_COUNT = 14;
 
+    // [EXISTING] Interrupted QSO tracking (for fallback when connection lost)
     private static class InterruptedQSO {
         String callsign;
         int lastFunctionOrder;
@@ -122,12 +125,35 @@ public class FT8TransmitSignal {
 
     private boolean ignoreCQForNextStep = false;
 
-    static {
-        System.loadLibrary("ft8cn");
+    // [CHANGED] Library loading management for dual-library support
+    private static boolean libraryLoaded = false;
+
+    public static void loadLibrary(boolean dxMode) {
+        if (libraryLoaded) return;
+        try {
+            if (dxMode) {
+                System.loadLibrary("ft8cn_dx");
+                Log.d(TAG, "Loaded DX multistream library");
+            } else {
+                System.loadLibrary("ft8cn_std");
+                Log.d(TAG, "Loaded standard library");
+            }
+            libraryLoaded = true;
+        } catch (UnsatisfiedLinkError e) {
+            Log.e(TAG, "Failed to load library: " + e.getMessage());
+            // Fallback to standard library
+            if (!dxMode) {
+                System.loadLibrary("ft8cn_std");
+                libraryLoaded = true;
+            }
+        }
     }
 
     @SuppressLint("DefaultLocale")
     public FT8TransmitSignal(DatabaseOpr databaseOpr, OnDoTransmitted doTransmitted, OnTransmitSuccess onTransmitSuccess) {
+        // [CHANGED] Load appropriate library BEFORE any native calls
+        loadLibrary(GeneralVariables.acceptDxCalls);
+
         this.onDoTransmitted = doTransmitted;
         this.onTransmitSuccess = onTransmitSuccess;
         this.databaseOpr = databaseOpr;
@@ -372,6 +398,27 @@ public class FT8TransmitSignal {
             GeneralVariables.addQSLCallsign(toCallsign.callsign);
             ToastMessage.show(String.format("QSO : %s , at %s", toCallsign.callsign, BaseRigOperation.getFrequencyAllInfo(GeneralVariables.band)));
         }
+
+        // [DX MODE] Switch to next pending QSO after completing current one
+        if (GeneralVariables.acceptDxCalls && !pendingQSOs.isEmpty()) {
+            PendingQSO next = pendingQSOs.remove(0);
+            Log.d(TAG, "DX mode: switching to next pending QSO: " + next.callsign);
+
+            // Find frequency from decode history
+            float freq = GeneralVariables.getBaseFrequency();
+            if (GeneralVariables.transmitMessages != null) {
+                for (Ft8Message m : GeneralVariables.transmitMessages) {
+                    if (m != null && m.getCallsignFrom().equals(next.callsign)) {
+                        freq = m.freq_hz;
+                        break;
+                    }
+                }
+            }
+
+            setTransmit(new TransmitCallsign(0, 0, next.callsign, freq, next.sequential, -100),
+                    next.functionOrder, "");
+        }
+        // [END DX MODE]
     }
 
     public void setCurrentFunctionOrder(int order) {
@@ -590,11 +637,115 @@ public class FT8TransmitSignal {
         return result;
     }
 
+    // [DX MODE] New method to handle multistream/multiple answers
+    private void handleDxMultistream(ArrayList<Ft8Message> msgList) {
+        ArrayList<Ft8Message> messages = new ArrayList<>(msgList);
+        ConcurrentHashMap<Ft8Message, Boolean> localIsMyCall = new ConcurrentHashMap<>();
+
+        // Filter messages: only those addressed to me, in current slot/band
+        for (Ft8Message msg : messages) {
+            if (msg.getSequence() == sequential || msg.band != GeneralVariables.band) continue;
+            String from = msg.getCallsignFrom();
+            String to = msg.getCallsignTo();
+            if (GeneralVariables.checkIsExcludeCallsign(from)) continue;
+            localIsMyCall.put(msg, GeneralVariables.checkIsMyCallsign(to));
+        }
+
+        // Collect all replies to my CQ in this slot
+        ArrayList<Ft8Message> repliesToMe = new ArrayList<>();
+        for (Ft8Message msg : messages) {
+            if (!Boolean.TRUE.equals(localIsMyCall.get(msg)) || GeneralVariables.checkFun5(msg.extraInfo)) continue;
+            repliesToMe.add(msg);
+        }
+
+        // If we have replies and we're in CQ mode
+        if (!repliesToMe.isEmpty() && functionOrder == 6) {
+            // Take the first reply as active QSO
+            Ft8Message firstReply = repliesToMe.get(0);
+            setTransmit(new TransmitCallsign(firstReply.i3, firstReply.n3,
+                    firstReply.getCallsignFrom(), firstReply.freq_hz,
+                    firstReply.getSequence(), firstReply.snr), 1, firstReply.extraInfo);
+
+            // Add remaining replies to pending queue
+            for (int i = 1; i < repliesToMe.size() && pendingQSOs.size() < MAX_PENDING_COUNT; i++) {
+                Ft8Message reply = repliesToMe.get(i);
+                // Avoid duplicates
+                boolean alreadyPending = false;
+                for (PendingQSO pq : pendingQSOs) {
+                    if (pq.callsign.equals(reply.getCallsignFrom())) {
+                        alreadyPending = true;
+                        break;
+                    }
+                }
+                if (!alreadyPending) {
+                    pendingQSOs.add(new PendingQSO(
+                            reply.getCallsignFrom(),
+                            1, // Start from function 1
+                            reply.getSequence()
+                    ));
+                    Log.d(TAG, "DX mode: added to pending queue: " + reply.getCallsignFrom());
+                }
+            }
+            return; // Exit early, don't run standard logic
+        }
+
+        // If we're in an active QSO (functionOrder < 6), run standard logic for progression
+        // but also check for new replies to add to queue
+        int newOrder = checkFunctionOrdFromMessages(messages);
+        if (newOrder != -1) {
+            GeneralVariables.noReplyCount = 0;
+            cyclesWithoutBeingCalled = 0;
+            updateQSlRecordList(newOrder, toCallsign);
+
+            if (newOrder == 1 || newOrder == 2) { resetTargetReport(); generateFun(); }
+            functionOrder = newOrder + 1;
+            mutableFunctions.postValue(functionList); mutableFunctionOrder.postValue(functionOrder);
+            setCurrentFunctionOrder(functionOrder);
+            return;
+        }
+
+        // Check for interrupted QSOs (standard fallback)
+        for (Ft8Message msg : messages) {
+            if (!Boolean.TRUE.equals(localIsMyCall.get(msg))) continue;
+            String fromCall = msg.getCallsignFrom();
+            for (int i = interruptedQSOs.size() - 1; i >= 0; i--) {
+                if (fromCall.equals(interruptedQSOs.get(i).callsign)) {
+                    interruptedQSOs.remove(i);
+                    Log.d(TAG, "Resuming interrupted QSO with " + fromCall);
+                    int resumeOrder = Math.min(interruptedQSOs.get(i).lastFunctionOrder + 1, 5);
+                    setTransmit(new TransmitCallsign(msg.i3, msg.n3, fromCall, msg.freq_hz, msg.getSequence(), msg.snr),
+                            resumeOrder, msg.extraInfo);
+                    return;
+                }
+            }
+        }
+
+        // Standard fallback: check CQ, auto-follow, etc.
+        checkCQMeOrFollowCQMessage(messages);
+
+        // Age and clean pending QSOs
+        for (int i = pendingQSOs.size() - 1; i >= 0; i--) {
+            pendingQSOs.get(i).ageCycles++;
+            if (pendingQSOs.get(i).ageCycles > MAX_PENDING_CYCLES) {
+                pendingQSOs.remove(i);
+            }
+        }
+        cleanupInterruptedQSOs();
+        localIsMyCall.clear();
+    }
+
     public void parseMessageToFunction(ArrayList<Ft8Message> msgList) {
         if (GeneralVariables.myCallsign.length() < 3 || msgList.isEmpty()) return;
         if (toCallsign == null) return;
         if (isTransmitting) return;
 
+        // [DX MODE BRANCH]
+        if (GeneralVariables.acceptDxCalls) {
+            handleDxMultistream(msgList);
+            return;
+        }
+
+        // [STANDARD MODE] - Original logic unchanged
         ArrayList<Ft8Message> messages = new ArrayList<>(msgList);
         ConcurrentHashMap<Ft8Message, Boolean> localIsMyCall = new ConcurrentHashMap<>();
 
@@ -747,6 +898,7 @@ public class FT8TransmitSignal {
             mutableFunctionOrder.postValue(functionOrder);
         }
 
+        // [STANDARD MODE] Age and clean pending QSOs (used for delayed replies)
         for (int i = pendingQSOs.size() - 1; i >= 0; i--) {
             pendingQSOs.get(i).ageCycles++;
             if (pendingQSOs.get(i).ageCycles > MAX_PENDING_CYCLES) {
@@ -788,6 +940,11 @@ public class FT8TransmitSignal {
     public void resetTargetReport() { receiveTargetReport = -100; sentTargetReport = -100; }
     public void resetToCQ() {
         resetTargetReport();
+        // [DX MODE] Clear pending queue when manually resetting to CQ
+        if (GeneralVariables.acceptDxCalls) {
+            pendingQSOs.clear();
+        }
+        // [END DX MODE]
         if (toCallsign == null) { int i3 = GenerateFT8.checkI3ByCallsign(GeneralVariables.myCallsign); setTransmit(new TransmitCallsign(i3, 0, "CQ", (UtcTimer.getNowSequential() + 1) % 2), 6, ""); }
         else { functionOrder = 6; toCallsign.callsign = "CQ"; mutableToCallsign.postValue(toCallsign); generateFun(); }
     }

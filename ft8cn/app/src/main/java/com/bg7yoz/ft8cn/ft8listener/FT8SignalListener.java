@@ -40,9 +40,58 @@ public class FT8SignalListener {
 
     private final A91List a91List = new A91List(); // a91 list
 
+    // [CHANGED] Флаг: загружена ли библиотека
+    private static boolean libraryLoaded = false;
 
+    // [CHANGED] Динамическая загрузка библиотеки в зависимости от режима DX
     static {
-        System.loadLibrary("ft8cn");
+        try {
+            // Пытаемся загрузить библиотеку в зависимости от настройки
+            String libName = GeneralVariables.acceptDxCalls ? "ft8cn_dx" : "ft8cn_std";
+            System.loadLibrary(libName);
+            libraryLoaded = true;
+            Log.d(TAG, "Loaded native library: " + libName);
+        } catch (UnsatisfiedLinkError e) {
+            Log.e(TAG, "Failed to load library: " + e.getMessage());
+            // Fallback: пробуем загрузить стандартную библиотеку
+            try {
+                System.loadLibrary("ft8cn_std");
+                libraryLoaded = true;
+                Log.d(TAG, "Fallback: loaded ft8cn_std");
+            } catch (UnsatisfiedLinkError e2) {
+                Log.e(TAG, "Fallback failed: " + e2.getMessage());
+                // Не выбрасываем исключение, чтобы приложение не упало сразу
+            }
+        }
+    }
+
+    // [NEW] Метод для явной инициализации библиотеки (можно вызвать из Application/ViewModel)
+    public static synchronized void initializeLibrary(boolean dxMode) {
+        if (libraryLoaded) {
+            Log.d(TAG, "Library already loaded, skipping initialization");
+            return;
+        }
+        try {
+            String libName = dxMode ? "ft8cn_dx" : "ft8cn_std";
+            System.loadLibrary(libName);
+            libraryLoaded = true;
+            Log.d(TAG, "Explicitly loaded library: " + libName);
+        } catch (UnsatisfiedLinkError e) {
+            Log.e(TAG, "Failed to explicitly load library: " + e.getMessage());
+            // Fallback
+            try {
+                System.loadLibrary("ft8cn_std");
+                libraryLoaded = true;
+                Log.d(TAG, "Fallback: loaded ft8cn_std");
+            } catch (UnsatisfiedLinkError e2) {
+                Log.e(TAG, "Fallback failed: " + e2.getMessage());
+            }
+        }
+    }
+
+    // [NEW] Проверка, загружена ли библиотека
+    public static boolean isLibraryLoaded() {
+        return libraryLoaded;
     }
 
     public interface OnWaveDataListener {
@@ -53,6 +102,12 @@ public class FT8SignalListener {
         //this.hamRecorder = hamRecorder;
         this.onFt8Listen = onFt8Listen;
         this.db = db;
+
+        // [CHANGED] Проверка загрузки библиотеки перед использованием
+        if (!libraryLoaded) {
+            Log.w(TAG, "Native library not loaded, attempting fallback initialization...");
+            initializeLibrary(GeneralVariables.acceptDxCalls);
+        }
 
         // Create action trigger, synchronized with UTC time, 15 seconds per cycle.
         // DoOnSecTimer is the event triggered at the start of each cycle.
