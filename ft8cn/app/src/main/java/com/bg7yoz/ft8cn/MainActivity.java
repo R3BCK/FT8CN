@@ -66,7 +66,7 @@ import com.bg7yoz.ft8cn.log.OnShareLogEvents;
 import com.bg7yoz.ft8cn.maidenhead.MaidenheadGrid;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
 import com.bg7yoz.ft8cn.ui.FreqDialog;
-import com.bg7yoz.ft8cn.ui.ScanFragment;  // [NEW] Импорт для ScanFragment
+import com.bg7yoz.ft8cn.ui.ScanFragment;
 import com.bg7yoz.ft8cn.ui.SetVolumeDialog;
 import com.bg7yoz.ft8cn.ui.ShareLogsProgressDialog;
 import com.bg7yoz.ft8cn.ui.ToastMessage;
@@ -209,8 +209,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 // [NEW] Обработка перехода на ScanFragment
-                if (item.getItemId() == R.id.nav_scan) {
-                    navController.navigate(R.id.nav_scan);
+                if (item.getItemId() == R.id.menu_nav_scan) {
+                    navController.navigate(R.id.menu_nav_scan);
                     return true;
                 }
                 navController.navigate(item.getItemId());
@@ -408,10 +408,13 @@ public class MainActivity extends AppCompatActivity {
         binding.container.addView(floatView);
         floatView.setButtonMargin(0);
         floatView.setFloatBoard(FloatView.FLOAT_BOARD.RIGHT);
-
         floatView.setButtonBackgroundResourceId(R.drawable.float_button_style);
-        floatView.addButton(R.id.float_nav, "float_nav", R.drawable.ic_baseline_fullscreen_24
-                , new View.OnClickListener() {
+
+        // === ИСХОДНЫЕ КНОПКИ (рабочая конфигурация) ===
+
+        /*// 1. Fullscreen toggle (верхняя кнопка)
+        floatView.addButton(R.id.float_nav, "float_nav", R.drawable.ic_baseline_fullscreen_24,
+                new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         FloatViewButton button = floatView.getButtonByName("float_nav");
@@ -427,24 +430,40 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     }
+                });*/
+        floatView.addButton(R.id.float_nav, "float_settings", R.drawable.ic_baseline_settings_24,
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        // Создаём Intent для текущей MainActivity с флагом открытия настроек
+                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                        intent.putExtra("OPEN_CONFIG", true);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                    }
                 });
-        floatView.addButton(R.id.float_freq, "float_freq", R.drawable.ic_baseline_freq_24
-                , new View.OnClickListener() {
+
+        // 2. Frequency dialog
+        floatView.addButton(R.id.float_freq, "float_freq", R.drawable.ic_baseline_freq_24,
+                new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         new FreqDialog(binding.container.getContext(), mainViewModel).show();
                     }
                 });
 
-        floatView.addButton(R.id.set_volume, "set_volume", R.drawable.ic_baseline_volume_up_24
-                , new View.OnClickListener() {
+        // 3. Volume control
+        floatView.addButton(R.id.set_volume, "set_volume", R.drawable.ic_baseline_volume_up_24,
+                new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         new SetVolumeDialog(binding.container.getContext(), mainViewModel).show();
                     }
                 });
-        floatView.addButton(R.id.grid_tracker, "grid_tracker", R.drawable.ic_baseline_grid_tracker_24
-                , new View.OnClickListener() {
+
+        // 4. Grid Tracker
+        floatView.addButton(R.id.grid_tracker, "grid_tracker", R.drawable.ic_baseline_grid_tracker_24,
+                new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         Intent intent = new Intent(getApplicationContext(), GridTrackerMainActivity.class);
@@ -454,7 +473,6 @@ public class MainActivity extends AppCompatActivity {
 
         floatView.initLocation();
     }
-
 
     private void InitData() {
         if (mainViewModel.configIsLoaded) return;
@@ -728,10 +746,21 @@ public class MainActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         if ("android.hardware.usb.action.USB_DEVICE_ATTACHED".equals(intent.getAction())) {
             mainViewModel.getUsbDevice();
-        }else {
+        } else {
             setIntent(intent);
             doReceiveShareFile(getIntent());
         }
+
+        // [NEW] Обработка флага открытия настроек из FloatView
+        if (intent != null && intent.getBooleanExtra("OPEN_CONFIG", false)) {
+            // Небольшая задержка, чтобы гарантировать, что активность уже активна
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                if (navController != null) {
+                    navController.navigate(R.id.menu_nav_config);
+                }
+            }, 100);
+        }
+
         super.onNewIntent(intent);
     }
 
@@ -818,6 +847,4 @@ public class MainActivity extends AppCompatActivity {
 
         super.onDestroy();
     }
-
-
 }

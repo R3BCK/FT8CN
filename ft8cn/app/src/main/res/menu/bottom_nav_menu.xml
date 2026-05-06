@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Bottom Navigation Menu for FT8CN Application -->
-<!-- Items are ordered from LEFT to RIGHT in the UI -->
+<!-- IMPORTANT: Maximum 5 items supported by BottomNavigationView -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- ============================================ -->
-    <!-- SCAN MODE (NEW) - First item, leftmost position -->
-    <!-- Allows frequency scanning with station counting -->
+    <!-- SCAN MODE (NEW) - First item, leftmost -->
+    <!-- Frequency scanning with station counting -->
     <!-- ============================================ -->
     <item
         android:id="@+id/menu_nav_scan"
@@ -32,7 +32,7 @@
         android:orderInCategory="2" />
 
     <!-- ============================================ -->
-    <!-- SPECTRUM - Real-time waterfall display -->
+    <!-- SPECTRUM - Real-time waterfall (CRITICAL for audio freq) -->
     <!-- ============================================ -->
     <item
         android:id="@+id/menu_nav_spectrum"
@@ -48,14 +48,5 @@
         android:icon="@drawable/ic_baseline_history_24"
         android:title="@string/nav_menu_title_history"
         android:orderInCategory="4" />
-
-    <!-- ============================================ -->
-    <!-- SETTINGS / CONFIG - Application settings -->
-    <!-- ============================================ -->
-    <item
-        android:id="@+id/menu_nav_config"
-        android:icon="@drawable/ic_baseline_settings_24"
-        android:title="@string/nav_menu_title_config"
-        android:orderInCategory="5" />
 
 </menu>

@@ -1,36 +1,44 @@
 package com.bg7yoz.ft8cn.ui;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.TableLayout;
-import android.widget.TableRow;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 
+import com.bg7yoz.ft8cn.GeneralVariables;
 import com.bg7yoz.ft8cn.MainViewModel;
 import com.bg7yoz.ft8cn.R;
 import com.bg7yoz.ft8cn.database.OperationBand;
+import com.bg7yoz.ft8cn.timer.UtcTimer;
+
+import java.util.Locale;
 
 public class ScanFragment extends Fragment {
-
+    private static final String TAG = "ScanFragment";
     private MainViewModel mainViewModel;
-    private Button btnStartStop;
-    private EditText etDwellCycles;
-    private TableLayout tableScanContent;
-    private TextView tvTotalD, tvTotalC, tvTotalI, tvTotalAll;
-    private CheckBox cbHeaderHideShow;
+    private Button btnStartStop, btnClearTable;
+    private EditText etScanCycles;
+    private LinearLayout containerScanContent;
+    private TextView tvTotalAll, tvTotalNew, tvUtcTime, tvUtcDelay, tvRfFreq;
+    private CheckBox cbHeaderHide, cbHeaderSelect;
+    private Handler utcDelayHandler;
 
     private boolean isScanning = false;
-    private int dwellCycles = 2;
+    private int scanCycles = 2;
 
     @Nullable
     @Override
@@ -41,181 +49,186 @@ public class ScanFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         mainViewModel = MainViewModel.getInstance(this);
+        utcDelayHandler = new Handler(Looper.getMainLooper());
 
+        // Привязка элементов управления
         btnStartStop = view.findViewById(R.id.btnScanStartStop);
-        etDwellCycles = view.findViewById(R.id.etDwellCycles);
-        tableScanContent = view.findViewById(R.id.tableScanContent);
-        tvTotalD = view.findViewById(R.id.tvTotalD);
-        tvTotalC = view.findViewById(R.id.tvTotalC);
-        tvTotalI = view.findViewById(R.id.tvTotalI);
+        btnClearTable = view.findViewById(R.id.btnClearTable);
+        etScanCycles = view.findViewById(R.id.etDwellCycles);
+        containerScanContent = view.findViewById(R.id.containerScanContent);
         tvTotalAll = view.findViewById(R.id.tvTotalAll);
-        cbHeaderHideShow = view.findViewById(R.id.cbHeaderHideShow);
+        tvTotalNew = view.findViewById(R.id.tvTotalNew);
+        tvUtcTime = view.findViewById(R.id.tvUtcTime);
+        tvUtcDelay = view.findViewById(R.id.tvUtcDelay);
+        tvRfFreq = view.findViewById(R.id.tvRfFreq);
+        cbHeaderHide = view.findViewById(R.id.cbHeaderHide);
+        cbHeaderSelect = view.findViewById(R.id.cbHeaderSelect);
 
-        // Start/Stop button
-        btnStartStop.setOnClickListener(new View.OnClickListener() {
+        // Обработка кнопки Start/Stop
+        btnStartStop.setOnClickListener(v -> {
+            isScanning = !isScanning;
+            btnStartStop.setText(isScanning ? "Stop" : "Start");
+            scanCycles = parseScanCycles();
+            if (isScanning) startScan(); else stopScan();
+        });
+
+        // Обработка кнопки очистки таблицы
+        btnClearTable.setOnClickListener(v -> {
+            containerScanContent.removeAllViews();
+            tvTotalAll.setText("0");
+            tvTotalNew.setText("0");
+            Toast.makeText(getContext(), "Table cleared", Toast.LENGTH_SHORT).show();
+        });
+
+        // Обработка массового скрытия/показа строк
+        cbHeaderHide.setOnClickListener(v -> showAllFrequencies(cbHeaderHide.isChecked()));
+        // Обработка массового выбора строк
+        cbHeaderSelect.setOnClickListener(v -> selectAllFrequencies(cbHeaderSelect.isChecked()));
+
+        // === UTC Time Observer ===
+        mainViewModel.timerSec.observe(getViewLifecycleOwner(), new Observer<Long>() {
             @Override
-            public void onClick(View v) {
-                isScanning = !isScanning;
-                btnStartStop.setText(isScanning ? "Stop" : "Start");
-                dwellCycles = parseDwellCycles();
-                if (isScanning) {
-                    startScan();
-                } else {
-                    stopScan();
+            public void onChanged(Long aLong) {
+                tvUtcTime.setText(UtcTimer.getTimeStr(aLong));
+            }
+        });
+
+        // === UTC Delay Handler ===
+        utcDelayHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (tvUtcDelay != null && getActivity() != null) {
+                    tvUtcDelay.setText(String.format(Locale.US, "%+d", UtcTimer.delay));
+                    utcDelayHandler.postDelayed(this, 500);
                 }
             }
-        });
+        }, 500);
+        // === END UTC Delay ===
 
-        // Header Hide/Show: показать все скрытые частоты
-        cbHeaderHideShow.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showAllFrequencies(cbHeaderHideShow.isChecked());
-            }
-        });
+        // Инициализация текущей частоты
+        tvRfFreq.setText(formatFreq(GeneralVariables.band));
 
-        // Populate table from OperationBand
         populateFrequencyTable();
         updateTotals();
     }
 
-    private int parseDwellCycles() {
-        try {
-            int val = Integer.parseInt(etDwellCycles.getText().toString().trim());
-            return Math.max(1, Math.min(10, val));
-        } catch (Exception e) {
-            return 2;
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (utcDelayHandler != null) {
+            utcDelayHandler.removeCallbacksAndMessages(null);
         }
     }
 
+    // Парсинг и валидация количества циклов
+    private int parseScanCycles() {
+        try { return Math.max(1, Math.min(10, Integer.parseInt(etScanCycles.getText().toString().trim()))); }
+        catch (Exception e) { return 2; }
+    }
+
+    // Заполнение таблицы частотами из базы
     private void populateFrequencyTable() {
-        tableScanContent.removeAllViews();
+        containerScanContent.removeAllViews();
+        int count = 0;
+        LayoutInflater inflater = LayoutInflater.from(getContext());
 
-        for (int i = 0; i < OperationBand.BAND_FREQS.length; i++) {
-            long freq = OperationBand.BAND_FREQS[i];
-            String label = OperationBand.getBandName(i) + " " + formatFreq(freq);
-            addScanRow(label, freq, true, 0, 0, 0, 0);
+        for (int i = 0; i < 20; i++) {
+            try {
+                long freq = OperationBand.getBandFreq(i);
+                if (freq <= 0) continue;
+                View rowView = inflater.inflate(R.layout.item_scan_row, containerScanContent, false);
+                bindRowData(rowView, formatFreq(freq), freq, true, true, 0, 0, 0, 0, 0);
+                containerScanContent.addView(rowView);
+                count++;
+            } catch (Exception e) { break; }
+        }
+        Log.d(TAG, "Loaded frequencies: " + count);
+
+        if (count == 0) {
+            View rowView = inflater.inflate(R.layout.item_scan_row, containerScanContent, false);
+            bindRowData(rowView, "Test 14.074 MHz", 14074000L, true, true, 1, 2, 3, 1, 1);
+            containerScanContent.addView(rowView);
         }
     }
 
-    private String formatFreq(long freqHz) {
-        return String.format("%.3f", freqHz / 1_000_000f);
-    }
+    // Привязка данных к инфлейнутому шаблону строки
+    private void bindRowData(View rowView, String label, long freq, boolean visible, boolean selected, int tot, int d, int c, int itu, int newStations) {
+        rowView.setVisibility(visible ? View.VISIBLE : View.GONE);
+        rowView.setTag(freq);
 
-    private void addScanRow(String label, long freq, boolean visible, int d, int c, int i, int total) {
-        TableRow row = new TableRow(getContext());
-        row.setPadding(0, 4, 0, 4);
-        row.setVisibility(visible ? View.VISIBLE : View.GONE);
-        row.setTag(freq); // store frequency for click handler
-
-        // 1. Hide/Show Checkbox (leftmost)
-        CheckBox cb = new CheckBox(getContext());
-        cb.setChecked(visible);
-        cb.setPadding(8, 0, 8, 0);
-        cb.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                row.setVisibility(cb.isChecked() ? View.VISIBLE : View.GONE);
-                updateTotals();
-            }
+        CheckBox cbHide = rowView.findViewById(R.id.cbRowHide);
+        cbHide.setChecked(visible);
+        cbHide.setOnClickListener(v -> {
+            rowView.setVisibility(cbHide.isChecked() ? View.VISIBLE : View.GONE);
+            updateTotals();
         });
-        row.addView(cb);
 
-        // 2. Frequency label (clickable to switch)
-        TextView tvFreq = new TextView(getContext());
+        CheckBox cbSelect = rowView.findViewById(R.id.cbRowSelect);
+        cbSelect.setChecked(selected);
+
+        TextView tvFreq = rowView.findViewById(R.id.tvRowFreq);
         tvFreq.setText(label);
-        tvFreq.setGravity(android.view.Gravity.CENTER);
-        tvFreq.setLayoutParams(new TableRow.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 2f));
-        tvFreq.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                switchToFrequency(freq);
-            }
-        });
-        row.addView(tvFreq);
+        tvFreq.setOnClickListener(v -> switchToFrequency(freq));
 
-        // 3. D, C, I, Total columns
-        int[] values = {d, c, i, total};
-        for (int val : values) {
-            TextView tv = new TextView(getContext());
-            tv.setText(String.valueOf(val));
-            tv.setGravity(android.view.Gravity.CENTER);
-            tv.setLayoutParams(new TableRow.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-            row.addView(tv);
-        }
+        ((TextView) rowView.findViewById(R.id.tvRowTot)).setText(String.valueOf(tot));
+        ((TextView) rowView.findViewById(R.id.tvRowD)).setText(String.valueOf(d));
+        ((TextView) rowView.findViewById(R.id.tvRowC)).setText(String.valueOf(c));
+        ((TextView) rowView.findViewById(R.id.tvRowI)).setText(String.valueOf(itu));
+        ((TextView) rowView.findViewById(R.id.tvRowNew)).setText(String.valueOf(newStations));
 
-        // 4. Switch button (Go)
-        Button btnGo = new Button(getContext());
-        btnGo.setText("Go");
-        btnGo.setTextSize(10);
-        btnGo.setLayoutParams(new TableRow.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        btnGo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                switchToFrequency(freq);
-            }
-        });
-        row.addView(btnGo);
-
-        tableScanContent.addView(row);
+        Button btnGo = rowView.findViewById(R.id.btnRowGo);
+        btnGo.setOnClickListener(v -> switchToFrequency(freq));
     }
 
+    // Форматирование Гц в МГц
+    private String formatFreq(long freqHz) { return String.format("%.3f MHz", freqHz / 1_000_000f); }
+
+    // Переключение частоты рига
     private void switchToFrequency(long freq) {
         if (mainViewModel != null) {
-            // Switch rig frequency
-            mainViewModel.setOperationBandFrequency(freq);
-            // TODO: Navigate to Calling fragment if needed
-            Toast.makeText(getContext(), "Switched to " + formatFreq(freq) + " MHz", Toast.LENGTH_SHORT).show();
+            GeneralVariables.band = freq;
+            GeneralVariables.bandListIndex = OperationBand.getIndexByFreq(freq);
+            mainViewModel.setOperationBand();
+            tvRfFreq.setText(formatFreq(freq));
+            Toast.makeText(getContext(), "Switched to " + formatFreq(freq), Toast.LENGTH_SHORT).show();
         }
     }
 
+    // Показать/скрыть все строки
     private void showAllFrequencies(boolean show) {
-        for (int j = 0; j < tableScanContent.getChildCount(); j++) {
-            View row = tableScanContent.getChildAt(j);
-            if (row instanceof TableRow) {
-                row.setVisibility(show ? View.VISIBLE : View.GONE);
-                // Also update checkbox state
-                CheckBox cb = (CheckBox) ((TableRow) row).getChildAt(0);
-                cb.setChecked(show);
-            }
+        for (int j = 0; j < containerScanContent.getChildCount(); j++) {
+            View row = containerScanContent.getChildAt(j);
+            CheckBox cb = row.findViewById(R.id.cbRowHide);
+            cb.setChecked(show);
+            row.setVisibility(show ? View.VISIBLE : View.GONE);
         }
         updateTotals();
     }
 
+    // Выбрать/снять выбор со всех строк
+    private void selectAllFrequencies(boolean select) {
+        for (int j = 0; j < containerScanContent.getChildCount(); j++) {
+            CheckBox cb = containerScanContent.getChildAt(j).findViewById(R.id.cbRowSelect);
+            cb.setChecked(select);
+        }
+    }
+
+    // Пересчёт итогов по видимым строкам
     private void updateTotals() {
-        int d = 0, c = 0, itu = 0, total = 0;
-        for (int j = 0; j < tableScanContent.getChildCount(); j++) {
-            TableRow row = (TableRow) tableScanContent.getChildAt(j);
-            if (row.getVisibility() == View.VISIBLE && row.getChildCount() >= 6) {
-                TextView tvD = (TextView) row.getChildAt(2);
-                TextView tvC = (TextView) row.getChildAt(3);
-                TextView tvI = (TextView) row.getChildAt(4);
-                TextView tvTotal = (TextView) row.getChildAt(5);
-                d += parseInt(tvD.getText().toString());
-                c += parseInt(tvC.getText().toString());
-                itu += parseInt(tvI.getText().toString());
-                total += parseInt(tvTotal.getText().toString());
+        int total = 0, newCount = 0;
+        for (int j = 0; j < containerScanContent.getChildCount(); j++) {
+            View row = containerScanContent.getChildAt(j);
+            if (row.getVisibility() == View.VISIBLE) {
+                total += parseInt(((TextView) row.findViewById(R.id.tvRowTot)).getText().toString());
+                newCount += parseInt(((TextView) row.findViewById(R.id.tvRowNew)).getText().toString());
             }
         }
-        tvTotalD.setText(String.valueOf(d));
-        tvTotalC.setText(String.valueOf(c));
-        tvTotalI.setText(String.valueOf(itu));
         tvTotalAll.setText(String.valueOf(total));
+        tvTotalNew.setText(String.valueOf(newCount));
     }
 
-    private int parseInt(String s) {
-        try { return Integer.parseInt(s.trim()); } catch (Exception e) { return 0; }
-    }
-
-    private void startScan() {
-        // TODO: Connect to actual scanning engine
-        // For now, just simulate
-        Toast.makeText(getContext(), "Scan started: " + dwellCycles + " cycles", Toast.LENGTH_SHORT).show();
-    }
-
-    private void stopScan() {
-        Toast.makeText(getContext(), "Scan stopped", Toast.LENGTH_SHORT).show();
-    }
+    private int parseInt(String s) { try { return Integer.parseInt(s.trim()); } catch (Exception e) { return 0; } }
+    private void startScan() { Toast.makeText(getContext(), "Scan started: " + scanCycles + " cycles", Toast.LENGTH_SHORT).show(); }
+    private void stopScan() { Toast.makeText(getContext(), "Scan stopped", Toast.LENGTH_SHORT).show(); }
 }

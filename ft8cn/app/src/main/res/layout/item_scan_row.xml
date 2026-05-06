@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Шаблон одной строки частоты -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="33dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingTop="0dp"
+    android:paddingBottom="0dp">
+
+    <!-- Чекбокс скрытия строки -->
+    <CheckBox
+        android:id="@+id/cbRowHide"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:padding="0dp" />
+
+    <!-- Чекбокс выбора для сканирования -->
+    <CheckBox
+        android:id="@+id/cbRowSelect"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:padding="0dp" />
+
+    <!-- Текст частоты (сдвинут влево на 15dp) -->
+    <TextView
+        android:id="@+id/tvRowFreq"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="3"
+        android:layout_marginStart="-15dp"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:textColor="@android:color/black" />
+
+    <!-- Счётчик Tot -->
+    <TextView
+        android:id="@+id/tvRowTot"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:textColor="@android:color/black" />
+
+    <!-- Счётчик D -->
+    <TextView
+        android:id="@+id/tvRowD"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:textColor="@android:color/black" />
+
+    <!-- Счётчик C -->
+    <TextView
+        android:id="@+id/tvRowC"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:textColor="@android:color/black" />
+
+    <!-- Счётчик I -->
+    <TextView
+        android:id="@+id/tvRowI"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:textColor="@android:color/black" />
+
+    <!-- Счётчик New -->
+    <TextView
+        android:id="@+id/tvRowNew"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="@color/button_start_color" />
+
+    <!-- Кнопка перехода (шире на 15dp = 65dp) -->
+    <Button
+        android:id="@+id/btnRowGo"
+        android:layout_width="65dp"
+        android:layout_height="32dp"
+        android:text="Go"
+        android:textSize="10sp"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/button_start_color"
+        android:padding="0dp" />
+</LinearLayout>
