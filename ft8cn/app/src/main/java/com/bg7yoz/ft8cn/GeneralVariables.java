@@ -242,12 +242,12 @@ public class GeneralVariables {
     public static int modelNo = 0;
     public static int launchSupervision = DEFAULT_LAUNCH_SUPERVISION; // Transmit supervision timeout
     public static long launchSupervisionStart = UtcTimer.getSystemTime(); // Auto-transmit start time
-    public static int noReplyLimit = 0; // No-reply limit: 0 = ignore
+    public static int noReplyLimit = 1; // No-reply limit: 0 = ignore
 
     public static int noReplyCount = 0; // No-reply counter
 
     // ICOM network connection parameters
-    public static String icomIp = "255.255.255.255";
+    public static String icomIp = "192.168.0.255";
     public static int icomUdpPort = 50001;
     public static String icomUserName = "ic705";
     public static String icomPassword = "";

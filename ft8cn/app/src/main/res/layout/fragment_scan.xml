@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Главный контейнер экрана сканирования -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -7,56 +6,49 @@
     android:orientation="vertical"
     android:background="@android:color/white">
 
-    <!-- Верхняя панель управления -->
+    <!-- Header Controls -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="4dp"
+        android:padding="2dp"
         android:gravity="center_vertical"
         android:background="@color/purple_500">
 
-        <!-- Поле ввода количества циклов (белый фон) -->
+        <ImageView
+            android:id="@+id/btnClearTable"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/clear_calling_list_image_48"
+            android:contentDescription="Clear"
+            android:padding="4dp" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Scan cycles:"
+            android:layout_marginStart="8dp"
+            android:text="Cycles:"
             android:textColor="@color/white"
-            android:textSize="11sp" />
+            android:textSize="12sp" />
 
         <EditText
             android:id="@+id/etDwellCycles"
-            android:layout_width="40dp"
-            android:layout_height="32dp"
+            android:layout_width="48dp"
+            android:layout_height="26dp"
             android:layout_marginStart="4dp"
             android:inputType="number"
-            android:text="2"
-            android:textSize="11sp"
+            android:text="4"
+            android:textSize="14sp"
             android:gravity="center"
-            android:background="@android:color/white"
-            android:textColor="@color/black" />
+            android:background="@drawable/log_callsign_editor_style"
+            android:textColor="@color/bar_text_view_color"
+            android:textColorHint="@color/bar_text_view_color" />
 
-        <!-- Кнопка очистки таблицы (мусорное ведро) -->
-        <Button
-            android:id="@+id/btnClearTable"
-            android:layout_width="wrap_content"
-            android:layout_height="32dp"
-            android:layout_marginStart="8dp"
-            android:text="🗑️ Clear"
-            android:textSize="9sp"
-            android:backgroundTint="@color/button_start_color"
-            android:textColor="@color/white" />
+        <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
 
-        <!-- Placeholder для выравнивания -->
-        <View
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1" />
-
-        <!-- Кнопка запуска/остановки сканирования (справа) -->
         <Button
             android:id="@+id/btnScanStartStop"
-            android:layout_width="65dp"
+            android:layout_width="72dp"
             android:layout_height="32dp"
             android:text="Start"
             android:textSize="9sp"
@@ -64,7 +56,7 @@
             android:textColor="@color/white" />
     </LinearLayout>
 
-    <!-- Информационная панель (UTC, Delay, RF) -->
+    <!-- Info Panel -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -73,58 +65,17 @@
         android:background="@color/editor_start_color"
         android:gravity="center">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="UTC: "
-            android:textSize="10sp"
-            android:textColor="@color/text_view_color" />
-
-        <TextView
-            android:id="@+id/tvUtcTime"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="--:--:--"
-            android:textSize="10sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_view_color" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:text="Delay: "
-            android:textSize="10sp"
-            android:textColor="@color/text_view_color" />
-
-        <TextView
-            android:id="@+id/tvUtcDelay"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0 ms"
-            android:textSize="10sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_view_color" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:text="RF: "
-            android:textSize="10sp"
-            android:textColor="@color/text_view_color" />
-
-        <TextView
-            android:id="@+id/tvRfFreq"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0.000 MHz"
-            android:textSize="10sp"
-            android:textStyle="bold"
-            android:textColor="@color/button_start_color" />
+        <TextView android:id="@+id/tvConnStatus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Disconnected" android:textSize="9sp" android:textStyle="bold" android:textColor="@color/text_view_error_color" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="4dp" android:layout_marginEnd="4dp" android:text="|" android:textSize="9sp" android:textColor="@color/text_view_color" />
+        <TextView android:id="@+id/tvRigType" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="No Rig" android:textSize="9sp" android:textStyle="bold" android:textColor="@color/text_view_color" />
+        <TextView android:id="@+id/tvUtcTime" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="--:--:--" android:textSize="10sp" android:textStyle="bold" android:textColor="@color/text_view_color" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:layout_marginEnd="4dp" android:text="Delay:" android:textSize="10sp" android:textColor="@color/text_view_color" />
+        <TextView android:id="@+id/tvUtcDelay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="+0" android:textSize="10sp" android:textStyle="bold" android:textColor="@color/text_view_color" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:layout_marginEnd="4dp" android:text="RF:" android:textSize="10sp" android:textColor="@color/text_view_color" />
+        <TextView android:id="@+id/tvRfFreq" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0.000 MHz" android:textSize="10sp" android:textStyle="bold" android:textColor="@color/button_start_color" />
     </LinearLayout>
 
-    <!-- Заголовок таблицы с подписями столбцов -->
+    <!-- Table Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="36dp"
@@ -132,183 +83,50 @@
         android:background="@color/editor_start_color"
         android:gravity="center_vertical">
 
-        <!-- Флажок скрытия/показа всех строк -->
-        <CheckBox
-            android:id="@+id/cbHeaderHide"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:checked="true" />
+        <LinearLayout android:layout_width="28dp" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Hide" android:textSize="7sp" android:textColor="@color/text_view_color" />
+            <CheckBox android:id="@+id/cbHeaderHide" android:layout_width="20dp" android:layout_height="20dp" android:checked="true" android:padding="0dp" />
+        </LinearLayout>
 
-        <!-- Флажок выбора всех строк для сканирования -->
-        <CheckBox
-            android:id="@+id/cbHeaderSelect"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:checked="true" />
+        <LinearLayout android:layout_width="28dp" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Select" android:textSize="7sp" android:textColor="@color/text_view_color" />
+            <CheckBox android:id="@+id/cbHeaderSelect" android:layout_width="20dp" android:layout_height="20dp" android:checked="true" android:padding="0dp" />
+        </LinearLayout>
 
-        <!-- Подпись столбца частоты (сдвинут влево) -->
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="3"
-            android:layout_marginStart="-15dp"
-            android:text="Freq"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:textColor="@color/text_view_color"
-            android:textSize="11sp" />
-
-        <!-- Подпись столбца общего количества -->
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="Tot"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:textColor="@color/text_view_color"
-            android:textSize="11sp" />
-
-        <!-- Иконка DXCC -->
-        <ImageView
-            android:layout_width="0dp"
-            android:layout_height="16dp"
-            android:layout_weight="1"
-            android:src="@drawable/dxcc"
-            android:scaleType="centerInside"
-            android:contentDescription="DXCC" />
-
-        <!-- Иконка CQ Zone -->
-        <ImageView
-            android:layout_width="0dp"
-            android:layout_height="16dp"
-            android:layout_weight="1"
-            android:src="@drawable/cqzone"
-            android:scaleType="centerInside"
-            android:contentDescription="CQ Zone" />
-
-        <!-- Иконка ITU Zone -->
-        <ImageView
-            android:layout_width="0dp"
-            android:layout_height="16dp"
-            android:layout_weight="1"
-            android:src="@drawable/itu"
-            android:scaleType="centerInside"
-            android:contentDescription="ITU Zone" />
-
-        <!-- Подпись столбца новых станций -->
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="New"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:textColor="@color/text_view_color"
-            android:textSize="11sp" />
-
-        <!-- Кнопка перехода в заголовке (шире на 15dp) -->
-        <Button
-            android:id="@+id/btnHeaderGo"
-            android:layout_width="65dp"
-            android:layout_height="32dp"
-            android:text="Go"
-            android:textSize="10sp"
-            android:backgroundTint="@color/button_start_color"
-            android:textColor="@color/white" />
+        <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="3" android:layout_marginStart="-15dp" android:text="Freq" android:textStyle="bold" android:gravity="center" android:textColor="@color/text_view_color" android:textSize="11sp" />
+        <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginStart="-10dp" android:text="Total" android:textStyle="bold" android:gravity="center" android:textColor="@color/text_view_color" android:textSize="11sp" />
+        <ImageView android:layout_width="0dp" android:layout_height="16dp" android:layout_weight="1" android:src="@drawable/dxcc" android:scaleType="centerInside" android:contentDescription="D" />
+        <ImageView android:layout_width="0dp" android:layout_height="16dp" android:layout_weight="1" android:src="@drawable/cqzone" android:scaleType="centerInside" android:contentDescription="C" />
+        <ImageView android:layout_width="0dp" android:layout_height="16dp" android:layout_weight="1" android:src="@drawable/itu" android:scaleType="centerInside" android:contentDescription="I" />
+        <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="New" android:textStyle="bold" android:gravity="center" android:textColor="@color/text_view_color" android:textSize="11sp" />
+        <Button android:id="@+id/btnHeaderGo" android:layout_width="72dp" android:layout_height="32dp" android:text="Go" android:textSize="10sp" android:backgroundTint="@color/button_start_color" android:textColor="@color/white" />
     </LinearLayout>
 
-    <!-- Прокручиваемая область для динамических строк -->
+    <!-- Scrollable Content -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:fillViewport="true"
         android:background="@android:color/white">
-
-        <!-- Контейнер, куда Java добавляет строки -->
-        <LinearLayout
-            android:id="@+id/containerScanContent"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
+        <LinearLayout android:id="@+id/containerScanContent" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
     </ScrollView>
 
-    <!-- Нижняя панель с итогами -->
+    <!-- Totals -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="36dp"
         android:orientation="horizontal"
         android:background="@color/editor_start_color"
         android:gravity="center_vertical">
-
-        <!-- Заглушка под первый чекбокс -->
-        <View
-            android:layout_width="28dp"
-            android:layout_height="1dp" />
-
-        <!-- Заглушка под второй чекбокс -->
-        <View
-            android:layout_width="28dp"
-            android:layout_height="1dp" />
-
-        <!-- Текст TOTAL (сдвинут влево) -->
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="3"
-            android:layout_marginStart="-15dp"
-            android:text="TOTAL"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:textColor="@color/text_view_color"
-            android:textSize="11sp" />
-
-        <!-- Счётчик всех станций -->
-        <TextView
-            android:id="@+id/tvTotalAll"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="0"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:textColor="@color/text_view_color"
-            android:textSize="11sp" />
-
-        <!-- Заглушка под столбец D -->
-        <View
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1" />
-
-        <!-- Заглушка под столбец C -->
-        <View
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1" />
-
-        <!-- Заглушка под столбец I -->
-        <View
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1" />
-
-        <!-- Счётчик новых станций -->
-        <TextView
-            android:id="@+id/tvTotalNew"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="0"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:textColor="@color/button_start_color"
-            android:textSize="11sp" />
-
-        <!-- Заглушка под кнопку GO -->
-        <View
-            android:layout_width="65dp"
-            android:layout_height="1dp" />
+        <View android:layout_width="28dp" android:layout_height="1dp" />
+        <View android:layout_width="28dp" android:layout_height="1dp" />
+        <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="3" android:layout_marginStart="-15dp" android:text="TOTAL" android:textStyle="bold" android:gravity="center" android:textColor="@color/text_view_color" android:textSize="11sp" />
+        <TextView android:id="@+id/tvTotalAll" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="0" android:textStyle="bold" android:gravity="center" android:textColor="@color/text_view_color" android:textSize="11sp" />
+        <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+        <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+        <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+        <TextView android:id="@+id/tvTotalNew" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="0" android:textStyle="bold" android:gravity="center" android:textColor="@color/button_start_color" android:textSize="11sp" />
+        <View android:layout_width="72dp" android:layout_height="1dp" />
     </LinearLayout>
 </LinearLayout>

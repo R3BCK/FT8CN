@@ -183,13 +183,17 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
         holder.showMode = showMode;//determine if message list or follow message list
         holder.isSyncFreq = mainViewModel.ft8TransmitSignal.isSynFrequency();//if same freq transmit, do not show call receiver
 
-        holder.callingUtcTextView.setText(UtcTimer.getTimeHHMMSS(holder.ft8Message.utcTime));
-        //sequence, including color,
-        holder.callingListSequenceTextView.setText(holder.ft8Message.getSequence() == 0 ? "0" : "1");
+        // === [FIX] Null-safe setText for all TextViews ===
+        safeSetText(holder.callingUtcTextView, UtcTimer.getTimeHHMMSS(holder.ft8Message.utcTime));
+        safeSetText(holder.callingListSequenceTextView, holder.ft8Message.getSequence() == 0 ? "0" : "1");
+        // === END FIX ===
+
         holder.isWeakSignalImageView.setVisibility(holder.ft8Message.isWeakSignal ? View.VISIBLE:View.INVISIBLE);
 
         if (showMode==ShowMode.MY_CALLING) {//in calling interface
-            holder.callingListSequenceTextView.setTextColor(context.getColor(R.color.follow_call_text_color));
+            if (holder.callingListSequenceTextView != null) {
+                holder.callingListSequenceTextView.setTextColor(context.getColor(R.color.follow_call_text_color));
+            }
         }
 
         //distinguish colors by 4 sequences within 1 minute
@@ -208,192 +212,247 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
                 break;
         }
 
-        holder.callingListIdBTextView.setText(holder.ft8Message.getdB());
-        //time offset, if exceeds 1.0 sec, -0.05 sec, red hint
-        holder.callListDtTextView.setText(holder.ft8Message.getDt());
-        if (holder.ft8Message.time_sec > 1.0f || holder.ft8Message.time_sec < -0.05) {
-            holder.callListDtTextView.setTextColor(context.getResources().getColor(
-                    R.color.message_in_my_call_text_color));
-        } else {
-            holder.callListDtTextView.setTextColor(context.getResources().getColor(
-                    R.color.text_view_color));
+        // === [FIX] Null-safe setText ===
+        safeSetText(holder.callingListIdBTextView, holder.ft8Message.getdB());
+        safeSetText(holder.callListDtTextView, holder.ft8Message.getDt());
+        // === END FIX ===
+
+        if (holder.callListDtTextView != null) {
+            if (holder.ft8Message.time_sec > 1.0f || holder.ft8Message.time_sec < -0.05) {
+                holder.callListDtTextView.setTextColor(context.getResources().getColor(
+                        R.color.message_in_my_call_text_color));
+            } else {
+                holder.callListDtTextView.setTextColor(context.getResources().getColor(
+                        R.color.text_view_color));
+            }
         }
 
-
-        holder.callingListFreqTextView.setText(holder.ft8Message.getFreq_hz());
+        // === [FIX] Null-safe setText ===
+        safeSetText(holder.callingListFreqTextView, holder.ft8Message.getFreq_hz());
+        // === END FIX ===
 
         //check if callsign was QSLed, get existence in holder.otherBandIsQso
         setQueryHolderQSL_Callsign(holder);
 
         //if message related to my callsign
         if (holder.ft8Message.inMyCall()) {
-            holder.callListMessageTextView.setTextColor(context.getResources().getColor(
-                    R.color.message_in_my_call_text_color));
+            if (holder.callListMessageTextView != null) {
+                holder.callListMessageTextView.setTextColor(context.getResources().getColor(
+                        R.color.message_in_my_call_text_color));
+            }
         } else if (holder.otherBandIsQso) {
             //set color for messages QSLed on other bands
-            holder.callListMessageTextView.setTextColor(context.getResources().getColor(
-                    R.color.fromcall_is_qso_text_color));
+            if (holder.callListMessageTextView != null) {
+                holder.callListMessageTextView.setTextColor(context.getResources().getColor(
+                        R.color.fromcall_is_qso_text_color));
+            }
         } else {
-            holder.callListMessageTextView.setTextColor(context.getResources().getColor(
-                    R.color.message_text_color));
+            if (holder.callListMessageTextView != null) {
+                holder.callListMessageTextView.setTextColor(context.getResources().getColor(
+                        R.color.message_text_color));
+            }
         }
 
-
-        holder.callListMessageTextView.setText(holder.ft8Message.getMessageText(true));
+        // === [FIX] Null-safe setText ===
+        if (holder.callListMessageTextView != null) {
+            holder.callListMessageTextView.setText(holder.ft8Message.getMessageText(true));
+        }
+        // === END FIX ===
 
         //carrier frequency
-        holder.bandItemTextView.setText(BaseRigOperation.getFrequencyStr(holder.ft8Message.band));
+        // === [FIX] Null-safe setText ===
+        safeSetText(holder.bandItemTextView, BaseRigOperation.getFrequencyStr(holder.ft8Message.band));
+        // === END FIX ===
+
         //calculate distance
-        holder.callingListDistTextView.setText(MaidenheadGrid.getDistStr(
+        // === [FIX] Null-safe setText ===
+        safeSetText(holder.callingListDistTextView, MaidenheadGrid.getDistStr(
                 GeneralVariables.getMyMaidenheadGrid()
                 , holder.ft8Message.getMaidenheadGrid(mainViewModel.databaseOpr)));
+        // === END FIX ===
 
         // === NEW: Calculate and display azimuth with degree symbol ===
-        String myGrid = GeneralVariables.getMyMaidenheadGrid();
-        String targetGrid = holder.ft8Message.getMaidenheadGrid(mainViewModel.databaseOpr);
-        if (myGrid != null && !myGrid.isEmpty() && targetGrid != null && !targetGrid.isEmpty()) {
-            double azimuth = MaidenheadGrid.getAzimuth(myGrid, targetGrid);
-            if (azimuth >= 0) {
-                // \u00B0 = Unicode degree symbol (°) - safe for UTF-8 compilation
-                holder.callingListAzimuthTextView.setText(String.format(Locale.US, "%.0f\u00B0", azimuth));
+        if (holder.callingListAzimuthTextView != null) { // [FIX] Null check for simple mode
+            String myGrid = GeneralVariables.getMyMaidenheadGrid();
+            String targetGrid = holder.ft8Message.getMaidenheadGrid(mainViewModel.databaseOpr);
+            if (myGrid != null && !myGrid.isEmpty() && targetGrid != null && !targetGrid.isEmpty()) {
+                double azimuth = MaidenheadGrid.getAzimuth(myGrid, targetGrid);
+                if (azimuth >= 0) {
+                    // \u00B0 = Unicode degree symbol (°) - safe for UTF-8 compilation
+                    holder.callingListAzimuthTextView.setText(String.format(Locale.US, "%.0f\u00B0", azimuth));
+                } else {
+                    holder.callingListAzimuthTextView.setText("--");
+                }
             } else {
                 holder.callingListAzimuthTextView.setText("--");
             }
-        } else {
-            holder.callingListAzimuthTextView.setText("--");
         }
         // === END NEW ===
 
-        holder.callingListCallsignToTextView.setText("");//called station
-        holder.callingListCallsignFromTextView.setText("");//calling station
+        // === [FIX] Null-safe setText ===
+        safeSetText(holder.callingListCallsignToTextView, "");
+        safeSetText(holder.callingListCallsignFromTextView, "");
+        // === END FIX ===
 
         //message type
-        holder.callingListCommandIInfoTextView.setText(holder.ft8Message.getCommandInfo());
-        if (holder.ft8Message.i3 == 1 || holder.ft8Message.i3 == 2) {
-            holder.callingListCommandIInfoTextView.setTextColor(context.getResources().getColor(
-                    R.color.text_view_color));
-        } else {
-            holder.callingListCommandIInfoTextView.setTextColor(context.getResources().getColor(
-                    R.color.message_in_my_call_text_color));
+        // === [FIX] Null-safe setText ===
+        safeSetText(holder.callingListCommandIInfoTextView, holder.ft8Message.getCommandInfo());
+        // === END FIX ===
+
+        if (holder.callingListCommandIInfoTextView != null) {
+            if (holder.ft8Message.i3 == 1 || holder.ft8Message.i3 == 2) {
+                holder.callingListCommandIInfoTextView.setTextColor(context.getResources().getColor(
+                        R.color.text_view_color));
+            } else {
+                holder.callingListCommandIInfoTextView.setTextColor(context.getResources().getColor(
+                        R.color.message_in_my_call_text_color));
+            }
         }
 
         //set CQ color
         if (holder.ft8Message.checkIsCQ()) {
-            holder.callListMessageTextView.setBackgroundResource(R.color.textview_cq_color);
+            if (holder.callListMessageTextView != null) {
+                holder.callListMessageTextView.setBackgroundResource(R.color.textview_cq_color);
+            }
             holder.ft8Message.toWhere = "";
         } else {
-            holder.callListMessageTextView.setBackgroundResource(R.color.textview_none_color);
+            if (holder.callListMessageTextView != null) {
+                holder.callListMessageTextView.setBackgroundResource(R.color.textview_none_color);
+            }
         }
 
-
-        if (holder.ft8Message.fromWhere != null) {
-            holder.callingListCallsignFromTextView.setText(holder.ft8Message.fromWhere);
-        } else {
-            holder.callingListCallsignFromTextView.setText("");
+        // === [FIX] Null-safe setText ===
+        if (holder.callingListCallsignFromTextView != null) {
+            if (holder.ft8Message.fromWhere != null) {
+                holder.callingListCallsignFromTextView.setText(holder.ft8Message.fromWhere);
+            } else {
+                holder.callingListCallsignFromTextView.setText("");
+            }
         }
-
-        if (holder.ft8Message.toWhere != null) {
-            holder.callingListCallsignToTextView.setText(holder.ft8Message.toWhere);
-        } else {
-            holder.callingListCallsignToTextView.setText("");
+        if (holder.callingListCallsignToTextView != null) {
+            if (holder.ft8Message.toWhere != null) {
+                holder.callingListCallsignToTextView.setText(holder.ft8Message.toWhere);
+            } else {
+                holder.callingListCallsignToTextView.setText("");
+            }
         }
+        // === END FIX ===
 
         //mark partitions not QSLed
         setToDxcc(holder);
         setFromDxcc(holder);
 
-
-        //query callsign location, to avoid too much computation, only query when from is empty
-//        if (holder.ft8Message.fromWhere == null) {
-//            setQueryHolderCallsign(holder);//query callsign location
-//        }
-
         if (holder.ft8Message.freq_hz <= 0.01f) {//this is transmit interface
-            holder.callingListIdBTextView.setVisibility(View.GONE);
-            holder.callListDtTextView.setVisibility(View.GONE);
+            setViewVisibility(holder.callingListIdBTextView, View.GONE);
+            setViewVisibility(holder.callListDtTextView, View.GONE);
             //holder.callingListFreqTextView.setText("TX");
             float audioFreq = GeneralVariables.getBaseFrequency();
-            holder.callingListFreqTextView.setText(String.format(Locale.US, "TX  %04.0f", audioFreq));
-            holder.bandItemTextView.setVisibility(View.GONE);
-            holder.callingListDistTextView.setVisibility(View.GONE);
-            holder.callingListCommandIInfoTextView.setVisibility(View.GONE);
-            holder.callingUtcTextView.setVisibility(View.GONE);
-            holder.callingListCallsignToTextView.setVisibility(View.GONE);
-            holder.callingListCallsignFromTextView.setVisibility(View.GONE);
-            holder.dxccToImageView.setVisibility(View.GONE);
-            holder.ituToImageView.setVisibility(View.GONE);
-            holder.cqToImageView.setVisibility(View.GONE);
-            holder.dxccFromImageView.setVisibility(View.GONE);
-            holder.ituFromImageView.setVisibility(View.GONE);
-            holder.cqFromImageView.setVisibility(View.GONE);
+            // === [FIX] Null-safe setText ===
+            if (holder.callingListFreqTextView != null) {
+                holder.callingListFreqTextView.setText(String.format(Locale.US, "TX  %04.0f", audioFreq));
+            }
+            // === END FIX ===
+            setViewVisibility(holder.bandItemTextView, View.GONE);
+            setViewVisibility(holder.callingListDistTextView, View.GONE);
+            setViewVisibility(holder.callingListCommandIInfoTextView, View.GONE);
+            setViewVisibility(holder.callingUtcTextView, View.GONE);
+            setViewVisibility(holder.callingListCallsignToTextView, View.GONE);
+            setViewVisibility(holder.callingListCallsignFromTextView, View.GONE);
+            setViewVisibility(holder.dxccToImageView, View.GONE);
+            setViewVisibility(holder.ituToImageView, View.GONE);
+            setViewVisibility(holder.cqToImageView, View.GONE);
+            setViewVisibility(holder.dxccFromImageView, View.GONE);
+            setViewVisibility(holder.ituFromImageView, View.GONE);
+            setViewVisibility(holder.cqFromImageView, View.GONE);
             // === NEW: Hide azimuth in TX mode ===
-            holder.callingListAzimuthTextView.setVisibility(View.GONE);
+            setViewVisibility(holder.callingListAzimuthTextView, View.GONE);
             // === END NEW ===
         } else if (GeneralVariables.simpleCallItemMode){//simple list mode
-            holder.bandItemTextView.setVisibility(View.GONE);
-            holder.callingListDistTextView.setVisibility(View.GONE);
-            holder.callingListCommandIInfoTextView.setVisibility(View.GONE);
-            holder.callingUtcTextView.setVisibility(View.GONE);
-            holder.callingListCallsignToTextView.setVisibility(View.GONE);
-            holder.dxccToImageView.setVisibility(View.GONE);
-            holder.ituToImageView.setVisibility(View.GONE);
-            holder.cqToImageView.setVisibility(View.GONE);
+            setViewVisibility(holder.bandItemTextView, View.GONE);
+            setViewVisibility(holder.callingListDistTextView, View.GONE);
+            setViewVisibility(holder.callingListCommandIInfoTextView, View.GONE);
+            setViewVisibility(holder.callingUtcTextView, View.GONE);
+            setViewVisibility(holder.callingListCallsignToTextView, View.GONE);
+            setViewVisibility(holder.dxccToImageView, View.GONE);
+            setViewVisibility(holder.ituToImageView, View.GONE);
+            setViewVisibility(holder.cqToImageView, View.GONE);
             // === NEW: Hide azimuth in simple mode ===
-            holder.callingListAzimuthTextView.setVisibility(View.GONE);
+            setViewVisibility(holder.callingListAzimuthTextView, View.GONE);
             // === END NEW ===
         }else {//standard list mode
-            holder.callingListIdBTextView.setVisibility(View.VISIBLE);
-            holder.callListDtTextView.setVisibility(View.VISIBLE);
-            holder.bandItemTextView.setVisibility(View.VISIBLE);
-            holder.callingListDistTextView.setVisibility(View.VISIBLE);
-            holder.callingListCommandIInfoTextView.setVisibility(View.VISIBLE);
-            holder.callingUtcTextView.setVisibility(View.VISIBLE);
-            holder.callingListCallsignToTextView.setVisibility(View.VISIBLE);
-            holder.callingListCallsignFromTextView.setVisibility(View.VISIBLE);
+            setViewVisibility(holder.callingListIdBTextView, View.VISIBLE);
+            setViewVisibility(holder.callListDtTextView, View.VISIBLE);
+            setViewVisibility(holder.bandItemTextView, View.VISIBLE);
+            setViewVisibility(holder.callingListDistTextView, View.VISIBLE);
+            setViewVisibility(holder.callingListCommandIInfoTextView, View.VISIBLE);
+            setViewVisibility(holder.callingUtcTextView, View.VISIBLE);
+            setViewVisibility(holder.callingListCallsignToTextView, View.VISIBLE);
+            setViewVisibility(holder.callingListCallsignFromTextView, View.VISIBLE);
             // === NEW: Show azimuth in standard mode ===
-            holder.callingListAzimuthTextView.setVisibility(View.VISIBLE);
+            setViewVisibility(holder.callingListAzimuthTextView, View.VISIBLE);
             // === END NEW ===
         }
     }
 
+    // === [NEW] Helper methods for null-safe operations ===
+
+    /**
+     * Safely set text on TextView, checking for null first
+     */
+    private void safeSetText(TextView textView, String text) {
+        if (textView != null) {
+            textView.setText(text);
+        }
+    }
+
+    /**
+     * Safely set view visibility, checking for null first
+     */
+    private void setViewVisibility(View view, int visibility) {
+        if (view != null) {
+            view.setVisibility(visibility);
+        }
+    }
+    // === END NEW ===
+
     private void setFromDxcc(@NonNull CallingListItemHolder holder) {
 
         if (holder.ft8Message.fromDxcc && holder.ft8Message.freq_hz > 0.01f) {
-            holder.dxccFromImageView.setVisibility(View.VISIBLE);
+            setViewVisibility(holder.dxccFromImageView, View.VISIBLE);
         } else {
-            holder.dxccFromImageView.setVisibility(View.GONE);
+            setViewVisibility(holder.dxccFromImageView, View.GONE);
         }
 
         if (holder.ft8Message.fromCq && holder.ft8Message.freq_hz > 0.01f) {
-            holder.cqFromImageView.setVisibility(View.VISIBLE);
+            setViewVisibility(holder.cqFromImageView, View.VISIBLE);
         } else {
-            holder.cqFromImageView.setVisibility(View.GONE);
+            setViewVisibility(holder.cqFromImageView, View.GONE);
         }
 
         if (holder.ft8Message.fromItu && holder.ft8Message.freq_hz > 0.01f) {
-            holder.ituFromImageView.setVisibility(View.VISIBLE);
+            setViewVisibility(holder.ituFromImageView, View.VISIBLE);
         } else {
-            holder.ituFromImageView.setVisibility(View.GONE);
+            setViewVisibility(holder.ituFromImageView, View.GONE);
         }
     }
 
     private void setToDxcc(@NonNull CallingListItemHolder holder) {
         if (holder.ft8Message.toDxcc && holder.ft8Message.freq_hz > 0.01f) {
-            holder.dxccToImageView.setVisibility(View.VISIBLE);
+            setViewVisibility(holder.dxccToImageView, View.VISIBLE);
         } else {
-            holder.dxccToImageView.setVisibility(View.GONE);
+            setViewVisibility(holder.dxccToImageView, View.GONE);
         }
 
         if (holder.ft8Message.toCq && holder.ft8Message.freq_hz > 0.01f) {
-            holder.cqToImageView.setVisibility(View.VISIBLE);
+            setViewVisibility(holder.cqToImageView, View.VISIBLE);
         } else {
-            holder.cqToImageView.setVisibility(View.GONE);
+            setViewVisibility(holder.cqToImageView, View.GONE);
         }
 
         if (holder.ft8Message.toItu && holder.ft8Message.freq_hz > 0.01f) {
-            holder.ituToImageView.setVisibility(View.VISIBLE);
+            setViewVisibility(holder.ituToImageView, View.VISIBLE);
         } else {
-            holder.ituToImageView.setVisibility(View.GONE);
+            setViewVisibility(holder.ituToImageView, View.GONE);
         }
     }
 
@@ -401,11 +460,15 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
     private void setQueryHolderQSL_Callsign(@NonNull CallingListItemHolder holder) {
         //check if QSLed on this band
         if (GeneralVariables.checkQSLCallsign(holder.ft8Message.getCallsignFrom())) {//if in database, strike through
-            holder.callListMessageTextView.setPaintFlags(
-                    holder.callListMessageTextView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+            if (holder.callListMessageTextView != null) {
+                holder.callListMessageTextView.setPaintFlags(
+                        holder.callListMessageTextView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+            }
         } else {//if not in database, remove strike through
-            holder.callListMessageTextView.setPaintFlags(
-                    holder.callListMessageTextView.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+            if (holder.callListMessageTextView != null) {
+                holder.callListMessageTextView.setPaintFlags(
+                        holder.callListMessageTextView.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+            }
         }
         holder.otherBandIsQso = GeneralVariables.checkQSLCallsign_OtherBand(holder.ft8Message.getCallsignFrom());
     }
@@ -452,7 +515,7 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
             callingListCommandIInfoTextView = itemView.findViewById(R.id.callingListCommandIInfoTextView);
             bandItemTextView = itemView.findViewById(R.id.bandItemTextView);
             callingUtcTextView = itemView.findViewById(R.id.callingUtcTextView);
-            // === NEW: Find azimuth TextView ===
+            // === NEW: Find azimuth TextView (may be null in simple mode) ===
             callingListAzimuthTextView = itemView.findViewById(R.id.callingListAzimuthTextView);
             // === END NEW ===
 
@@ -475,7 +538,5 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
             itemView.setOnCreateContextMenuListener(menuListener);
 
         }
-
-
     }
 }

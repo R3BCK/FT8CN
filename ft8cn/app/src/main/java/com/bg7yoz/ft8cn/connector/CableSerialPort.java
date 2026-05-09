@@ -254,7 +254,7 @@ public class CableSerialPort {
                 }
 
                 usbSerialPort.write(src, SEND_TIMEOUT);
-//                Log.d(TAG, "write() completed successfully");
+                //Log.d(TAG, "write() completed successfully");
 
             } catch (IOException e) {
                 e.printStackTrace();

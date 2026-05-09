@@ -375,6 +375,24 @@ public class MainViewModel extends ViewModel {
 
             @Override
             public void onBeforeTransmit(Ft8Message message, int functionOder) {
+                Log.d(TAG, "=== onBeforeTransmit DEBUG ===");
+                Log.d(TAG, "controlMode=" + GeneralVariables.controlMode);
+                Log.d(TAG, "needControlSco=" + needControlSco());
+                Log.d(TAG, "supportTransmitOverCAT=" + supportTransmitOverCAT());
+
+                if (GeneralVariables.controlMode == ControlMode.CAT
+                        || GeneralVariables.controlMode == ControlMode.RTS
+                        || GeneralVariables.controlMode == ControlMode.DTR) {
+                    if (baseRig != null) {
+                        Log.d(TAG, "Calling baseRig.setPTT(true)");
+                        if (needControlSco()) stopSco();
+                        baseRig.setPTT(true);
+                    } else {
+                        Log.e(TAG, "baseRig is NULL, cannot set PTT");
+                    }
+                } else {
+                    Log.w(TAG, "PTT blocked: controlMode=" + GeneralVariables.controlMode);
+                }
                 if (isBatteryTooLow(GeneralVariables.getMainContext())) {
                     ToastMessage.show("Transmit blocked: Low battery < " + BATTERY_LOW_THRESHOLD_PERCENT + "%");
                     return;
@@ -659,6 +677,20 @@ public class MainViewModel extends ViewModel {
      * Set the operation band on the connected rig.
      */
     public void setOperationBand() {
+        Log.d(TAG, "=== setOperationBand DEBUG ===");
+        Log.d(TAG, "controlMode=" + GeneralVariables.controlMode);
+        Log.d(TAG, "connectMode=" + GeneralVariables.connectMode);
+        Log.d(TAG, "baseRig=" + baseRig);
+        Log.d(TAG, "isConnected=" + (baseRig != null && baseRig.isConnected()));
+        Log.d(TAG, "supportWaveOverCAT=" + (baseRig != null ? baseRig.supportWaveOverCAT() : "N/A"));
+
+        if (!isRigConnected()) {
+            Log.e(TAG, "ABORT: rig not connected");
+            return;
+        }
+        if (GeneralVariables.controlMode != ControlMode.CAT) {
+            Log.w(TAG, "WARNING: controlMode is not CAT, freq commands may be ignored");
+        }
         if (!isRigConnected()) return;
         baseRig.setUsbModeToRig();
         new Handler().postDelayed(() -> {

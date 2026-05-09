@@ -739,6 +739,25 @@ public class FT8TransmitSignal {
         if (toCallsign == null) return;
         if (isTransmitting) return;
 
+        // === [NEW] Check for direct calls to MY callsign (priority over manual calls) ===
+        // Even if we're manually calling someone (functionOrder != 6),
+        // if someone calls US directly, we should respond!
+        for (Ft8Message msg : msgList) {
+            if (msg.getSequence() != sequential || msg.band != GeneralVariables.band) continue;
+            if (GeneralVariables.checkIsMyCallsign(msg.getCallsignTo())
+                    && !msg.getCallsignFrom().equals(toCallsign.callsign)  // Not the station we're calling
+                    && !GeneralVariables.checkFun5(msg.extraInfo)) {        // Not RR73/73
+                // Someone is calling ME directly! Switch to them immediately
+                Log.d(TAG, "Direct call from " + msg.getCallsignFrom() + " detected! Switching from " + toCallsign.callsign);
+                setTransmit(new TransmitCallsign(msg.i3, msg.n3,
+                                msg.getCallsignFrom(), msg.freq_hz,
+                                msg.getSequence(), msg.snr),
+                        GeneralVariables.checkFunOrder(msg) + 1, msg.extraInfo);
+                return; // Exit early, don't process other logic
+            }
+        }
+        // === END NEW ===
+
         // [DX MODE BRANCH]
         if (GeneralVariables.acceptDxCalls) {
             handleDxMultistream(msgList);
@@ -869,7 +888,7 @@ public class FT8TransmitSignal {
 
         if (!messages.get(0).isWeakSignal) GeneralVariables.noReplyCount++;
 
-        if (GeneralVariables.noReplyLimit > 0 && GeneralVariables.noReplyCount > GeneralVariables.noReplyLimit) {
+        if (GeneralVariables.noReplyLimit > 0 && GeneralVariables.noReplyCount >= GeneralVariables.noReplyLimit) {
             if (!getNewTargetCallsign(messages)) {
                 ArrayList<String> fallbackCandidates = getFallbackCandidatesFromDecodeHistory(GeneralVariables.transmitMessages);
                 if (!fallbackCandidates.isEmpty()) {

@@ -81,8 +81,27 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/linearLayout"
         tools:ignore="SmallSp"
-        tools:text="12345公里"
+        tools:text="12345km"
         tools:visibility="gone" />
+
+    <!-- === [NEW] Azimuth TextView for simple mode (hidden by default) === -->
+    <TextView
+        android:id="@+id/callingListAzimuthTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="1dp"
+        android:gravity="center"
+        android:text="--"
+        android:textColor="@color/text_view_color"
+        android:textSize="9sp"
+        android:includeFontPadding="false"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/linearLayout"
+        app:layout_constraintEnd_toStartOf="@+id/callingListDistTextView"
+        app:layout_constraintTop_toTopOf="@+id/linearLayout"
+        tools:ignore="SmallSp"
+        tools:text="271°" />
+    <!-- === END NEW === -->
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline2"
@@ -133,7 +152,7 @@
         app:layout_constraintStart_toEndOf="@+id/callingUtcTextView"
         app:layout_constraintTop_toTopOf="@+id/callingUtcTextView"
         tools:ignore="SmallSp"
-        tools:text="4.0:非标准消息"
+        tools:text="4.0:non-standard"
         tools:visibility="gone" />
 
     <androidx.constraintlayout.widget.Guideline

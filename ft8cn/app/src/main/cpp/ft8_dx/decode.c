@@ -27,6 +27,9 @@ static void ft8_extract_symbol(const uint8_t *wf, float *logl);
 static void ft8_decode_multi_symbols(const uint8_t *wf, int num_bins, int n_syms, int bit_idx, float *log174);
 
 static int get_index(const waterfall_t *wf, const candidate_t *candidate) {
+    // [FIX] Validate input before calculation
+    if (wf == NULL || candidate == NULL) return 0;
+
     int offset = candidate->time_offset;
     offset = (offset * wf->time_osr) + candidate->time_sub;
     offset = (offset * wf->freq_osr) + candidate->freq_sub;
@@ -35,9 +38,18 @@ static int get_index(const waterfall_t *wf, const candidate_t *candidate) {
 }
 
 static int ft8_sync_score(const waterfall_t *wf, candidate_t *candidate) {
+    // [FIX] Validate input parameters
+    if (wf == NULL || candidate == NULL || wf->mag == NULL) return 0;
+    if (wf->block_stride <= 0) return 0;
+
     int score = 0;
     int num_average = 0;
-    const uint8_t *mag_cand = wf->mag + get_index(wf, candidate);
+
+    // [FIX] Calculate index safely and check bounds
+    int base_idx = get_index(wf, candidate);
+    if (base_idx < 0) return 0;
+
+    const uint8_t *mag_cand = wf->mag + base_idx;
 
     for (int m = 0; m < FT8_NUM_SYNC; ++m) {
         for (int k = 0; k < FT8_LENGTH_SYNC; ++k) {
@@ -46,7 +58,11 @@ static int ft8_sync_score(const waterfall_t *wf, candidate_t *candidate) {
             if (block_abs < 0) continue;
             if (block_abs >= wf->num_blocks) break;
 
-            const uint8_t *p8 = mag_cand + (block * wf->block_stride);
+            // [FIX] Check bounds before accessing mag array
+            int mag_idx = block * wf->block_stride;
+            if (mag_idx < 0) continue;
+
+            const uint8_t *p8 = mag_cand + mag_idx;
             int sm = kFT8CostasPattern[k];
 
             if (sm > 0) {
@@ -72,10 +88,19 @@ static int ft8_sync_score(const waterfall_t *wf, candidate_t *candidate) {
     return score;
 }
 
-static int ft4_sync_score(const waterfall_t *wf, const candidate_t *candidate) {
+static int ft4_sync_score(const waterfall_t *wf, candidate_t *candidate) {
+    // [FIX] Validate input parameters
+    if (wf == NULL || candidate == NULL || wf->mag == NULL) return 0;
+    if (wf->block_stride <= 0) return 0;
+
     int score = 0;
     int num_average = 0;
-    const uint8_t *mag_cand = wf->mag + get_index(wf, candidate);
+
+    // [FIX] Calculate index safely
+    int base_idx = get_index(wf, candidate);
+    if (base_idx < 0) return 0;
+
+    const uint8_t *mag_cand = wf->mag + base_idx;
 
     for (int m = 0; m < FT4_NUM_SYNC; ++m) {
         for (int k = 0; k < FT4_LENGTH_SYNC; ++k) {
@@ -84,7 +109,11 @@ static int ft4_sync_score(const waterfall_t *wf, const candidate_t *candidate) {
             if (block_abs < 0) continue;
             if (block_abs >= wf->num_blocks) break;
 
-            const uint8_t *p4 = mag_cand + (block * wf->block_stride);
+            // [FIX] Check bounds before accessing mag array
+            int mag_idx = block * wf->block_stride;
+            if (mag_idx < 0) continue;
+
+            const uint8_t *p4 = mag_cand + mag_idx;
             int sm = kFT4CostasPattern[m][k];
 
             if (sm > 0) {
@@ -111,6 +140,35 @@ static int ft4_sync_score(const waterfall_t *wf, const candidate_t *candidate) {
 }
 
 int ft8_find_sync(const waterfall_t *wf, int num_candidates, candidate_t heap[], int min_score) {
+    // [CRITICAL FIX] Validate ALL input parameters before any access
+    // This prevents SIGSEGV at offset +388 when wf->mag is NULL or corrupted
+    if (wf == NULL) {
+        LOG(LOG_ERROR, "ft8_find_sync: wf is NULL\n");
+        return 0;
+    }
+    if (wf->mag == NULL) {
+        LOG(LOG_ERROR, "ft8_find_sync: wf->mag is NULL (address: %p)\n", (void*)wf->mag);
+        return 0;
+    }
+    if (heap == NULL) {
+        LOG(LOG_ERROR, "ft8_find_sync: heap is NULL\n");
+        return 0;
+    }
+    // [FIX] Validate configuration values
+    if (wf->time_osr <= 0 || wf->freq_osr <= 0 || wf->num_bins <= 0) {
+        LOG(LOG_ERROR, "ft8_find_sync: invalid config (time_osr=%d, freq_osr=%d, num_bins=%d)\n",
+            wf->time_osr, wf->freq_osr, wf->num_bins);
+        return 0;
+    }
+    if (wf->num_blocks <= 0) {
+        LOG(LOG_WARN, "ft8_find_sync: no waterfall data (num_blocks=%d)\n", wf->num_blocks);
+        return 0;
+    }
+    if (num_candidates <= 0) {
+        LOG(LOG_WARN, "ft8_find_sync: num_candidates=%d\n", num_candidates);
+        return 0;
+    }
+
     int heap_size = 0;
     candidate_t candidate;
 
@@ -155,6 +213,9 @@ int ft8_find_sync(const waterfall_t *wf, int num_candidates, candidate_t heap[],
 }
 
 static void ft4_extract_likelihood(const waterfall_t *wf, const candidate_t *cand, float *log174) {
+    // [FIX] Validate inputs
+    if (wf == NULL || cand == NULL || log174 == NULL || wf->mag == NULL) return;
+
     const uint8_t *mag_cand = wf->mag + get_index(wf, cand);
 
     for (int k = 0; k < FT4_ND; ++k) {
@@ -173,6 +234,9 @@ static void ft4_extract_likelihood(const waterfall_t *wf, const candidate_t *can
 }
 
 static void ft8_extract_likelihood(const waterfall_t *wf, candidate_t *cand, float *log174) {
+    // [FIX] Validate inputs
+    if (wf == NULL || cand == NULL || log174 == NULL || wf->mag == NULL) return;
+
     const uint8_t *mag_cand = wf->mag + get_index(wf, cand);
 
     for (int k = 0; k < FT8_ND; ++k) {
@@ -192,6 +256,8 @@ static void ft8_extract_likelihood(const waterfall_t *wf, candidate_t *cand, flo
 }
 
 static void ftx_normalize_logl(float *log174) {
+    if (log174 == NULL) return;  // [FIX] Null check
+
     float sum = 0, sum2 = 0;
     for (int i = 0; i < FTX_LDPC_N; ++i) {
         sum += log174[i];
@@ -206,6 +272,12 @@ static void ftx_normalize_logl(float *log174) {
 }
 
 static void ft8_guess_snr(const waterfall_t *wf, candidate_t *cand) {
+    // [FIX] Validate inputs
+    if (wf == NULL || cand == NULL || wf->mag2 == NULL) {
+        if (cand) cand->snr = -100;
+        return;
+    }
+
     const float *mag_signal = wf->mag2 + get_index(wf, cand);
     float signal = 0, noise = 0;
 
@@ -231,6 +303,10 @@ static void ft8_guess_snr(const waterfall_t *wf, candidate_t *cand) {
 
 bool ft8_decode(waterfall_t *wf, candidate_t *cand, message_t *message,
                 int max_iterations, decode_status_t *status) {
+    // [FIX] Validate critical inputs
+    if (wf == NULL || cand == NULL || message == NULL || status == NULL) return false;
+    if (wf->mag == NULL) return false;
+
     float log174[FTX_LDPC_N];
 
     if (wf->protocol == PROTO_FT4) {
@@ -269,13 +345,14 @@ bool ft8_decode(waterfall_t *wf, candidate_t *cand, message_t *message,
     return true;
 }
 
-// ... остальные вспомогательные функции (max2, max4, heapify, extract_symbol и т.д.) ...
-// [Оставлены без изменений для краткости - скопируй их из оригинального decode.c]
+// ... остальные вспомогательные функции с добавленными проверками ...
 
 static float max2(float a, float b) { return (a >= b) ? a : b; }
 static float max4(float a, float b, float c, float d) { return max2(max2(a, b), max2(c, d)); }
 
 static void heapify_down(candidate_t heap[], int heap_size) {
+    if (heap == NULL || heap_size <= 0) return;  // [FIX]
+
     int current = 0;
     while (true) {
         int largest = current, left = 2 * current + 1, right = left + 1;
@@ -288,6 +365,8 @@ static void heapify_down(candidate_t heap[], int heap_size) {
 }
 
 static void heapify_up(candidate_t heap[], int heap_size) {
+    if (heap == NULL || heap_size <= 0) return;  // [FIX]
+
     int current = heap_size - 1;
     while (current > 0) {
         int parent = (current - 1) / 2;
@@ -298,6 +377,8 @@ static void heapify_up(candidate_t heap[], int heap_size) {
 }
 
 static void ft4_extract_symbol(const uint8_t *wf, float *logl) {
+    if (wf == NULL || logl == NULL) return;  // [FIX]
+
     float s2[4];
     for (int j = 0; j < 4; ++j) s2[j] = (float) wf[kFT4GrayMap[j]];
     logl[0] = max2(s2[2], s2[3]) - max2(s2[0], s2[1]);
@@ -305,6 +386,8 @@ static void ft4_extract_symbol(const uint8_t *wf, float *logl) {
 }
 
 static void ft8_extract_symbol(const uint8_t *wf, float *logl) {
+    if (wf == NULL || logl == NULL) return;  // [FIX]
+
     float s2[8];
     for (int j = 0; j < 8; ++j) s2[j] = (float) wf[kFT8GrayMap[j]];
     logl[0] = max4(s2[4], s2[5], s2[6], s2[7]) - max4(s2[0], s2[1], s2[2], s2[3]);
@@ -313,6 +396,8 @@ static void ft8_extract_symbol(const uint8_t *wf, float *logl) {
 }
 
 static void ft8_decode_multi_symbols(const uint8_t *wf, int num_bins, int n_syms, int bit_idx, float *log174) {
+    if (wf == NULL || log174 == NULL) return;  // [FIX]
+
     const int n_bits = 3 * n_syms, n_tones = (1 << n_bits);
     float s2[n_tones];
     for (int j = 0; j < n_tones; ++j) {
@@ -335,6 +420,8 @@ static void ft8_decode_multi_symbols(const uint8_t *wf, int num_bins, int n_syms
 }
 
 static void pack_bits(const uint8_t bit_array[], int num_bits, uint8_t packed[]) {
+    if (bit_array == NULL || packed == NULL) return;  // [FIX]
+
     int num_bytes = (num_bits + 7) / 8;
     for (int i = 0; i < num_bytes; ++i) packed[i] = 0;
     uint8_t mask = 0x80;
