@@ -87,14 +87,14 @@ public class MicRecorder {
                 try {
                     if (audioRecord != null && audioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
                         audioRecord.stop(); // Stop recording
-                        Log.d(TAG, "AudioRecord stopped");
+                        //Log.d(TAG, "AudioRecord stopped");
                     }
                 } catch (Exception e) {
                     Log.e(TAG, "Error stopping AudioRecord: " + e.getMessage());
                     ToastMessage.show(String.format(GeneralVariables.getStringFromResource(
                             R.string.recorder_stop_record_error), e.getMessage()));
                 } finally {
-                    isRecordingActive = false; // ✅ Ensure flag is cleared
+                    isRecordingActive = false; //  Ensure flag is cleared
                     Log.d(TAG, "Recording thread finished, isRecordingActive=false");
                 }
             }
@@ -105,7 +105,7 @@ public class MicRecorder {
      * Stop recording. When recording stops, all listeners in the list are removed.
      */
     public void stopRecord() {
-        Log.d(TAG, "stopRecord() called, isRunning=" + isRunning);
+        //Log.d(TAG, "stopRecord() called, isRunning=" + isRunning);
         isRunning = false;
         // isRecordingActive will be set to false by the recording thread
     }

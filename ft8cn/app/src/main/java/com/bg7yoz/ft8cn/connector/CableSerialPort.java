@@ -263,7 +263,7 @@ public class CableSerialPort {
             }
             return true;
         } else {
-            Log.e(TAG, "Невозможно отправить данные, порт не открыт.");
+            //Log.e(TAG, "Невозможно отправить данные, порт не открыт.");
             return false;
         }
     }

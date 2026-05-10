@@ -268,7 +268,7 @@ public class IcomRigConstant {
         data[9] = (byte) (((byte) (freq / 1000000000) << 4) + (byte) (freq % 1000000000 / 100000000));
         data[10] = (byte) 0xfd;
 
-        Log.d(TAG, "setOperationFrequency: " + BaseRig.byteToStr(data));
+        //Log.d(TAG, "setOperationFrequency: " + BaseRig.byteToStr(data));
         return data;
     }
 

@@ -16,7 +16,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
 import android.util.Log;
-
+import com.bg7yoz.ft8cn.database.AfterInsertQSLData;
+import android.database.sqlite.SQLiteException;
 import com.bg7yoz.ft8cn.FT8Common;
 import com.bg7yoz.ft8cn.Ft8Message;
 import com.bg7yoz.ft8cn.GeneralVariables;
@@ -45,6 +46,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
+import java.util.List;  // Для World Model snapshot
+import java.util.concurrent.ConcurrentHashMap;  // Для потокобезопасного кэша
+import java.util.concurrent.locks.ReentrantLock;  // Для синхронизации
+
 public class DatabaseOpr extends SQLiteOpenHelper {
     private static final String TAG = "DatabaseOpr";
     @SuppressLint("StaticFieldLeak")
@@ -60,7 +65,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
 
     public static DatabaseOpr getInstance(@Nullable Context context, @Nullable String databaseName) {
         if (instance == null) {
-            instance = new DatabaseOpr(context, databaseName, null, 15);
+            instance = new DatabaseOpr(context, databaseName, null, 17);
         }
         return instance;
     }
@@ -105,6 +110,25 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         // Create indexes
         createIndex(sqLiteDatabase);
 
+        // Создание таблицы World Model
+        sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS station_world_model (" +
+                "callsign TEXT PRIMARY KEY," +
+                "bands_seen_mask INTEGER DEFAULT 0," +
+                "last_freq_hz INTEGER," +
+                "last_seen_utc_sec INTEGER," +
+                "last_snr REAL," +
+                "last_qth TEXT," +
+                "last_bearing REAL," +
+                "dxcc_code TEXT," +
+                "last_itu_zone INTEGER," +
+                "last_cq_zone INTEGER," +
+                "ft8_state_relative INTEGER DEFAULT 0," +
+                "priority_score REAL DEFAULT 0," +
+                "is_new_dx INTEGER DEFAULT 0," +
+                "last_updated_sec INTEGER" +
+                ")");
+
+        sqLiteDatabase.execSQL("CREATE INDEX IF NOT EXISTS idx_world_model_priority ON station_world_model(priority_score DESC, last_freq_hz)");
         // [NEW] Add default value for acceptDxCalls
         sqLiteDatabase.execSQL("INSERT OR IGNORE INTO config (KeyName, Value) VALUES ('acceptDxCalls', '0')");
 
@@ -134,6 +158,24 @@ public class DatabaseOpr extends SQLiteOpenHelper {
 
         // Create indexes
         createIndex(sqLiteDatabase);
+        // Создание таблицы World Model при обновлении
+        sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS station_world_model (" +
+                "callsign TEXT PRIMARY KEY," +
+                "bands_seen_mask INTEGER DEFAULT 0," +
+                "last_freq_hz INTEGER," +
+                "last_seen_utc_sec INTEGER," +
+                "last_snr REAL," +
+                "last_qth TEXT," +
+                "last_bearing REAL," +
+                "dxcc_code TEXT," +
+                "last_itu_zone INTEGER," +
+                "last_cq_zone INTEGER," +
+                "ft8_state_relative INTEGER DEFAULT 0," +
+                "priority_score REAL DEFAULT 0," +
+                "is_new_dx INTEGER DEFAULT 0," +
+                "last_updated_sec INTEGER" +
+                ")");
+        sqLiteDatabase.execSQL("CREATE INDEX IF NOT EXISTS idx_world_model_priority ON station_world_model(priority_score DESC, last_freq_hz)");
 
         // [NEW] Add setting for existing users upgrading app
         sqLiteDatabase.execSQL("INSERT OR IGNORE INTO config (KeyName, Value) VALUES ('acceptDxCalls', '0')");
@@ -2503,5 +2545,301 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             // Not critical, can be ignored
         }
     }
+    // === [NEW] WORLD MODEL: RAM cache for station tracking ===
+    // Key: callsign (uppercase), Value: StationRecord
+    // === WORLD MODEL IMPLEMENTATION ===
+    private static final Map<String, StationRecord> stationWorldModel = new ConcurrentHashMap<>();
+    private static final ReentrantLock worldModelLock = new ReentrantLock();
+    private static long lastWorldModelSave = 0;
+    private static final long WORLD_MODEL_SAVE_INTERVAL_MS = 30000;
 
+    public static class StationRecord {
+        public final String callsign;
+        public long bandsBitmap;
+        public long lastFreqHz;
+        public long lastSeenUtcSec;
+        public float lastSnr;
+        public String lastQth;
+        public float lastBearing;
+        public String dxccCode;
+        public int lastItuZone;
+        public int lastCqZone;
+        public int ft8StateRelative;      // Что они нам прислали
+        public float priorityScore;
+        public boolean isNewDx;
+
+        public StationRecord(String callsign) {
+            this.callsign = callsign;
+            this.ft8StateRelative = 0;
+            this.priorityScore = 10f;
+        }
+
+        public boolean isExpired() {
+            long ageSlots = (com.bg7yoz.ft8cn.timer.UtcTimer.getNowSequential() - lastSeenUtcSec) / 15;
+            return ageSlots > 4;
+        }
+    }
+
+    /**
+     * Band frequency to bit index mapping.
+     * [FIX] Uses range-based matching: each configured frequency defines START of 3 kHz FT8 segment.
+     * Example: 14074000 matches range 14074000-14077000 (not center ±tolerance).
+     * Массив частот KNOWN_FREQS внутри этого метода должен строго соответствовать твоему файлу bands.txt.
+     * Если ты добавишь новую частоту в bands.txt, не забудь добавить её и в массив KNOWN_FREQS в DatabaseOpr.java, иначе для этой частоты будет использоваться "Fallback" (общий бит бэнда), и разделение (14.074 vs 14.090) пропадет.
+     */
+    public static int freqToBandBit(long freqHz) {
+        // Each frequency from bands.txt defines START of 3 kHz FT8 segment
+        // Format: {startFreq, endFreq, bitIndex}
+
+        // 160m
+        if (freqHz >= 1810000L && freqHz < 1813000L) return 0;
+        if (freqHz >= 1840000L && freqHz < 1843000L) return 1;
+        if (freqHz >= 1908000L && freqHz < 1911000L) return 2;
+
+        // 80m
+        if (freqHz >= 3531000L && freqHz < 3534000L) return 3;
+        if (freqHz >= 3567000L && freqHz < 3570000L) return 4;
+        if (freqHz >= 3573000L && freqHz < 3576000L) return 5;
+        if (freqHz >= 3585000L && freqHz < 3588000L) return 6;
+
+        // 60m
+        if (freqHz >= 5126000L && freqHz < 5129000L) return 7;
+        if (freqHz >= 5357000L && freqHz < 5360000L) return 8;
+        if (freqHz >= 5362000L && freqHz < 5365000L) return 9;
+
+        // 40m
+        if (freqHz >= 7041000L && freqHz < 7044000L) return 10;
+        if (freqHz >= 7056000L && freqHz < 7059000L) return 11;
+        if (freqHz >= 7071000L && freqHz < 7074000L) return 12;
+        if (freqHz >= 7074000L && freqHz < 7077000L) return 13;  // Main FT8
+        if (freqHz >= 7080000L && freqHz < 7083000L) return 14;
+
+        // 30m
+        if (freqHz >= 10131000L && freqHz < 10134000L) return 15;
+        if (freqHz >= 10133000L && freqHz < 10136000L) return 16;
+        if (freqHz >= 10136000L && freqHz < 10139000L) return 17;  // Main FT8
+        if (freqHz >= 10143000L && freqHz < 10146000L) return 18;
+
+        // 20m
+        if (freqHz >= 14071000L && freqHz < 14074000L) return 19;
+        if (freqHz >= 14074000L && freqHz < 14077000L) return 20;  // Main FT8
+        if (freqHz >= 14090000L && freqHz < 14093000L) return 21;  // Second FT8 segment
+
+        // 17m
+        if (freqHz >= 18095000L && freqHz < 18098000L) return 22;
+        if (freqHz >= 18100000L && freqHz < 18103000L) return 23;  // Main FT8
+
+        // 15m
+        if (freqHz >= 21074000L && freqHz < 21077000L) return 24;  // Main FT8
+        if (freqHz >= 21091000L && freqHz < 21094000L) return 25;
+
+        // 12m
+        if (freqHz >= 24911000L && freqHz < 24914000L) return 26;
+        if (freqHz >= 24915000L && freqHz < 24918000L) return 27;  // Main FT8
+
+        // 10m
+        if (freqHz >= 28074000L && freqHz < 28077000L) return 28;  // Main FT8
+        if (freqHz >= 28095000L && freqHz < 28098000L) return 29;
+
+        // 8m
+        if (freqHz >= 40680000L && freqHz < 40683000L) return 30;
+
+        // 6m
+        if (freqHz >= 50310000L && freqHz < 50313000L) return 31;
+        if (freqHz >= 50313000L && freqHz < 50316000L) return 32;  // Main
+        if (freqHz >= 50323000L && freqHz < 50326000L) return 33;
+
+        // 4m
+        if (freqHz >= 70100000L && freqHz < 70103000L) return 34;
+        if (freqHz >= 70154000L && freqHz < 70157000L) return 35;  // Main
+
+        // 2m
+        if (freqHz >= 144174000L && freqHz < 144177000L) return 36;  // Main
+        if (freqHz >= 144460000L && freqHz < 144463000L) return 37;
+
+        // 70cm
+        if (freqHz >= 432174000L && freqHz < 432177000L) return 38;
+
+        // Fallback: broad band bits
+        long kHz = freqHz / 1000;
+        if (kHz >= 1800 && kHz < 2000) return 40;
+        if (kHz >= 3500 && kHz < 3800) return 41;
+        if (kHz >= 5300 && kHz < 5500) return 42;
+        if (kHz >= 7000 && kHz < 7200) return 43;
+        if (kHz >= 10100 && kHz < 10150) return 44;
+        if (kHz >= 14000 && kHz < 14350) return 45;
+        if (kHz >= 18068 && kHz < 18168) return 46;
+        if (kHz >= 21000 && kHz < 21450) return 47;
+        if (kHz >= 24890 && kHz < 24990) return 48;
+        if (kHz >= 28000 && kHz < 29700) return 49;
+        if (kHz >= 40000 && kHz < 41000) return 50;
+        if (kHz >= 50000 && kHz < 54000) return 51;
+        if (kHz >= 70000 && kHz < 71000) return 52;
+        if (kHz >= 144000 && kHz < 148000) return 53;
+        if (kHz >= 432000 && kHz < 450000) return 54;
+
+        return 63;
+    }
+
+    /**
+     * Update station record from decoded message - RAM cache + async DB save
+     */
+    /**
+     * Update station record from decoded message - RAM cache + async DB save
+     */
+    public void updateStationFromMessage(Ft8Message msg, String qth, String dxcc, int ituZone, int cqZone, float bearing) {
+        String callsign = msg.getCallsignFrom();
+        if (callsign == null || callsign.isEmpty()) return;
+
+        callsign = callsign.toUpperCase().trim();
+        int detectedState = parseMessageState(msg);
+
+        // [DEBUG] Лог входящего сообщения
+        Log.d(TAG, "[DEBUG] updateStationFromMessage: callsign=" + callsign +
+                " msg.freq_hz=" + msg.freq_hz + " (offset in Hz)");
+
+        worldModelLock.lock();
+        try {
+            StationRecord record = stationWorldModel.get(callsign);
+            if (record == null) {
+                record = new StationRecord(callsign);
+                stationWorldModel.put(callsign, record);
+            }
+
+            // Сохраняем смещение как есть
+            record.lastFreqHz = Math.round(msg.freq_hz);
+            record.lastSeenUtcSec = msg.utcTime;
+            record.lastSnr = msg.snr;
+            if (qth != null && qth.length() >= 4) record.lastQth = qth.toUpperCase();
+            record.lastBearing = bearing;
+            if (dxcc != null) record.dxccCode = dxcc;
+            record.lastItuZone = ituZone;
+            record.lastCqZone = cqZone;
+
+            // [FIX] Вычисляем ПОЛНУЮ частоту для определения бэнда
+            // msg.freq_hz — это смещение, нужно добавить к текущей частоте
+            long fullFrequency = GeneralVariables.band + Math.round(msg.freq_hz);
+
+            // [DEBUG] Лог полной частоты
+            Log.d(TAG, "[DEBUG]   fullFrequency=" + fullFrequency +
+                    " (band=" + GeneralVariables.band + " + offset=" + Math.round(msg.freq_hz) + ")");
+
+            int bandBit = freqToBandBit(fullFrequency);
+
+            // [DEBUG] Лог результата
+            Log.d(TAG, "[DEBUG]   bandBit=" + bandBit + " for fullFreq=" + fullFrequency);
+
+            record.bandsBitmap |= (1L << bandBit);
+
+            // НАДО (правильно):
+            if (detectedState >= 1 && detectedState <= 4) {
+                // [FIX] Сохраняем МАКСИМАЛЬНОЕ состояние, чтобы не терять прогресс диалога
+                int oldState = record.ft8StateRelative;
+                record.ft8StateRelative = Math.max(record.ft8StateRelative, detectedState);
+                if (record.ft8StateRelative != oldState) {
+                    Log.d(TAG, "[STATE] " + callsign + ": " + oldState + " → " + record.ft8StateRelative);
+                }
+            } else if (detectedState == 6) {
+                // CQ состояние обновляем только если диалог ещё не начался
+                if (record.ft8StateRelative < 1) record.ft8StateRelative = 6;
+            }
+
+            record.priorityScore = calculatePriorityScore(record);
+            scheduleWorldModelSave();
+        } finally {
+            worldModelLock.unlock();
+        }
+    }
+
+    private int parseMessageState(Ft8Message msg) {
+        if (msg == null) return 0;
+        String extra = msg.extraInfo != null ? msg.extraInfo : "";
+        boolean toMe = GeneralVariables.checkIsMyCallsign(msg.getCallsignTo());
+
+        if (!toMe) return msg.checkIsCQ() ? 6 : 0;
+
+        if (extra.contains("RR73") || extra.contains("RRR") || extra.contains("RRR73")) return 4;
+        if (extra.startsWith("R") && extra.length() <= 4) return 3;
+        if (extra.matches("^-?\\d{1,3}$")) return 2;
+        String grid = msg.maidenGrid != null ? msg.maidenGrid : "";
+        if (grid.length() >= 4) return 1;
+        return 1;
+    }
+
+    private float calculatePriorityScore(StationRecord record) {
+        if (record == null) return 0f;
+        float score = 10f + record.lastSnr * 1.2f;
+        int currentBandBit = freqToBandBit(GeneralVariables.band);
+        if ((record.bandsBitmap & (1L << currentBandBit)) == 0) score += 25f;
+        if (record.isNewDx) score += 30f;
+        if (record.lastBearing > 5000f) score += 15f;
+        if (record.ft8StateRelative == 6) score += 10f;
+        else if (record.ft8StateRelative >= 1) score += record.ft8StateRelative * 5f;
+        long ageSlots = (com.bg7yoz.ft8cn.timer.UtcTimer.getNowSequential() - record.lastSeenUtcSec) / 15;
+        score -= ageSlots * 3f;
+        if (GeneralVariables.checkQSLCallsign(record.callsign)) score -= 20f;
+        return Math.max(0f, score);
+    }
+
+    public static List<StationRecord> getStationWorldModelSnapshot() {
+        worldModelLock.lock();
+        try { return new ArrayList<>(stationWorldModel.values()); }
+        finally { worldModelLock.unlock(); }
+    }
+
+    public static StationRecord getStationRecord(String callsign) {
+        if (callsign == null) return null;
+        worldModelLock.lock();
+        try { return stationWorldModel.get(callsign.toUpperCase()); }
+        finally { worldModelLock.unlock(); }
+    }
+
+    private void scheduleWorldModelSave() {
+        long now = System.currentTimeMillis();
+        if (now - lastWorldModelSave < WORLD_MODEL_SAVE_INTERVAL_MS) return;
+        lastWorldModelSave = now;
+        new SaveWorldModelTask(db, new ArrayList<>(stationWorldModel.values())).execute();
+    }
+
+    private static class SaveWorldModelTask extends AsyncTask<Void, Void, Void> {
+        private final SQLiteDatabase db;
+        private final List<StationRecord> records;
+        SaveWorldModelTask(SQLiteDatabase db, List<StationRecord> records) {
+            this.db = db; this.records = records;
+        }
+        @Override
+        protected Void doInBackground(Void... voids) {
+            if (records.isEmpty()) return null;
+
+            // Проверка: существует ли таблица
+            Cursor cursor = null;
+            try {
+                cursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='station_world_model'", null);
+                if (cursor == null || !cursor.moveToFirst()) {
+                    Log.w(TAG, "Table station_world_model not found, skipping save");
+                    return null;
+                }
+            } finally {
+                if (cursor != null) cursor.close();
+            }
+
+            db.beginTransaction();
+            try {
+                String sql = "INSERT OR REPLACE INTO station_world_model VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                for (StationRecord r : records) {
+                    db.execSQL(sql, new Object[]{r.callsign, r.bandsBitmap, r.lastFreqHz, r.lastSeenUtcSec,
+                            r.lastSnr, r.lastQth, r.lastBearing, r.dxccCode, r.lastItuZone, r.lastCqZone,
+                            r.ft8StateRelative, r.priorityScore, r.isNewDx ? 1 : 0, System.currentTimeMillis() / 1000});
+                }
+                db.setTransactionSuccessful();
+            } catch (SQLiteException e) {
+                Log.e(TAG, "Failed to save world model: " + e.getMessage());
+                // Не выбрасываем исключение, чтобы не крашить приложение
+            } finally {
+                db.endTransaction();
+            }
+            return null;
+        }
+    }
+    // === END WORLD MODEL ===
 }

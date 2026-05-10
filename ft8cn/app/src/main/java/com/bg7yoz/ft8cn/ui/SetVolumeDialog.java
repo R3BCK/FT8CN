@@ -64,7 +64,7 @@ public class SetVolumeDialog extends Dialog {
                 if (mainViewModel.baseRig!=null){
                     if (mainViewModel.baseRig.getConnector()!=null) {
                         mainViewModel.baseRig.getConnector().setRFVolume(i);
-                        Log.e(TAG,String.format("set volume:%d",i));
+                        //Log.e(TAG,String.format("set volume:%d",i));
                     }
                 }
             }

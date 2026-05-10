@@ -125,6 +125,9 @@ public class FT8TransmitSignal {
 
     private boolean ignoreCQForNextStep = false;
 
+    // [NEW] Flag: use step from external source (DecisionEngine) instead of auto-detect
+    private boolean useExternalStep = false;
+
     // [CHANGED] Library loading management for dual-library support
     private static boolean libraryLoaded = false;
 
@@ -236,8 +239,17 @@ public class FT8TransmitSignal {
         if (transmitCallsign.frequency == 0) transmitCallsign.frequency = GeneralVariables.getBaseFrequency();
         if (GeneralVariables.synFrequency) setBaseFrequency(transmitCallsign.frequency);
 
-        // FIX: NEVER auto-change sequence. Keep it fixed unless manually changed.
-        // sequential stays as-is, no recalculation
+        // === [FIX] ИНВЕРСИЯ SEQUENTIAL ===
+        // Если целевая станция передала в seq=0, отвечаем в seq=1 (и наоборот)
+        // Это критически важно для FT8 протокола!
+        if (transmitCallsign.sequential >= 0) {
+            // Инвертируем sequential: 0→1, 1→0
+            this.sequential = 1 - transmitCallsign.sequential;
+        } else {
+            // Если sequential не задан, используем текущий UTC sequential
+            this.sequential = UtcTimer.getNowSequential();
+        }
+        // ================================
 
         mutableSequential.postValue(sequential);
         generateFun();
@@ -734,6 +746,11 @@ public class FT8TransmitSignal {
         localIsMyCall.clear();
     }
 
+    // ========================================================================
+    // [DISABLED] Old auto-answer logic - commented out to avoid conflicts with DecisionEngine
+    // All decision logic is now handled by DecisionEngine.evaluate() in MainViewModel
+    // ========================================================================
+    /*
     public void parseMessageToFunction(ArrayList<Ft8Message> msgList) {
         if (GeneralVariables.myCallsign.length() < 3 || msgList.isEmpty()) return;
         if (toCallsign == null) return;
@@ -931,6 +948,10 @@ public class FT8TransmitSignal {
         }
         localIsMyCall.clear();
     }
+    */
+    // ========================================================================
+    // [END DISABLED] Old auto-answer logic
+    // ========================================================================
 
     public boolean getNewTargetCallsign(ArrayList<Ft8Message> messages) {
         if (toCallsign == null) return false;

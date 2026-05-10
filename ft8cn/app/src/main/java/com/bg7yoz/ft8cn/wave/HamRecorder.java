@@ -176,7 +176,7 @@ public class HamRecorder {
     private void releaseWakeLock() {
         if (wakeLock != null && wakeLock.isHeld()) {
             wakeLock.release();
-            Log.d(TAG, "WakeLock released");
+            //Log.d(TAG, "WakeLock released");
         }
     }
 

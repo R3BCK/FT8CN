@@ -277,7 +277,7 @@ public class IcomRig extends BaseRig {
         try {
             getConnector().sendData(tuneCmd);
             ToastMessage.show("TUNE command sent");
-            Log.d(TAG, "TUNE command sent: 0x" + String.format("%02X", action));
+            //Log.d(TAG, "TUNE command sent: 0x" + String.format("%02X", action));
         } catch (Exception e) {
             Log.e(TAG, "Failed to send TUNE command: " + e.getMessage());
             ToastMessage.show("Failed to send TUNE command");

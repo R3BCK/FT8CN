@@ -38,6 +38,7 @@ import com.bg7yoz.ft8cn.MainViewModel;
 import com.bg7yoz.ft8cn.R;
 import com.bg7yoz.ft8cn.databinding.FragmentCallingListBinding;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
+import com.bg7yoz.ft8cn.decisions.StationState;
 
 import java.util.ArrayList;
 
@@ -84,6 +85,12 @@ public class CallingListFragment extends Fragment {
                 if (mainViewModel.hamRecorder.isRunning()) {
                     mainViewModel.hamRecorder.stopRecord();
                     mainViewModel.ft8TransmitSignal.setActivated(false);
+                    // [FIX] Сбросить ручной выбор при отключении передачи
+                    // [FIX] Сбрасываем ручной выбор при остановке записи/передачи
+                    if (mainViewModel.stationContext != null) {
+                        mainViewModel.stationContext.userOverrideActive = false;
+                        mainViewModel.stationContext.currentTarget = "";
+                    }
                 } else {
                     mainViewModel.hamRecorder.startRecord();
                 }
@@ -304,10 +311,21 @@ public class CallingListFragment extends Fragment {
      * @param message Message to respond to
      * @return true if call initiated
      */
-    //@RequiresApi(api = Build.VERSION_CODES.N)
+//@RequiresApi(api = Build.VERSION_CODES.N)
     private boolean doCallNow(Ft8Message message) {
 
         mainViewModel.addFollowCallsign(message.getCallsignFrom());
+
+        // === [FIX] Устанавливаем ручной выбор! ===
+        // Это критически важно, чтобы DecisionEngine знал, что это ручной выбор
+        if (mainViewModel.stationContext != null) {
+            mainViewModel.stationContext.userOverrideActive = true;
+            mainViewModel.stationContext.currentTarget = message.getCallsignFrom();
+            mainViewModel.stationContext.subState = StationState.OperatingSubState.SEEKING;
+            Log.d(TAG, "[MANUAL] User selected target: " + message.getCallsignFrom());
+        }
+        // ================================
+
         if (!mainViewModel.ft8TransmitSignal.isActivated()) {
             mainViewModel.ft8TransmitSignal.setActivated(true);
             GeneralVariables.transmitMessages.add(message); // Add message to follow list
