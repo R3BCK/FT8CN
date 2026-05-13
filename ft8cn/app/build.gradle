@@ -150,4 +150,22 @@ dependencies {
     implementation files('src/libs/commons-net-3.6.jar')
     implementation files('src/libs/nanohttpd-2.2.0.jar')
     implementation files('src/libs/osmdroid-android-6.1.14.aar')
+    implementation "androidx.security:security-crypto:1.1.0-alpha06"
+    // ========================================================================
+    // [CUSTOM] Set custom APK filename with version and date
+    // Output: FT8CN-R3BCK_v1.2.3_release_20240514.apk
+    // ========================================================================
+    android.applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def appName = "FT8CN-R3BCK"
+            def versionName = variant.versionName ?: "1.0"
+            def buildType = variant.buildType.name
+            def date = new Date().format('yyyyMMdd')
+            def arch = output.getFilter(com.android.build.OutputFile.ABI) ?: "universal"
+
+            // Final filename format
+            outputFileName = "${appName}_v${versionName}_${buildType}_${date}_${arch}.apk"
+        }
+    }
+// ========================================================================
 }

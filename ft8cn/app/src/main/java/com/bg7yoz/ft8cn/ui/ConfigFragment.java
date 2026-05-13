@@ -51,11 +51,15 @@ import com.bg7yoz.ft8cn.timer.UtcTimer;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -88,6 +92,12 @@ public class ConfigFragment extends Fragment {
     private TextView tvRigConnectionStatus;
     private Button btnConnectRig;
     // =================================================
+
+    // [NEW] Database statistics TextViews
+    private TextView dbSizeText;
+    private TextView qsoCountText;
+    private TextView swlCountText;
+    // ===================================
 
     // Flag: use auto mode (0.0 in spinner)
     private boolean isAutoOffsetMode = true;
@@ -156,13 +166,14 @@ public class ConfigFragment extends Fragment {
         }
     };
 
-    // HRDLog API Key
+    // HRDLog API Key [SECURE]
     private final TextWatcher onHrdlogApiKeyChanged = new TextWatcher() {
         @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
         @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
         @Override public void afterTextChanged(Editable s) {
             GeneralVariables.hrdlogApiKey = s.toString().trim();
-            writeConfig("hrdlogApiKey", GeneralVariables.hrdlogApiKey);
+            // [SECURITY] Use secure storage for API key
+            writeSensitiveConfig("hrdlogApiKey", GeneralVariables.hrdlogApiKey);
         }
     };
 
@@ -176,13 +187,14 @@ public class ConfigFragment extends Fragment {
         }
     };
 
-    // HRDLog Password
+    // HRDLog Password [SECURE]
     private final TextWatcher onHrdlogPasswordChanged = new TextWatcher() {
         @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
         @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
         @Override public void afterTextChanged(Editable s) {
             GeneralVariables.hrdlogPassword = s.toString();
-            writeConfig("hrdlogPassword", GeneralVariables.hrdlogPassword);
+            // [SECURITY] Use secure storage for password
+            writeSensitiveConfig("hrdlogPassword", GeneralVariables.hrdlogPassword);
         }
     };
 
@@ -279,7 +291,7 @@ public class ConfigFragment extends Fragment {
         }
     };
 
-    // Cloudlog APIKEY
+    // Cloudlog APIKEY [SECURE]
     private final TextWatcher onCloudlogApiKeyChanged = new TextWatcher() {
         @Override
         public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
@@ -288,7 +300,8 @@ public class ConfigFragment extends Fragment {
         @Override
         public void afterTextChanged(Editable editable) {
             GeneralVariables.cloudlogApiKey = editable.toString();
-            writeConfig("cloudlogApiKey", GeneralVariables.getCloudlogServerApiKey());
+            // [SECURITY] Use secure storage for API key
+            writeSensitiveConfig("cloudlogApiKey", GeneralVariables.getCloudlogServerApiKey());
         }
     };
 
@@ -305,7 +318,7 @@ public class ConfigFragment extends Fragment {
         }
     };
 
-    // QRZ API key
+    // QRZ API key [SECURE]
     private final TextWatcher onQrzApiKeyChanged = new TextWatcher() {
         @Override
         public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
@@ -314,7 +327,8 @@ public class ConfigFragment extends Fragment {
         @Override
         public void afterTextChanged(Editable editable) {
             GeneralVariables.qrzApiKey = editable.toString();
-            writeConfig("qrzApiKey", GeneralVariables.getQrzApiKey());
+            // [SECURITY] Use secure storage for API key
+            writeSensitiveConfig("qrzApiKey", GeneralVariables.getQrzApiKey());
         }
     };
 
@@ -389,6 +403,21 @@ public class ConfigFragment extends Fragment {
         GeneralVariables.setBaseFrequency(freq);
     }
 
+    /**
+     * [NEW] Write sensitive config value using secure storage (if available).
+     * Fallback to plain config table for legacy devices or errors.
+     * @param key Config key name
+     * @param value Plain text value
+     */
+    private void writeSensitiveConfig(String key, String value) {
+        if (mainViewModel != null && mainViewModel.databaseOpr != null) {
+            mainViewModel.databaseOpr.saveSensitiveConfig(key, value);
+        } else {
+            // Fallback: write to plain config table
+            writeConfig(key, value);
+        }
+    }
+
     @SuppressLint("SetTextI18n")
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -399,6 +428,15 @@ public class ConfigFragment extends Fragment {
         // === Initialize rig connection status fields ===
         tvRigConnectionStatus = binding.getRoot().findViewById(R.id.tvRigConnectionStatus);
         btnConnectRig = binding.getRoot().findViewById(R.id.btnConnectRig);
+
+        // [NEW] Initialize database statistics TextViews
+        // [NEW] Initialize database statistics TextViews (direct access)
+// [NEW] Initialize database statistics TextViews (direct access)
+        View root = binding.getRoot();
+        dbSizeText = root.findViewById(com.bg7yoz.ft8cn.R.id.dbSizeText);
+        qsoCountText = root.findViewById(com.bg7yoz.ft8cn.R.id.qsoCountText);
+        swlCountText = root.findViewById(com.bg7yoz.ft8cn.R.id.swlCountText);
+        // ==============================================
 
         // Observer for connection status
         if (mainViewModel.rigStatusText != null) {
@@ -445,6 +483,10 @@ public class ConfigFragment extends Fragment {
             });
         }
         // =================================================
+
+        // [NEW] Update database statistics on load
+        updateDatabaseStatistics();
+        // ==============================================
 
         // Initialize: determine mode (auto or manual)
         isAutoOffsetMode = (UtcTimer.delay == 0);
@@ -931,6 +973,62 @@ public class ConfigFragment extends Fragment {
 
         return binding.getRoot();
     }
+
+    /**
+     * [NEW] Update database statistics display
+     */
+    /**
+     * [NEW] Update database statistics display
+     */
+    private void updateDatabaseStatistics() {
+        if (dbSizeText == null || qsoCountText == null || swlCountText == null) return;
+
+        new Thread(() -> {
+            try {
+                // 1. Database file size
+                File dbFile = requireContext().getDatabasePath("data.db");
+                final String sizeText;  // [FIX] Declare as final for lambda
+                if (dbFile.exists()) {
+                    long sizeKB = dbFile.length() / 1024;
+                    sizeText = sizeKB >= 1024
+                            ? String.format(Locale.US, "Size: %.1f MB", sizeKB / 1024.0)
+                            : "Size: " + sizeKB + " KB";
+                } else {
+                    sizeText = "Size: --";
+                }
+
+                // 2. QSO count
+                Cursor cursor = mainViewModel.databaseOpr.getDb().rawQuery("SELECT COUNT(*) FROM QSLTable", null);
+                final int qsoCount;  // [FIX] Declare as final for lambda
+                if (cursor != null && cursor.moveToFirst()) {
+                    qsoCount = cursor.getInt(0);
+                    cursor.close();
+                } else {
+                    qsoCount = 0;
+                }
+
+                // 3. SWL messages count
+                cursor = mainViewModel.databaseOpr.getDb().rawQuery("SELECT COUNT(*) FROM SWLMessages", null);
+                final int swlCount;  // [FIX] Declare as final for lambda
+                if (cursor != null && cursor.moveToFirst()) {
+                    swlCount = cursor.getInt(0);
+                    cursor.close();
+                } else {
+                    swlCount = 0;
+                }
+
+                // Update UI on main thread
+                requireActivity().runOnUiThread(() -> {
+                    dbSizeText.setText(sizeText);
+                    qsoCountText.setText("QSO Log: " + qsoCount);
+                    swlCountText.setText("SWL Messages: " + swlCount);
+                });
+            } catch (Exception e) {
+                Log.e(TAG, "Error getting database statistics: " + e.getMessage());
+            }
+        }).start();
+    }
+    // ===================================
 
     /**
      * Handle save settings to JSON file

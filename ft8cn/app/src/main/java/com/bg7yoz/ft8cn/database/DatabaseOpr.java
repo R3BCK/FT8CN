@@ -50,12 +50,22 @@ import java.util.List;  // Для World Model snapshot
 import java.util.concurrent.ConcurrentHashMap;  // Для потокобезопасного кэша
 import java.util.concurrent.locks.ReentrantLock;  // Для синхронизации
 
+// [NEW] Secure storage imports
+import android.content.SharedPreferences;
+import android.os.Build;
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKey;
+
 public class DatabaseOpr extends SQLiteOpenHelper {
     private static final String TAG = "DatabaseOpr";
     @SuppressLint("StaticFieldLeak")
     private static DatabaseOpr instance;
     private final Context context;
     private SQLiteDatabase db;
+    // [NEW] Secure storage for sensitive config (passwords, API keys)
+    private SecureStorage secureStorage;
+    private static final String SECURE_PREFS_NAME = "ft8cn_secure_prefs";
+    private static final String MIGRATION_FLAG_KEY = "secure_migration_done_v1";
 
     // OPTIMIZATION: In-memory cache for DXCC prefix lookups to avoid repeated DB queries
     // This significantly speeds up country name resolution in the Calling window
@@ -77,6 +87,35 @@ public class DatabaseOpr extends SQLiteOpenHelper {
 
         // Connect to database, if entity database does not exist, onCreate method will be called to initialize
         db = this.getWritableDatabase();
+        // [NEW] Initialize secure storage for sensitive data
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                MasterKey masterKey = new MasterKey.Builder(context)
+                        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                        .build();
+                SharedPreferences encryptedPrefs = EncryptedSharedPreferences.create(
+                        context,
+                        SECURE_PREFS_NAME,
+                        masterKey,
+                        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+                );
+                secureStorage = new SecureStorage(encryptedPrefs);
+                Log.d(TAG, "SecureStorage initialized (AES-256-GCM)");
+            } else {
+                Log.w(TAG, "SecureStorage unavailable: API < 23. Using fallback.");
+                secureStorage = null;
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to init SecureStorage: " + e.getMessage());
+            secureStorage = null;
+        }
+
+        // [NEW] Migrate sensitive configs if needed
+        if (secureStorage != null && !isMigrationDone()) {
+            migrateSensitiveConfigs();
+            markMigrationDone();
+        }
     }
 
     /**
@@ -191,28 +230,24 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     // This method is called automatically by SQLiteOpenHelper when database connection is established
     // WAL mode allows concurrent reads during writes and reduces disk fsync overhead
     // These settings are safe and compatible with Android API 16+
+    // OPTIMIZATION: Enable WAL mode and performance PRAGMAs when database is opened
+    // This method is called automatically by SQLiteOpenHelper when database connection is established
+    // WAL mode allows concurrent reads during writes and reduces disk fsync overhead
+    // These settings are safe and compatible with Android API 16+
     @Override
     public void onOpen(SQLiteDatabase db) {
         super.onOpen(db);
         if (!db.isReadOnly()) {
             try {
-                // Write-Ahead Logging: enables concurrent readers and faster commits
-                // Instead of writing directly to database file, changes go to WAL file first
-                // Readers can access old version while writer appends to WAL
-                db.execSQL("PRAGMA journal_mode = WAL;");
+                // [FIX] Use rawQuery for PRAGMA statements that return values
+                // PRAGMA journal_mode returns the new mode, so we use rawQuery and close cursor
+                Cursor cursor = db.rawQuery("PRAGMA journal_mode = WAL", null);
+                if (cursor != null) { cursor.close(); }
 
-                // NORMAL: balances safety and speed (default is FULL, which is slower)
-                // FULL waits for disk sync after every write; NORMAL syncs less frequently
-                // Risk of losing last transaction on crash is acceptable for log data
-                db.execSQL("PRAGMA synchronous = NORMAL;");
-
-                // 8MB RAM cache for SQLite (default is ~2MB)
-                // Larger cache reduces disk I/O for frequently accessed data
-                db.execSQL("PRAGMA cache_size = 8000;");
-
-                // Slightly increase busy timeout to prevent "database is locked" errors under load
-                // Wait up to 5 seconds if database is locked by another thread
-                db.execSQL("PRAGMA busy_timeout = 5000;");
+                // These PRAGMAs don't return data, execSQL is safe
+                db.execSQL("PRAGMA synchronous = NORMAL");
+                db.execSQL("PRAGMA cache_size = 32000"); // Было 8000
+                db.execSQL("PRAGMA busy_timeout = 5000");
 
                 Log.d(TAG, "Database performance optimizations applied: WAL mode, cache=8MB, synchronous=NORMAL");
             } catch (Exception e) {
@@ -2842,4 +2877,217 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         }
     }
     // === END WORLD MODEL ===
+    // ========================================================================
+    // [NEW] Inner class: SecureStorage wrapper for EncryptedSharedPreferences
+    // Handles encryption of passwords and API keys using Android Keystore
+    // Fallback to plain text for API < 23 or initialization errors
+    // Comments in Russian, ASCII only in code
+    // ========================================================================
+    private static class SecureStorage {
+        private final SharedPreferences prefs;
+
+        SecureStorage(SharedPreferences prefs) {
+            this.prefs = prefs;
+        }
+
+        boolean isAvailable() {
+            return prefs != null;
+        }
+
+        void save(String key, String value) {
+            if (!isAvailable()) return;
+            prefs.edit().putString(key, value).apply();
+        }
+
+        String get(String key, String defaultValue) {
+            if (!isAvailable()) return defaultValue;
+            return prefs.getString(key, defaultValue);
+        }
+
+        void remove(String key) {
+            if (!isAvailable()) return;
+            prefs.edit().remove(key).apply();
+        }
+    }
+    // ========================================================================
+    // [END] SecureStorage inner class
+    // ========================================================================
+    // ========================================================================
+    // [NEW] Methods for secure config handling with fallback
+    // ========================================================================
+
+    /**
+     * Save sensitive value to secure storage (if available) or plain config table (fallback).
+     * Used for passwords, API keys, tokens.
+     * @param key Config key name
+     * @param value Plain text value to store
+     */
+    public void saveSensitiveConfig(String key, String value) {
+        if (secureStorage != null && secureStorage.isAvailable()) {
+            secureStorage.save(key, value);
+            Log.d(TAG, "Saved sensitive config to secure storage: " + key);
+        } else {
+            // Fallback: save to plain config table with warning
+            Log.w(TAG, "SecureStorage unavailable, saving sensitive config to plain DB: " + key);
+            writeConfig(key, value, null);
+        }
+    }
+
+    /**
+     * Read sensitive value from secure storage (if available) or plain config table (fallback).
+     * @param key Config key name
+     * @param defaultValue Default value if not found
+     * @return Decrypted value or defaultValue
+     */
+    public String getSensitiveConfig(String key, String defaultValue) {
+        if (secureStorage != null && secureStorage.isAvailable()) {
+            String value = secureStorage.get(key, null);
+            if (value != null) {
+                Log.d(TAG, "Read sensitive config from secure storage: " + key);
+                return value;
+            }
+        }
+        // Fallback: read from plain config table
+        return readConfig(key, defaultValue);
+    }
+
+    /**
+     * Migrate existing sensitive configs from plain DB to secure storage.
+     * Called once on first run after update.
+     */
+    private void migrateSensitiveConfigs() {
+        Log.d(TAG, "Starting migration of sensitive configs to SecureStorage...");
+
+        // List of config keys that contain sensitive data
+        String[] sensitiveKeys = new String[] {
+                "cloudlog_password",
+                "qrz_api_key",
+                "hrdlog_password",
+                "icom_password",
+                "flex_api_key"
+                // Добавьте другие ключи с паролями по необходимости
+        };
+
+        for (String key : sensitiveKeys) {
+            String value = readConfig(key, null);
+            if (value != null && !value.isEmpty()) {
+                // Save to secure storage
+                if (secureStorage != null) {
+                    secureStorage.save(key, value);
+                }
+                // Clear plain-text value from DB (prevent accidental exposure)
+                db.execSQL("DELETE FROM config WHERE KeyName = ?", new String[]{key});
+                Log.d(TAG, "Migrated sensitive key: " + key);
+            }
+        }
+        Log.d(TAG, "Sensitive config migration completed");
+    }
+
+    /**
+     * Check if sensitive config migration has been performed.
+     * @return true if migration flag exists in secure storage
+     */
+    private boolean isMigrationDone() {
+        if (secureStorage == null || !secureStorage.isAvailable()) return true;
+        return secureStorage.get(MIGRATION_FLAG_KEY, "0").equals("1");
+    }
+
+    /**
+     * Mark migration as completed.
+     */
+    private void markMigrationDone() {
+        if (secureStorage == null || !secureStorage.isAvailable()) return;
+        secureStorage.save(MIGRATION_FLAG_KEY, "1");
+    }
+
+    /**
+     * Remove sensitive value from both secure and plain storage.
+     * @param key Config key name
+     */
+    public void removeSensitiveConfig(String key) {
+        if (secureStorage != null && secureStorage.isAvailable()) {
+            secureStorage.remove(key);
+        }
+        db.execSQL("DELETE FROM config WHERE KeyName = ?", new String[]{key});
+    }
+    // ========================================================================
+    // [END] Secure config methods
+    // ========================================================================
+    // ========================================================================
+    // [NEW] Database Statistics
+    // ========================================================================
+    /**
+     * Get database statistics for diagnostics.
+     * @return Formatted string with DB stats
+     */
+    public String getDatabaseStatistics() {
+        StringBuilder stats = new StringBuilder();
+
+        try {
+            // 1. File size
+            File dbFile = context.getDatabasePath("data.db");
+            if (dbFile.exists()) {
+                long sizeKB = dbFile.length() / 1024;
+                stats.append("Database file: ").append(sizeKB >= 1024
+                        ? String.format("%.1f MB", sizeKB / 1024.0)
+                        : sizeKB + " KB");
+                stats.append("\n\n");
+            }
+
+            // 2. QSO log count
+            Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM QSLTable", null);
+            if (cursor != null && cursor.moveToFirst()) {
+                int qsoCount = cursor.getInt(0);
+                stats.append("QSO Log entries: ").append(qsoCount);
+                stats.append("\n");
+                cursor.close();
+            }
+
+            // 3. Callsigns count
+            cursor = db.rawQuery("SELECT COUNT(*) FROM QslCallsigns", null);
+            if (cursor != null && cursor.moveToFirst()) {
+                int callsignCount = cursor.getInt(0);
+                stats.append("Unique callsigns: ").append(callsignCount);
+                stats.append("\n");
+                cursor.close();
+            }
+
+            // 4. SWL messages count
+            cursor = db.rawQuery("SELECT COUNT(*) FROM SWLMessages", null);
+            if (cursor != null && cursor.moveToFirst()) {
+                int swlCount = cursor.getInt(0);
+                stats.append("SWL messages: ").append(swlCount);
+                stats.append("\n");
+                cursor.close();
+            }
+
+            // 5. Last QSO date
+            cursor = db.rawQuery("SELECT MAX(qso_date) || ' ' || MAX(time_on) FROM QSLTable", null);
+            if (cursor != null && cursor.moveToFirst()) {
+                String lastQso = cursor.getString(0);
+                if (lastQso != null && !lastQso.isEmpty()) {
+                    stats.append("Last QSO: ").append(lastQso);
+                    stats.append("\n");
+                }
+                cursor.close();
+            }
+
+            // 6. Followed callsigns
+            cursor = db.rawQuery("SELECT COUNT(*) FROM followCallsigns", null);
+            if (cursor != null && cursor.moveToFirst()) {
+                int followCount = cursor.getInt(0);
+                stats.append("\nFollowed callsigns: ").append(followCount);
+                cursor.close();
+            }
+
+        } catch (Exception e) {
+            stats.append("Error getting statistics: ").append(e.getMessage());
+            Log.e(TAG, "getDatabaseStatistics error: " + e.getMessage());
+        }
+
+        return stats.toString();
+    }
+    // ========================================================================
+    // [END NEW] Database Statistics
+    // ========================================================================
 }

@@ -565,7 +565,6 @@
 
     <string name="accept_dx_calls">Accept DX Calls (Fox/Hound)</string>
     <string name="accept_dx_calls_summary">Enable 76-bit multistream decoding &amp; queue responses</string>
-    <string name="advanced_settings">Advanced Settings</string>
 
     <string name="multiple_answers_title">Multiple answers</string>
     <string name="multiple_ans_ignore">Ignore</string>

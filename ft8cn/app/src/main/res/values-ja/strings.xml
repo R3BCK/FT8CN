@@ -559,4 +559,18 @@
     <string name="tune_command_label">TUNEコマンド 1C 01 02</string>
     <string name="switch_on">オン</string>
     <string name="switch_off">オフ</string>
+    <!-- Settings: Clear Call Hist on Freq Change -->
+    <string name="config_clear_call_hist_on_freq_change">周波数変更時にコール履歴を消去</string>
+    <string name="faq_clear_call_hist_on_freq_change">有効にすると、無線の周波数変更と TUNE コマンドの後にコール履歴バッファを自動的に消去します。新しい周波数で古いコールサインを呼び出してしまうのを防ぎます。</string>
+
+    <string name="accept_dx_calls">DX呼び出しを受け入れる（Fox/Hound）</string>
+    <string name="accept_dx_calls_summary">76ビットのマルチストリーム復号と応答キューを有効にします</string>
+
+    <string name="multiple_answers_title">複数の応答</string>
+    <string name="multiple_ans_ignore">無視</string>
+    <string name="multiple_ans_dx">DX</string>
+    <string name="multiple_ans_remember">記憶する</string>
+
+    <!-- Navigation menu titles -->
+    <string name="nav_menu_title_scan">スキャン</string>
 </resources>

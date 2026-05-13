@@ -559,4 +559,18 @@
     <string name="tune_command_label">TUNE 指令 1C 01 02</string>
     <string name="switch_on">開</string>
     <string name="switch_off">關</string>
+    <!-- Settings: Clear Call Hist on Freq Change -->
+    <string name="config_clear_call_hist_on_freq_change">更改頻率時清除呼叫歷史</string>
+    <string name="faq_clear_call_hist_on_freq_change">啟用後，會在電台頻率更改及執行 TUNE 命令後自動清除呼叫歷史緩衝區。可避免在新頻率上呼叫舊呼號。</string>
+
+    <string name="accept_dx_calls">接受 DX 呼叫（Fox/Hound）</string>
+    <string name="accept_dx_calls_summary">啟用 76 位多串流解碼及回應佇列</string>
+
+    <string name="multiple_answers_title">多重回應</string>
+    <string name="multiple_ans_ignore">忽略</string>
+    <string name="multiple_ans_dx">DX</string>
+    <string name="multiple_ans_remember">記住</string>
+
+    <!-- Navigation menu titles -->
+    <string name="nav_menu_title_scan">掃描</string>
 </resources>

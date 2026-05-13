@@ -559,4 +559,18 @@
     <string name="tune_command_label">Εντολή TUNE 1C 01 02</string>
     <string name="switch_on">ΕΝΕΡΓΟ</string>
     <string name="switch_off">ΑΝΕΝΕΡΓΟ</string>
+    <!-- Settings: Clear Call Hist on Freq Change -->
+    <string name="config_clear_call_hist_on_freq_change">Καθαρισμός ιστορικού κλήσεων κατά την αλλαγή συχνότητας</string>
+    <string name="faq_clear_call_hist_on_freq_change">Όταν είναι ενεργό, καθαρίζει αυτόματα το buffer του ιστορικού κλήσεων μετά από αλλαγή συχνότητας του ραδιοφώνου και την εντολή TUNE. Αποτρέπει την κλήση παλιών διακριτικών στη νέα συχνότητα.</string>
+
+    <string name="accept_dx_calls">Αποδοχή κλήσεων DX (Fox/Hound)</string>
+    <string name="accept_dx_calls_summary">Ενεργοποίηση αποκωδικοποίησης 76-bit multistream &amp; ουράς απαντήσεων</string>
+
+    <string name="multiple_answers_title">Πολλαπλές απαντήσεις</string>
+    <string name="multiple_ans_ignore">Αγνόηση</string>
+    <string name="multiple_ans_dx">DX</string>
+    <string name="multiple_ans_remember">Απομνημόνευση</string>
+
+    <!-- Navigation menu titles -->
+    <string name="nav_menu_title_scan">Σάρωση</string>
 </resources>

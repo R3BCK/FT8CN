@@ -33,6 +33,9 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -89,6 +92,71 @@ public class LogFragment extends Fragment {
     private boolean loading = false;
     private int lastItemPosition;
     private ShareLogsProgressDialog dialog = null;
+
+    // [NEW] Export filter parameters holder - matches WebServer export params
+    private static class ExportFilter {
+        public final String startDate;    // YYYY-MM-DD or null
+        public final String endDate;      // YYYY-MM-DD or null
+        public final String band;         // e.g. "20m", "40m", or null for ALL
+        public final String callsignPrefix; // prefix or null
+
+        public ExportFilter(String startDate, String endDate, String band, String callsignPrefix) {
+            this.startDate = startDate;
+            this.endDate = endDate;
+            this.band = band;
+            this.callsignPrefix = callsignPrefix;
+        }
+
+        // [NEW] Build SQL WHERE clause from filter params
+        public String buildWhereClause() {
+            StringBuilder where = new StringBuilder();
+            boolean first = true;
+            if (startDate != null && !startDate.isEmpty()) {
+                where.append(first ? "" : " AND ").append("qso_date >= '").append(startDate).append("'");
+                first = false;
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                where.append(first ? "" : " AND ").append("qso_date <= '").append(endDate).append("'");
+                first = false;
+            }
+            if (band != null && !band.isEmpty() && !"ALL".equalsIgnoreCase(band)) {
+                // Convert band name to frequency range for DB filter
+                String freqCondition = bandToFrequencyRange(band);
+                if (freqCondition != null) {
+                    where.append(first ? "" : " AND ").append(freqCondition);
+                    first = false;
+                }
+            }
+            if (callsignPrefix != null && !callsignPrefix.isEmpty()) {
+                where.append(first ? "" : " AND ").append("call LIKE '").append(callsignPrefix).append("%'");
+            }
+            return where.length() > 0 ? "WHERE " + where.toString() : "";
+        }
+
+        // [NEW] Convert band name to frequency range condition for QSLTable.freq_khz
+        private String bandToFrequencyRange(String band) {
+            // Frequency ranges in kHz for common FT8 bands
+            switch (band.toUpperCase(Locale.US)) {
+                case "160M": return "freq_khz BETWEEN 1800 AND 2000";
+                case "80M": return "freq_khz BETWEEN 3500 AND 4000";
+                case "60M": return "freq_khz BETWEEN 5250 AND 5450";
+                case "40M": return "freq_khz BETWEEN 7000 AND 7300";
+                case "30M": return "freq_khz BETWEEN 10100 AND 10150";
+                case "20M": return "freq_khz BETWEEN 14000 AND 14350";
+                case "17M": return "freq_khz BETWEEN 18068 AND 18168";
+                case "15M": return "freq_khz BETWEEN 21000 AND 21450";
+                case "12M": return "freq_khz BETWEEN 24890 AND 24990";
+                case "10M": return "freq_khz BETWEEN 28000 AND 29700";
+                case "6M": return "freq_khz BETWEEN 50000 AND 54000";
+                default: return null; // Unknown band - no filter
+            }
+        }
+    }
+
+    // [NEW] Interface for filter dialog callback
+    private interface OnExportFilterConfirmed {
+        void onConfirmed(ExportFilter filter);
+    }
 
 
     public LogFragment() {
@@ -188,7 +256,18 @@ public class LogFragment extends Fragment {
         binding.btnExportLogDownloads.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                exportLogToDownloads();
+                // [MODIFIED] Show filter dialog before export
+                // [OBSOLETE] Direct export without filters:
+                // exportLogToDownloads();
+
+                showExportFilterDialog(new OnExportFilterConfirmed() {
+                    @Override
+                    public void onConfirmed(ExportFilter filter) {
+                        // Store filter for use in exportAdifToFile
+                        currentExportFilter = filter;
+                        exportLogToDownloads();
+                    }
+                });
             }
         });
 
@@ -218,6 +297,123 @@ public class LogFragment extends Fragment {
         return binding.getRoot();
     }
 
+    // [NEW] Current export filter - used between dialog and export method
+    private ExportFilter currentExportFilter = null;
+
+    // [NEW] Show export filter dialog - inline implementation, no separate class file
+    // [MODIFIED] Added quick date buttons (Today/Yesterday/DayBefore) for From field
+    private void showExportFilterDialog(OnExportFilterConfirmed callback) {
+        LayoutInflater inflater = LayoutInflater.from(requireContext());
+        View view = inflater.inflate(R.layout.dialog_export_filter, null);
+
+        EditText etStartDate = view.findViewById(R.id.etStartDate);
+        EditText etEndDate = view.findViewById(R.id.etEndDate);
+        Spinner spBand = view.findViewById(R.id.spBand);
+        EditText etCallsign = view.findViewById(R.id.etCallsignPrefix);
+
+        // [NEW] Quick date buttons
+        android.widget.Button btnToday = view.findViewById(R.id.btnToday);
+        android.widget.Button btnYesterday = view.findViewById(R.id.btnYesterday);
+        android.widget.Button btnDayBefore = view.findViewById(R.id.btnDayBefore);
+
+        // [NEW] Button references for custom button bar
+        android.widget.Button btnExportAll = view.findViewById(R.id.btnExportAll);
+        android.widget.Button btnCancel = view.findViewById(R.id.btnCancel);
+        android.widget.Button btnExport = view.findViewById(R.id.btnExport);
+
+        // Band list - matches common FT8 bands
+        // [OBSOLETE] Could use Bands.getBandsList() if available in future
+        String[] bands = new String[] {"ALL", "160m", "80m", "40m", "20m", "17m", "15m", "12m", "10m", "6m"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, bands);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spBand.setAdapter(adapter);
+
+        // [NEW] Helper: set date in YYYY-MM-DD format
+        // Uses java.text.SimpleDateFormat for consistent formatting
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US);
+        sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+
+        // [NEW] Quick date button handlers
+        btnToday.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                etStartDate.setText(sdf.format(new java.util.Date()));
+            }
+        });
+
+        btnYesterday.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                java.util.Calendar cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"));
+                cal.add(java.util.Calendar.DAY_OF_YEAR, -1);
+                etStartDate.setText(sdf.format(cal.getTime()));
+            }
+        });
+
+        btnDayBefore.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                java.util.Calendar cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"));
+                cal.add(java.util.Calendar.DAY_OF_YEAR, -2);
+                etStartDate.setText(sdf.format(cal.getTime()));
+            }
+        });
+
+        // [NEW] AlertDialog without default buttons - we use custom button bar
+        AlertDialog alertDialog = new AlertDialog.Builder(requireContext())
+                .setTitle("Export Filter")
+                .setView(view)
+                .create();
+
+        // [NEW] EXPORT ALL button handler - bypass filters, export everything
+        btnExportAll.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alertDialog.dismiss();
+                // Export with null filter = original behavior, no filters
+                if (callback != null) {
+                    callback.onConfirmed(null);
+                }
+            }
+        });
+
+        // [NEW] Cancel button handler
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alertDialog.dismiss();
+            }
+        });
+
+        // [NEW] Export button handler - apply filters from form
+        btnExport.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String start = etStartDate.getText().toString().trim();
+                String end = etEndDate.getText().toString().trim();
+                String band = spBand.getSelectedItem().toString();
+                String prefix = etCallsign.getText().toString().trim().toUpperCase(java.util.Locale.US);
+
+                // Build filter - empty values mean no filter for that field
+                // [NOTE] If end is empty, buildWhereClause() will not add upper date bound
+                //        which means "export up to the latest record" - as requested
+                ExportFilter filter = new ExportFilter(
+                        start.isEmpty() ? null : start,
+                        end.isEmpty() ? null : end,
+                        "ALL".equals(band) ? null : band,
+                        prefix.isEmpty() ? null : prefix
+                );
+
+                alertDialog.dismiss();
+                if (callback != null) {
+                    callback.onConfirmed(filter);
+                }
+            }
+        });
+
+        alertDialog.show();
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -234,12 +430,16 @@ public class LogFragment extends Fragment {
             Uri uri = data.getData();
             if (uri != null) {
                 Log.d(TAG, "File selected for export: " + uri.toString());
-                exportAdifToFile(uri);
+                // [MODIFIED] Pass filter to export method (null = export all)
+                exportAdifToFile(uri, currentExportFilter);
+                // Clear filter after use
+                currentExportFilter = null;
             } else {
                 Toast.makeText(requireContext(), "No file URI received for export", Toast.LENGTH_SHORT).show();
             }
         } else if (requestCode == REQUEST_CODE_EXPORT_LOG && resultCode == requireActivity().RESULT_CANCELED) {
             Toast.makeText(requireContext(), "Export cancelled", Toast.LENGTH_SHORT).show();
+            currentExportFilter = null;
         }
     }
 
@@ -364,6 +564,39 @@ public class LogFragment extends Fragment {
         startActivityForResult(intent, REQUEST_CODE_EXPORT_LOG);
     }
 
+    // [MODIFIED] Added filter parameter support
+    private void exportAdifToFile(Uri uri, ExportFilter filter) {
+        Toast.makeText(requireContext(), "Exporting...", Toast.LENGTH_SHORT).show();
+        new Thread(() -> {
+            try {
+                // [MODIFIED] Apply filter to SQL query if provided
+                String whereClause = (filter != null) ? filter.buildWhereClause() : "";
+                String orderBy = " ORDER BY qso_date DESC";
+                String query = "SELECT * FROM QSLTable " + whereClause + orderBy;
+
+                Cursor cursor = mainViewModel.databaseOpr.getDb().rawQuery(query, null);
+                String adifContent = mainViewModel.databaseOpr.downQSLTable(cursor, false);
+                cursor.close();
+
+                try (OutputStream os = requireContext().getContentResolver().openOutputStream(uri)) {
+                    if (os != null) {
+                        os.write(adifContent.getBytes(StandardCharsets.UTF_8));
+                        requireActivity().runOnUiThread(() ->
+                                Toast.makeText(requireContext(), "Export successful", Toast.LENGTH_SHORT).show());
+                    } else {
+                        throw new IOException("Failed to open output stream");
+                    }
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Export failed", e);
+                requireActivity().runOnUiThread(() ->
+                        Toast.makeText(requireContext(), "Export failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
+            }
+        }).start();
+    }
+
+    // [OBSOLETE] Original method without filter - kept for reference, commented
+    /*
     private void exportAdifToFile(Uri uri) {
         Toast.makeText(requireContext(), "Exporting...", Toast.LENGTH_SHORT).show();
         new Thread(() -> {
@@ -389,6 +622,7 @@ public class LogFragment extends Fragment {
             }
         }).start();
     }
+    */
 
     private String getUtcDateString() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd", Locale.US);

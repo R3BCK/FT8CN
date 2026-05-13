@@ -559,4 +559,18 @@
     <string name="tune_command_label">Comando TUNE 1C 01 02</string>
     <string name="switch_on">ENCENDIDO</string>
     <string name="switch_off">APAGADO</string>
+    <!-- Settings: Clear Call Hist on Freq Change -->
+    <string name="config_clear_call_hist_on_freq_change">Borrar historial de llamadas al cambiar de frecuencia</string>
+    <string name="faq_clear_call_hist_on_freq_change">Si está habilitado, borra automáticamente el búfer del historial de llamadas después de cambiar la frecuencia de la radio y de ejecutar el comando TUNE. Evita llamar a indicativos antiguos en una nueva frecuencia.</string>
+
+    <string name="accept_dx_calls">Aceptar llamadas DX (Fox/Hound)</string>
+    <string name="accept_dx_calls_summary">Habilitar decodificación multistream de 76 bits y cola de respuestas</string>
+
+    <string name="multiple_answers_title">Respuestas múltiples</string>
+    <string name="multiple_ans_ignore">Ignorar</string>
+    <string name="multiple_ans_dx">DX</string>
+    <string name="multiple_ans_remember">Recordar</string>
+
+    <!-- Navigation menu titles -->
+    <string name="nav_menu_title_scan">Escanear</string>
 </resources>

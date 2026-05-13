@@ -13,6 +13,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -20,6 +21,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -44,6 +46,22 @@ import java.util.ArrayList;
 
 public class CallingListFragment extends Fragment {
     private static final String TAG = "CallingListFragment";
+
+    // [NEW] Menu item IDs for FT8 state queue options (only for popup menu)
+    private static final int MENU_FOLLOW_TO = 0;
+    private static final int MENU_CALL_TO = 1;
+    private static final int MENU_FOLLOW_FROM = 2;
+    private static final int MENU_CALL_FROM = 3;
+    private static final int MENU_REPLY = 4;
+    private static final int MENU_QRZ_TO = 5;
+    private static final int MENU_QRZ_FROM = 6;
+    private static final int MENU_LOG_TO = 7;
+    private static final int MENU_LOG_FROM = 8;
+    // [NEW] FT8 state menu items - route through existing transmit logic
+    private static final int MENU_STATE_1 = 9;
+    private static final int MENU_STATE_2 = 10;
+    private static final int MENU_STATE_3 = 11;
+    private static final int MENU_STATE_4 = 12;
 
     private FragmentCallingListBinding binding;
     private RecyclerView callListRecyclerView;
@@ -340,6 +358,63 @@ public class CallingListFragment extends Fragment {
     }
 
     /**
+     * [NEW] Queue specific FT8 dialogue state using EXISTING transmit logic
+     * Routes through ft8TransmitSignal.setTransmit() with specified functionOrder
+     * @param message Source message for callsign/frequency data
+     * @param state FT8 dialogue state (1-4) - maps directly to functionOrder
+     * Created: 2026-05-14 per user request - MINIMAL CHANGE ONLY
+     */
+    private void queueStateUsingExistingLogic(Ft8Message message, int state) {
+        // Validate state range (FT8 protocol steps 1-4)
+        if (state < 1 || state > 4) {
+            Log.w(TAG, "Invalid FT8 state requested: " + state);
+            return;
+        }
+
+        String targetCallsign = message.getCallsignFrom();
+
+        // [FIX] Use EXISTING manual override mechanism (same as doCallNow)
+        if (mainViewModel.stationContext != null) {
+            mainViewModel.stationContext.userOverrideActive = true;
+            mainViewModel.stationContext.currentTarget = targetCallsign;
+            mainViewModel.stationContext.subState = StationState.OperatingSubState.SEEKING;
+            Log.d(TAG, "[QUEUE STATE " + state + "] Manual override for: " + targetCallsign);
+        }
+
+        // [FIX] Activate transmit signal using EXISTING logic
+        if (!mainViewModel.ft8TransmitSignal.isActivated()) {
+            mainViewModel.ft8TransmitSignal.setActivated(true);
+            GeneralVariables.transmitMessages.add(message);
+        }
+
+        // [CRITICAL] Use EXISTING setTransmit() with functionOrder = state
+        // This is the SAME call used by auto-logic, just with user-selected step
+        mainViewModel.ft8TransmitSignal.setTransmit(
+                message.getFromCallTransmitCallsign(),  // Existing helper method
+                state,                                   // functionOrder: 1=CALL, 2=REPORT, 3=R-REPORT, 4=RR73
+                message.extraInfo);                      // Existing extra info
+
+        // [FIX] Trigger immediate transmit using EXISTING method
+        mainViewModel.ft8TransmitSignal.transmitNow();
+        GeneralVariables.resetLaunchSupervision();
+
+        // Navigate to transmit interface (existing behavior)
+        navigateToMyCallFragment();
+
+        // Show minimal feedback
+        String stateLabel;
+        switch (state) {
+            case 1: stateLabel = "CALL"; break;
+            case 2: stateLabel = "REPORT"; break;
+            case 3: stateLabel = "R-REPORT"; break;
+            case 4: stateLabel = "RR73"; break;
+            default: stateLabel = "STATE";
+        }
+        Toast.makeText(getContext(), "Queued " + stateLabel + " for " + targetCallsign, Toast.LENGTH_SHORT).show();
+        Log.d(TAG, "[QUEUE] Transmission queued: " + targetCallsign + " step=" + state);
+    }
+
+    /**
      * Navigate to log query interface
      * @param callsign Callsign to query
      */
@@ -360,6 +435,45 @@ public class CallingListFragment extends Fragment {
     }
 
     /**
+     * Create context menu with FT8 state queue options
+     * @param menu Context menu to populate
+     * @param v View that triggered the menu
+     * @param menuInfo Menu info
+     */
+    @Override
+    public void onCreateContextMenu(@NonNull ContextMenu menu, @NonNull View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+
+        // [OBSOLETE] Original menu items - preserved for reference
+        // menu.add(0, 0, 0, "Follow TO");
+        // menu.add(0, 1, 1, "Call TO");
+        // menu.add(0, 2, 2, "Follow FROM");
+        // menu.add(0, 3, 3, "Call FROM");
+        // menu.add(0, 4, 4, "Reply");
+        // menu.add(0, 5, 5, "QRZ TO");
+        // menu.add(0, 6, 6, "QRZ FROM");
+        // menu.add(0, 7, 7, "Log TO");
+        // menu.add(0, 8, 8, "Log FROM");
+
+        // [NEW] Updated menu with FT8 state options - MINIMAL ADDITION
+        menu.setHeaderTitle("Station Actions");
+        menu.add(0, MENU_FOLLOW_TO, 0, "Follow TO");
+        menu.add(0, MENU_CALL_TO, 1, "Call TO");
+        menu.add(0, MENU_FOLLOW_FROM, 2, "Follow FROM");
+        menu.add(0, MENU_CALL_FROM, 3, "Call FROM");
+        menu.add(0, MENU_REPLY, 4, "Reply");
+        menu.add(0, MENU_QRZ_TO, 5, "QRZ TO");
+        menu.add(0, MENU_QRZ_FROM, 6, "QRZ FROM");
+        menu.add(0, MENU_LOG_TO, 7, "Log TO");
+        menu.add(0, MENU_LOG_FROM, 8, "Log FROM");
+        // [NEW] FT8 state menu items - route through existing transmit logic
+        menu.add(0, MENU_STATE_1, 9, "State 1 (CALL)");
+        menu.add(0, MENU_STATE_2, 10, "State 2 (REPORT)");
+        menu.add(0, MENU_STATE_3, 11, "State 3 (R-REPORT)");
+        menu.add(0, MENU_STATE_4, 12, "State 4 (RR73)");
+    }
+
+    /**
      * Handle context menu item selection
      * @param item Selected menu item
      * @return true if handled
@@ -374,12 +488,12 @@ public class CallingListFragment extends Fragment {
         if (ft8Message == null) return super.onContextItemSelected(item);
 
         switch (item.getItemId()) {
-            case 0:
+            case MENU_FOLLOW_TO:
                 Log.d(TAG, "Follow: " + ft8Message.getCallsignTo());
                 mainViewModel.addFollowCallsign(ft8Message.getCallsignTo());
                 GeneralVariables.transmitMessages.add(ft8Message); // Add message to follow list
                 break;
-            case 1: // Timing opposite to sender!!!
+            case MENU_CALL_TO: // Timing opposite to sender!!!
                 Log.d(TAG, "Call: " + ft8Message.getCallsignTo());
                 mainViewModel.addFollowCallsign(ft8Message.getCallsignTo());
                 if (!mainViewModel.ft8TransmitSignal.isActivated()) {
@@ -394,17 +508,17 @@ public class CallingListFragment extends Fragment {
 
                 navigateToMyCallFragment(); // Navigate to transmit interface
                 break;
-            case 2:
+            case MENU_FOLLOW_FROM:
                 Log.d(TAG, "Follow: " + ft8Message.getCallsignFrom());
                 mainViewModel.addFollowCallsign(ft8Message.getCallsignFrom());
                 GeneralVariables.transmitMessages.add(ft8Message); // Add message to follow list
                 break;
-            case 3:
+            case MENU_CALL_FROM:
                 Log.d(TAG, "Call: " + ft8Message.getCallsignFrom());
                 doCallNow(ft8Message);
                 break;
 
-            case 4: // Reply
+            case MENU_REPLY:
                 Log.d(TAG, "Reply: " + ft8Message.getCallsignFrom());
                 mainViewModel.addFollowCallsign(ft8Message.getCallsignFrom());
                 if (!mainViewModel.ft8TransmitSignal.isActivated()) {
@@ -418,17 +532,35 @@ public class CallingListFragment extends Fragment {
                 GeneralVariables.resetLaunchSupervision(); // Reset auto supervision
                 navigateToMyCallFragment(); // Navigate to transmit interface
                 break;
-            case 5: // QRZ for TO callsign
+            case MENU_QRZ_TO: // QRZ for TO callsign
                 showQrzFragment(ft8Message.getCallsignTo());
                 break;
-            case 6: // QRZ for FROM callsign
+            case MENU_QRZ_FROM: // QRZ for FROM callsign
                 showQrzFragment(ft8Message.getCallsignFrom());
                 break;
-            case 7: // Query log for TO callsign
+            case MENU_LOG_TO: // Query log for TO callsign
                 navigateToLogFragment(ft8Message.getCallsignTo());
                 break;
-            case 8: // Query log for FROM callsign
+            case MENU_LOG_FROM: // Query log for FROM callsign
                 navigateToLogFragment(ft8Message.getCallsignFrom());
+                break;
+
+            // [NEW] FT8 state handlers - MINIMAL: route through existing transmit logic
+            case MENU_STATE_1:
+                Log.d(TAG, "Queue State 1 (CALL) for: " + ft8Message.getCallsignFrom());
+                queueStateUsingExistingLogic(ft8Message, 1);
+                break;
+            case MENU_STATE_2:
+                Log.d(TAG, "Queue State 2 (REPORT) for: " + ft8Message.getCallsignFrom());
+                queueStateUsingExistingLogic(ft8Message, 2);
+                break;
+            case MENU_STATE_3:
+                Log.d(TAG, "Queue State 3 (R-REPORT) for: " + ft8Message.getCallsignFrom());
+                queueStateUsingExistingLogic(ft8Message, 3);
+                break;
+            case MENU_STATE_4:
+                Log.d(TAG, "Queue State 4 (RR73) for: " + ft8Message.getCallsignFrom());
+                queueStateUsingExistingLogic(ft8Message, 4);
                 break;
         }
 

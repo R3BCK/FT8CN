@@ -2165,7 +2165,7 @@
                             android:id="@+id/hrdlogSettingsTextView"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="HRDLog.net Settings"
+                            android:text="HRDLog.net Set "
                             android:textAlignment="textEnd"
                             android:textColor="@color/text_view_color"
                             android:textSize="14sp"
@@ -2217,7 +2217,7 @@
                             android:inputType="text|textUri"
                             android:minHeight="14dp"
                             android:textColor="@color/text_view_color"
-                            android:textSize="18sp"
+                            android:textSize="14sp"
                             app:layout_constraintEnd_toStartOf="@+id/hrdlogSettingsImageButton"
                             app:layout_constraintStart_toEndOf="@+id/hrdlogUrlTextView"
                             app:layout_constraintTop_toTopOf="parent"
@@ -2248,7 +2248,7 @@
                             android:inputType="text"
                             android:minHeight="15dp"
                             android:textColor="@color/text_view_color"
-                            android:textSize="18sp"
+                            android:textSize="14sp"
                             app:layout_constraintEnd_toEndOf="@+id/hrdlogUrlEdit"
                             app:layout_constraintStart_toStartOf="@+id/hrdlogUrlEdit"
                             app:layout_constraintTop_toBottomOf="@+id/hrdlogUrlEdit"
@@ -2279,7 +2279,7 @@
                             android:inputType="text"
                             android:minHeight="15dp"
                             android:textColor="@color/text_view_color"
-                            android:textSize="18sp"
+                            android:textSize="14sp"
                             app:layout_constraintEnd_toEndOf="@+id/hrdlogApiKeyEdit"
                             app:layout_constraintStart_toStartOf="@+id/hrdlogApiKeyEdit"
                             app:layout_constraintTop_toBottomOf="@+id/hrdlogApiKeyEdit"
@@ -2310,7 +2310,7 @@
                             android:inputType="textPassword"
                             android:minHeight="15dp"
                             android:textColor="@color/text_view_color"
-                            android:textSize="18sp"
+                            android:textSize="14sp"
                             app:layout_constraintEnd_toEndOf="@+id/hrdlogUsernameEdit"
                             app:layout_constraintStart_toStartOf="@+id/hrdlogUsernameEdit"
                             app:layout_constraintTop_toBottomOf="@+id/hrdlogUsernameEdit"
@@ -2341,7 +2341,7 @@
                             android:inputType="textCapCharacters"
                             android:minHeight="15dp"
                             android:textColor="@color/text_view_color"
-                            android:textSize="18sp"
+                            android:textSize="14sp"
                             app:layout_constraintEnd_toEndOf="@+id/hrdlogPasswordEdit"
                             app:layout_constraintStart_toStartOf="@+id/hrdlogPasswordEdit"
                             app:layout_constraintTop_toBottomOf="@+id/hrdlogPasswordEdit"
@@ -2409,44 +2409,115 @@
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck" />
 
+                        <!-- [NEW] Database Statistics Header -->
+                        <TextView
+                            android:id="@+id/dbStatsHeader"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:layout_marginEnd="4dp"
+                            android:layout_marginTop="8dp"
+                            android:text="Database Statistics"
+                            android:textStyle="bold"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_view_color"
+                            app:layout_constraintEnd_toStartOf="@+id/clearCacheHelpButton"
+                            app:layout_constraintStart_toEndOf="@+id/clearCacheText"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <!-- [NEW] Database Size -->
+                        <TextView
+                            android:id="@+id/dbSizeText"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:layout_marginEnd="4dp"
+                            android:layout_marginTop="4dp"
+                            android:text="Size: --"
+                            android:textSize="11sp"
+                            android:textColor="@color/text_view_color"
+                            app:layout_constraintEnd_toStartOf="@+id/clearCacheHelpButton"
+                            app:layout_constraintStart_toEndOf="@+id/clearCacheText"
+                            app:layout_constraintTop_toBottomOf="@+id/dbStatsHeader" />
+
+                        <!-- [NEW] QSO Count -->
+                        <TextView
+                            android:id="@+id/qsoCountText"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:layout_marginEnd="4dp"
+                            android:layout_marginTop="2dp"
+                            android:text="QSO Log: --"
+                            android:textSize="11sp"
+                            android:textColor="@color/text_view_color"
+                            app:layout_constraintEnd_toStartOf="@+id/clearCacheHelpButton"
+                            app:layout_constraintStart_toEndOf="@+id/clearCacheText"
+                            app:layout_constraintTop_toBottomOf="@+id/dbSizeText" />
+
+                        <!-- [NEW] SWL Messages Count -->
+                        <TextView
+                            android:id="@+id/swlCountText"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:layout_marginEnd="4dp"
+                            android:layout_marginTop="2dp"
+                            android:text="SWL Messages: --"
+                            android:textSize="11sp"
+                            android:textColor="@color/text_view_color"
+                            app:layout_constraintEnd_toStartOf="@+id/clearCacheHelpButton"
+                            app:layout_constraintStart_toEndOf="@+id/clearCacheText"
+                            app:layout_constraintTop_toBottomOf="@+id/qsoCountText" />
+
+                        <!-- [MODIFIED] width=0dp stretches button between constraints -->
                         <Button
                             android:id="@+id/clearFollowButton"
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:layout_marginEnd="4dp"
                             android:layout_marginTop="8dp"
                             android:text="@string/follow_callsign_data"
                             android:textSize="12sp"
                             app:layout_constraintEnd_toStartOf="@+id/clearCacheHelpButton"
-                            app:layout_constraintHorizontal_bias="0.5"
                             app:layout_constraintStart_toEndOf="@+id/clearCacheText"
-                            app:layout_constraintTop_toTopOf="parent" />
+                            app:layout_constraintTop_toBottomOf="@+id/swlCountText" />
 
+                        <!-- [MODIFIED] width=0dp stretches button between constraints -->
                         <Button
                             android:id="@+id/clearSWlQsoButton"
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:layout_marginEnd="4dp"
                             android:layout_marginTop="8dp"
                             android:text="@string/config_clear_swl_qso"
                             app:layout_constraintEnd_toStartOf="@+id/clearCacheHelpButton"
                             app:layout_constraintStart_toEndOf="@+id/clearCacheText"
                             app:layout_constraintTop_toBottomOf="@+id/clearFollowButton" />
 
+                        <!-- [MODIFIED] width=0dp stretches button between constraints -->
                         <Button
                             android:id="@+id/clearLogCacheButton"
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:layout_marginEnd="4dp"
                             android:layout_marginTop="8dp"
                             android:text="@string/logs_cache"
                             android:textSize="12sp"
                             app:layout_constraintEnd_toStartOf="@+id/clearCacheHelpButton"
-                            app:layout_constraintHorizontal_bias="0.5"
                             app:layout_constraintStart_toEndOf="@+id/clearCacheText"
                             app:layout_constraintTop_toBottomOf="@+id/clearSWlQsoButton" />
 
+                        <!-- [MODIFIED] width=0dp stretches button between constraints -->
                         <Button
                             android:id="@+id/clearShareDataButton"
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:layout_marginEnd="4dp"
                             android:layout_marginTop="8dp"
                             android:layout_marginBottom="8dp"
                             android:text="@string/config_clear_share_data"
@@ -2455,35 +2526,9 @@
                             app:layout_constraintStart_toEndOf="@+id/clearCacheText"
                             app:layout_constraintTop_toBottomOf="@+id/clearLogCacheButton" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
-
-                    <!-- Advanced Settings Section placeholder -->
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/advancedSettingsLayout"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:background="@drawable/editor_layout_style"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/clearCacheLayout">
-
-                        <TextView
-                            android:id="@+id/advancedSettingsText"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:text="@string/advanced_settings"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </LinearLayout>
         </ScrollView>
-
         <!-- Scroll Down Indicator -->
         <ImageView
             android:id="@+id/configScrollDownImageView"

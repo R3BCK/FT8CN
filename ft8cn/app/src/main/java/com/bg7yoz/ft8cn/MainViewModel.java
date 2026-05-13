@@ -1881,4 +1881,23 @@ public class MainViewModel extends ViewModel {
         persistentOccupiedZonesAge = 0;
     }
     // =======================================
+
+    // ========================================================================
+    // [NEW] Secure config wrapper for UI convenience
+    // Delegates to DatabaseOpr.saveSensitiveConfig() for encryption
+    // ========================================================================
+    /**
+     * Save sensitive value using secure storage (if available).
+     * Wrapper for databaseOpr.saveSensitiveConfig() for UI convenience.
+     * @param key Config key name
+     * @param value Plain text value to store
+     */
+    public void saveSensitiveConfig(String key, String value) {
+        if (databaseOpr != null) {
+            databaseOpr.saveSensitiveConfig(key, value);
+        }
+    }
+    // ========================================================================
+    // [END NEW] Secure config wrapper
+    // ========================================================================
 }
