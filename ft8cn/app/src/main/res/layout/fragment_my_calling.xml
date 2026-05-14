@@ -13,6 +13,7 @@
         android:layout_height="match_parent"
         tools:context=".ui.MyCallingFragment">
 
+        <!-- Верхняя панель инструментов -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/mycall_tools_bar"
             android:layout_width="0dp"
@@ -26,36 +27,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-
-            <TextView
-                android:id="@+id/timerTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/bar_text_view_color"
-                android:textSize="12sp"
-
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/setTransmitImageButton"
-                app:layout_constraintStart_toStartOf="@+id/guideline6"
-                app:layout_constraintTop_toBottomOf="@+id/toCallsignTextView"
-                tools:text="123456" />
-
-            <!-- UTC Delay (между временем и кнопкой передачи) -->
-            <TextView
-                android:id="@+id/utcDelayTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"
-                android:text="--"
-                android:textColor="@color/bar_text_view_color"
-                android:textSize="12sp"
-                android:fontFamily="monospace"
-                app:layout_constraintBottom_toBottomOf="@+id/timerTextView"
-                app:layout_constraintEnd_toStartOf="@+id/setTransmitImageButton"
-                app:layout_constraintStart_toEndOf="@+id/timerTextView"
-                app:layout_constraintTop_toTopOf="@+id/timerTextView" />
-
+            <!-- [LEFT] Кнопка очистки списка -->
             <ImageButton
                 android:id="@+id/clearMycallListImageButton"
                 android:layout_width="wrap_content"
@@ -68,54 +40,101 @@
                 app:srcCompat="@drawable/clear_calling_list_image_48"
                 tools:ignore="TouchTargetSizeCheck" />
 
-            <TextView
-                android:id="@+id/transmittingSequentialTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/bar_text_view_color"
-                android:textSize="12sp"
-
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/guideline6"
-                app:layout_constraintStart_toEndOf="@+id/clearMycallListImageButton"
-                app:layout_constraintTop_toBottomOf="@+id/baseFrequencyTextView"
-                tools:text="TX seq:0"
-                tools:visibility="visible" />
-
+            <!-- [LEFT] Целевой позывной (верх) -->
             <TextView
                 android:id="@+id/toCallsignTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/bar_text_view_color"
                 android:textSize="12sp"
-                app:layout_constraintBottom_toTopOf="@+id/timerTextView"
+                app:layout_constraintBottom_toTopOf="@+id/transmittingSequentialTextView"
                 app:layout_constraintEnd_toStartOf="@+id/guideline6"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toEndOf="@+id/clearMycallListImageButton"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="BG7YOY" />
 
+            <!-- [LEFT] Последовательность передачи (низ) -->
+            <TextView
+                android:id="@+id/transmittingSequentialTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/bar_text_view_color"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/guideline6"
+                app:layout_constraintStart_toEndOf="@+id/clearMycallListImageButton"
+                app:layout_constraintTop_toBottomOf="@+id/toCallsignTextView"
+                tools:text="TX seq:0"
+                tools:visibility="visible" />
+
+            <!-- [GUIDE] Вертикальная направляющая 50% -->
             <androidx.constraintlayout.widget.Guideline
                 android:id="@+id/guideline6"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                app:layout_constraintGuide_percent="0.5" />
+                app:layout_constraintGuide_percent="0.60" />
 
+            <!-- [RIGHT-TOP] Смещение частоты (Freq) -->
             <TextView
                 android:id="@+id/baseFrequencyTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/bar_text_view_color"
                 android:textSize="12sp"
-
-                app:layout_constraintBottom_toTopOf="@+id/transmittingSequentialTextView"
-                app:layout_constraintEnd_toStartOf="@+id/setTransmitImageButton"
-                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintBottom_toTopOf="@+id/timerTextView"
+                app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="@+id/guideline6"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="Freq:2000Hz" />
 
+            <!-- [RIGHT-TOP] Текущая RF частота -->
+            <TextView
+                android:id="@+id/rfFrequencyTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/bar_text_view_color"
+                android:textSize="12sp"
+                android:fontFamily="monospace"
+                app:layout_constraintBottom_toTopOf="@+id/utcDelayTextView"
+                app:layout_constraintEnd_toStartOf="@+id/setTransmitImageButton"
+                android:layout_marginEnd="2dp"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toEndOf="@+id/baseFrequencyTextView"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="14.074 MHz" />
+
+            <!-- [RIGHT-BOTTOM] Время UTC -->
+            <TextView
+                android:id="@+id/timerTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/bar_text_view_color"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@+id/guideline6"
+                app:layout_constraintTop_toBottomOf="@+id/baseFrequencyTextView"
+                tools:text="18:50:31" />
+
+            <!-- [RIGHT-BOTTOM] Задержка UTC (Δt) -->
+            <TextView
+                android:id="@+id/utcDelayTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:text="--"
+                android:textColor="@color/bar_text_view_color"
+                android:textSize="12sp"
+                android:fontFamily="monospace"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/setTransmitImageButton"
+                app:layout_constraintStart_toEndOf="@+id/timerTextView"
+                app:layout_constraintTop_toBottomOf="@+id/rfFrequencyTextView"
+                tools:text="---" />
+
+            <!-- [RIGHT] Кнопка отправки/передачи -->
             <ImageButton
                 android:id="@+id/setTransmitImageButton"
                 android:layout_width="wrap_content"
@@ -127,9 +146,10 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@drawable/ic_baseline_cancel_schedule_send_off"
                 tools:ignore="DuplicateSpeakableTextCheck,ImageContrastCheck,TouchTargetSizeCheck" />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-
+        <!-- Нижняя панель управления передачей -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constraintLayout5"
             android:layout_width="0dp"
@@ -140,7 +160,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">
 
-
+            <!-- [BOTTOM] Спиннер порядка функций (скрыт по умолчанию) -->
             <Spinner
                 android:id="@+id/functionOrderSpinner"
                 android:layout_width="0dp"
@@ -162,6 +182,7 @@
                 tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck"
                 tools:listitem="@layout/function_order_spinner_item" />
 
+            <!-- [BOTTOM] Кнопка сброса в CQ -->
             <ImageButton
                 android:id="@+id/resetToCQImageView"
                 android:layout_width="48dp"
@@ -174,6 +195,7 @@
                 app:layout_constraintTop_toTopOf="parent"
                 tools:ignore="TouchTargetSizeCheck" />
 
+            <!-- [BOTTOM] Кнопка паузы передачи -->
             <ImageButton
                 android:id="@+id/pauseTransmittingImageButton"
                 android:layout_width="30dp"
@@ -186,6 +208,7 @@
                 app:srcCompat="@drawable/ic_baseline_pause_circle_outline_24"
                 tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
 
+            <!-- [BOTTOM] Поле свободного текста -->
             <EditText
                 android:id="@+id/transFreeTextEdit"
                 android:layout_width="0dp"
@@ -205,7 +228,7 @@
                 tools:ignore="TextContrastCheck" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- Header row: FIXED CONSTRAINT CHAIN -->
+        <!-- Заголовок списка декодированных сообщений -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constraintLayout"
             android:layout_width="match_parent"
@@ -217,7 +240,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/mycall_tools_bar">
 
-            <!-- Sequence (leftmost, fixed width) -->
+            <!-- [HEADER] Sequence -->
             <TextView
                 android:id="@+id/textView2"
                 android:layout_width="15dp"
@@ -229,7 +252,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <!-- dB (fixed position via guideline) -->
+            <!-- [HEADER] dB -->
             <TextView
                 android:id="@+id/textView4"
                 android:layout_width="wrap_content"
@@ -243,7 +266,7 @@
                 app:layout_constraintStart_toStartOf="@+id/guideline8"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <!-- dt (fixed position via guideline) -->
+            <!-- [HEADER] Δt -->
             <TextView
                 android:id="@+id/textView6"
                 android:layout_width="wrap_content"
@@ -256,7 +279,7 @@
                 app:layout_constraintTop_toTopOf="@+id/textView4"
                 app:layout_constraintVertical_bias="0.0" />
 
-            <!-- Freq (between dt and Message) -->
+            <!-- [HEADER] Freq -->
             <TextView
                 android:id="@+id/textView10"
                 android:layout_width="wrap_content"
@@ -268,7 +291,7 @@
                 app:layout_constraintStart_toStartOf="@+id/guideline10"
                 app:layout_constraintTop_toTopOf="@+id/textView6" />
 
-            <!-- Message (stretchable, between Freq and Azimuth) -->
+            <!-- [HEADER] Message -->
             <TextView
                 android:id="@+id/decoder_counter_textView"
                 android:layout_width="0dp"
@@ -284,7 +307,7 @@
                 app:layout_constraintStart_toStartOf="@+id/guideline3"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <!-- Bearing header Azimuth (fixed width, between Message and Distance) -->
+            <!-- [HEADER] Bearing -->
             <TextView
                 android:id="@+id/textViewAzimuth"
                 android:layout_width="30dp"
@@ -301,7 +324,7 @@
                 app:layout_constraintTop_toTopOf="@+id/decoder_counter_textView"
                 app:layout_constraintHorizontal_bias="0.5" />
 
-            <!-- Distance (fixed width, right-aligned, rightmost) -->
+            <!-- [HEADER] Distance -->
             <TextView
                 android:id="@+id/textView9"
                 android:layout_width="45dp"
@@ -316,7 +339,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <!-- Guidelines (unchanged) -->
+            <!-- [GUIDE] Message start -->
             <androidx.constraintlayout.widget.Guideline
                 android:id="@+id/guideline3"
                 android:layout_width="wrap_content"
@@ -324,6 +347,7 @@
                 android:orientation="vertical"
                 app:layout_constraintGuide_begin="105dp" />
 
+            <!-- [GUIDE] dB position -->
             <androidx.constraintlayout.widget.Guideline
                 android:id="@+id/guideline8"
                 android:layout_width="wrap_content"
@@ -331,6 +355,7 @@
                 android:orientation="vertical"
                 app:layout_constraintGuide_begin="30dp" />
 
+            <!-- [GUIDE] Δt position -->
             <androidx.constraintlayout.widget.Guideline
                 android:id="@+id/guideline10"
                 android:layout_width="wrap_content"
@@ -340,6 +365,7 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
+        <!-- [LIST] Список декодированных сообщений -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/transmitRecycleView"
             android:layout_width="0dp"
@@ -348,8 +374,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/constraintLayout" />
-
-
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

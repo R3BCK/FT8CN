@@ -196,12 +196,25 @@ public class MyCallingFragment extends Fragment {
         navHostFragment.getNavController().navigate(R.id.QRZ_Fragment, bundle);
     }
 
+    /**
+     * [NEW] Update RF frequency display in MHz
+     */
+    private void updateRfFrequencyDisplay() {
+        if (binding == null || binding.rfFrequencyTextView == null) return;
+        double freqMhz = GeneralVariables.band / 1_000_000.0;
+        String freqStr = String.format(Locale.US, "%.3f MHz", freqMhz);
+        binding.rfFrequencyTextView.setText(freqStr);
+    }
+
     @SuppressLint("NotifyDataSetChanged")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         mainViewModel = MainViewModel.getInstance(this);
         binding = FragmentMyCallingBinding.inflate(inflater, container, false);
+
+        // [NEW] Initialize RF frequency display
+        updateRfFrequencyDisplay();
 
         //show spectrum when landscape
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -262,6 +275,14 @@ public class MyCallingFragment extends Fragment {
             public void onChanged(Float aFloat) {
                 binding.baseFrequencyTextView.setText(String.format(
                         GeneralVariables.getStringFromResource(R.string.sound_frequency_is), aFloat));
+            }
+        });
+
+        // [NEW] Update RF frequency when band changes
+        GeneralVariables.mutableBandChange.observe(getViewLifecycleOwner(), new Observer<Integer>() {
+            @Override
+            public void onChanged(Integer bandIndex) {
+                updateRfFrequencyDisplay();
             }
         });
 

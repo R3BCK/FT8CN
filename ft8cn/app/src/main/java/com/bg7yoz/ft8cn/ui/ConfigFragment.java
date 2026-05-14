@@ -1135,6 +1135,10 @@ public class ConfigFragment extends Fragment {
                     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                         GeneralVariables.bandListIndex = i;
                         GeneralVariables.band = OperationBand.getBandFreq(i);
+
+                        // [NEW] Notify observers about band change
+                        GeneralVariables.mutableBandChange.postValue(i);
+
                         mainViewModel.databaseOpr.getAllQSLCallsigns();
                         writeConfig("bandFreq", String.valueOf(GeneralVariables.band));
                         if (GeneralVariables.controlMode == ControlMode.CAT

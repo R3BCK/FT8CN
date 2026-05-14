@@ -2418,6 +2418,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 if (name.equalsIgnoreCase("bandFreq")) {
                     GeneralVariables.band = result.equals("") ? 14074000 : Long.parseLong(result);
                     GeneralVariables.bandListIndex = OperationBand.getIndexByFreq(GeneralVariables.band);
+                    GeneralVariables.mutableBandChange.postValue(GeneralVariables.bandListIndex);
                 }
 
                 if (name.equalsIgnoreCase("msgMode")) {

@@ -539,6 +539,7 @@ public class ScanFragment extends Fragment {
                 try {
                     GeneralVariables.band = freq;
                     GeneralVariables.bandListIndex = OperationBand.getIndexByFreq(freq);
+                    GeneralVariables.mutableBandChange.postValue(GeneralVariables.bandListIndex);
                     mainViewModel.setOperationBand();
                     if (tvRfFreq != null) tvRfFreq.setText(formatFreq(freq));
                     updateRigStatus();

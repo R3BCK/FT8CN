@@ -123,6 +123,13 @@ public class MainActivity extends AppCompatActivity {
                     , Manifest.permission.WAKE_LOCK
                     , Manifest.permission.ACCESS_FINE_LOCATION};
         }
+        // Запрос разрешений при старте
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1001);
+            }
+        }
 
         checkPermission();
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN
@@ -130,6 +137,11 @@ public class MainActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
                 , WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         super.onCreate(savedInstanceState);
+
+        // [TEMP] Force start foreground service for testing
+        com.bg7yoz.ft8cn.service.RecordingForegroundService.start(this);
+        Log.d("MainActivity", "Foreground service started from MainActivity");
+
         GeneralVariables.getInstance().setMainContext(getApplicationContext());
 
         GeneralVariables.isTraditionalChinese =

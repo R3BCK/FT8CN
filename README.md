@@ -11,6 +11,12 @@ This repository is a fork of the original [N0BOY/FT8CN](https://github.com/N0BOY
 9. Auto TUNE on frequency change for ICOM transceivers is added
 10. The Connect button and rig status have been added to the Settings window.
 11. CQ button behavior repaired (If no messages type 2 to 6 then CQ is generated)
+12. Log export and import is added
+13. Passwords are now stored in secured repository
+14. Busy windows are added in spectrum view
+15. Azimuth bearing to station is added
+16. SCAN mode is added but not working yet
+17. Some error fixing and perfomance improvements
 
 
 FT8CN — an app that runs FT8 natively on Android

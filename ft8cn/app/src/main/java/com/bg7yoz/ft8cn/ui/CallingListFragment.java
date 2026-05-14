@@ -21,6 +21,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -64,6 +65,10 @@ public class CallingListFragment extends Fragment {
     private static final int MENU_STATE_4 = 12;
 
     private FragmentCallingListBinding binding;
+
+    // [NEW] TextView for RF frequency display
+    private TextView rfFrequencyTextView;
+
     private RecyclerView callListRecyclerView;
     private CallingListAdapter callingListAdapter;
     private MainViewModel mainViewModel;
@@ -76,6 +81,11 @@ public class CallingListFragment extends Fragment {
         // Inflate the layout for this fragment
         mainViewModel = MainViewModel.getInstance(this);
         binding = FragmentCallingListBinding.inflate(inflater, container, false);
+
+        // [NEW] Initialize RF frequency TextView
+        rfFrequencyTextView = binding.getRoot().findViewById(R.id.rfFrequencyTextView);
+        updateRfFrequencyDisplay();
+
         callListRecyclerView = binding.callingListRecyclerView;
 
         callingListAdapter = new CallingListAdapter(this.getContext(), mainViewModel
@@ -213,6 +223,14 @@ public class CallingListFragment extends Fragment {
             }
         });
 
+        // [NEW] Update RF frequency when band changes
+        GeneralVariables.mutableBandChange.observe(getViewLifecycleOwner(), new Observer<Integer>() {
+            @Override
+            public void onChanged(Integer bandIndex) {
+                updateRfFrequencyDisplay();
+            }
+        });
+
         // Toggle between simple and standard mode
         binding.callingListToolsBar.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -230,6 +248,16 @@ public class CallingListFragment extends Fragment {
         });
 
         return binding.getRoot();
+    }
+
+    /**
+     * [NEW] Update RF frequency display in MHz
+     */
+    private void updateRfFrequencyDisplay() {
+        if (rfFrequencyTextView == null) return;
+        double freqMhz = GeneralVariables.band / 1_000_000.0;
+        String freqStr = String.format(java.util.Locale.US, "%.3f MHz", freqMhz);
+        rfFrequencyTextView.setText(freqStr);
     }
 
     /**

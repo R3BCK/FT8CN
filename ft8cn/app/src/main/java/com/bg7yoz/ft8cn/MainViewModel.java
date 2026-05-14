@@ -6,7 +6,7 @@ package com.bg7yoz.ft8cn;
  * @date 2022.8.22
  *
  * ============================================================================
- * 🤖 INSTRUCTION FOR AI CODE ASSISTANTS (Qwen, Copilot, Claude, etc.):
+ *  INSTRUCTION FOR AI CODE ASSISTANTS (Qwen, Copilot, Claude, etc.):
  * ============================================================================
  * When modifying this file, PLEASE PRESERVE ALL EXISTING COMMENTS, especially:
  * 1. Comments marked with [NEW], [FIX], [CHANGED], [STATE MACHINE], etc.
@@ -43,6 +43,8 @@ import android.os.BatteryManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.os.Build;              // [NEW] Для проверки версии Android
+import android.view.WindowManager;    // [NEW] Для управления флагами окна
 
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -117,6 +119,7 @@ import com.bg7yoz.ft8cn.ui.ToastMessage;
 import com.bg7yoz.ft8cn.wave.HamRecorder;
 import com.bg7yoz.ft8cn.wave.OnGetVoiceDataDone;
 import com.bg7yoz.ft8cn.x6100.X6100Radio;
+import com.bg7yoz.ft8cn.service.RecordingForegroundService;
 
 import java.io.File;
 import java.io.IOException;
@@ -366,6 +369,11 @@ public class MainViewModel extends ViewModel {
 
         // === Initialize HamRecorder FIRST ===
         hamRecorder = new HamRecorder(null);
+        // [NEW] Start foreground service to keep recording alive in background
+        // Must be called AFTER hamRecorder.startRecord() for reliable audio capture
+        RecordingForegroundService.start(GeneralVariables.getMainContext());
+        Log.d(TAG, "Foreground recording service started");
+
         hamRecorder.startRecord();
 
         mutableIsFlexRadio.setValue(false);
@@ -638,10 +646,41 @@ public class MainViewModel extends ViewModel {
         startTransmissionWatchdog();
         // ===================================
     }
+    /**
+     * [NEW] Check if network rig is reachable (ping test)
+     * @return true if rig responds, false otherwise
+     */
+    private boolean isNetworkRigReachable() {
+        if (GeneralVariables.connectMode != ConnectMode.NETWORK) return true;
 
+        String rigIp = GeneralVariables.getNetworkRigIp();
+        int rigPort = GeneralVariables.getNetworkRigPort();
+
+        if (rigIp == null || rigIp.isEmpty() || rigPort <= 0) {
+            Log.w(TAG, "Network rig: IP/port not configured");
+            return false;
+        }
+
+        try {
+            // Quick connect test (1 second timeout)
+            java.net.Socket socket = new java.net.Socket();
+            socket.connect(new java.net.InetSocketAddress(rigIp, rigPort), 1000);
+            socket.close();
+            return true;
+        } catch (Exception e) {
+            Log.w(TAG, "Network rig not reachable: " + rigIp + ":" + rigPort);
+            return false;
+        }
+    }
     @Override
     protected void onCleared() {
         super.onCleared();
+
+        // [NEW] Stop foreground service before stopping recorder
+        // Ensures clean shutdown of background audio capture
+        RecordingForegroundService.stop(GeneralVariables.getMainContext());
+        Log.d(TAG, "Foreground recording service stopped");
+
         // Stop watchdog to prevent memory leaks
         if (transmissionWatchdogHandler != null && transmissionWatchdogRunnable != null) {
             transmissionWatchdogHandler.removeCallbacks(transmissionWatchdogRunnable);

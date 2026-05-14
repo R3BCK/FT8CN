@@ -26,33 +26,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <TextView
-                android:id="@+id/timerTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/bar_text_view_color"
-                android:textSize="12sp"
-
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/timerImageButton"
-                app:layout_constraintHorizontal_bias="0.5"
-                app:layout_constraintStart_toStartOf="@+id/guideline6"
-                app:layout_constraintTop_toBottomOf="@+id/maidenheadTextView"
-                tools:text="123456" />
-
-            <ImageButton
-                android:id="@+id/timerImageButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/imagebutton_style"
-                android:contentDescription="@string/decode"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_baseline_mic_off_48"
-                tools:ignore="ImageContrastCheck,TouchTargetSizeCheck" />
-
-
             <ImageButton
                 android:id="@+id/clearCallingListImageButton"
                 android:layout_width="wrap_content"
@@ -64,19 +37,6 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@drawable/clear_calling_list_image_48"
                 tools:ignore="TouchTargetSizeCheck" />
-
-            <TextView
-                android:id="@+id/maidenheadTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/bar_text_view_color"
-                android:textSize="12sp"
-                app:layout_constraintBottom_toTopOf="@+id/timerTextView"
-                app:layout_constraintEnd_toStartOf="@+id/timerImageButton"
-                app:layout_constraintHorizontal_bias="0.5"
-                app:layout_constraintStart_toStartOf="@+id/guideline6"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="我的位置" />
 
             <TextView
                 android:id="@+id/timeOffsetTextView"
@@ -96,7 +56,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                app:layout_constraintGuide_percent="0.5" />
+                app:layout_constraintGuide_percent="0.6" />
 
             <TextView
                 android:id="@+id/isDecodingTextView"
@@ -109,6 +69,57 @@
                 app:layout_constraintStart_toEndOf="@+id/clearCallingListImageButton"
                 app:layout_constraintTop_toBottomOf="@+id/timeOffsetTextView"
                 tools:text="解码用时1.4秒" />
+
+            <TextView
+                android:id="@+id/maidenheadTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/bar_text_view_color"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toTopOf="@+id/timerTextView"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@+id/guideline6"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="Grid: KO85" />
+
+            <TextView
+                android:id="@+id/timerTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/bar_text_view_color"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@+id/guideline6"
+                app:layout_constraintTop_toBottomOf="@+id/maidenheadTextView"
+                tools:text="18:13:30" />
+
+            <!-- [NEW] Current RF Frequency Display -->
+            <TextView
+                android:id="@+id/rfFrequencyTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:text="-- MHz"
+                android:textColor="@color/bar_text_view_color"
+                android:textSize="12sp"
+                android:fontFamily="monospace"
+                app:layout_constraintBottom_toTopOf="@+id/timerTextView"
+                app:layout_constraintEnd_toStartOf="@+id/timerImageButton"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageButton
+                android:id="@+id/timerImageButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/imagebutton_style"
+                android:contentDescription="@string/decode"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_baseline_mic_off_48"
+                tools:ignore="ImageContrastCheck,TouchTargetSizeCheck" />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.recyclerview.widget.RecyclerView
