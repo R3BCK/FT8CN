@@ -69,6 +69,9 @@ import com.bg7yoz.ft8cn.database.ControlMode;
 import com.bg7yoz.ft8cn.database.DatabaseOpr;
 import com.bg7yoz.ft8cn.database.OnAfterQueryFollowCallsigns;
 import com.bg7yoz.ft8cn.database.OperationBand;
+
+import com.bg7yoz.ft8cn.database.SecureStorage;
+
 import com.bg7yoz.ft8cn.decisions.Criterion;
 import com.bg7yoz.ft8cn.decisions.DecisionContext;
 import com.bg7yoz.ft8cn.decisions.DecisionEngine;

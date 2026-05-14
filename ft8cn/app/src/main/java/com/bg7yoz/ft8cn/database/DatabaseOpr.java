@@ -30,6 +30,7 @@ import com.bg7yoz.ft8cn.log.QSLRecord;
 import com.bg7yoz.ft8cn.log.QSLRecordStr;
 import com.bg7yoz.ft8cn.rigs.BaseRigOperation;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
+import com.bg7yoz.ft8cn.database.SecureStorage;
 
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
@@ -945,7 +946,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
 
     // Get all configuration parameters
     public void getAllConfigParameter(OnAfterQueryConfig onAfterQueryConfig) {
-        new GetAllConfigParameter(db, onAfterQueryConfig).execute();
+        new GetAllConfigParameter(db, secureStorage, onAfterQueryConfig).execute();
     }
 
     /**
@@ -2336,34 +2337,22 @@ public class DatabaseOpr extends SQLiteOpenHelper {
 
     static class GetAllConfigParameter extends AsyncTask<Void, Void, Void> {
         private final SQLiteDatabase db;
+        private final SecureStorage secureStorage;
         private OnAfterQueryConfig onAfterQueryConfig;
 
-        public GetAllConfigParameter(SQLiteDatabase db, OnAfterQueryConfig onAfterQueryConfig) {
+        public GetAllConfigParameter(SQLiteDatabase db, SecureStorage secureStorage, OnAfterQueryConfig onAfterQueryConfig) {
             this.db = db;
+            this.secureStorage = secureStorage;
             this.onAfterQueryConfig = onAfterQueryConfig;
-        }
-
-        @SuppressLint("Range")
-        private String getConfigByKey(String KeyName) {
-            String querySQL = "select keyName,Value from config where KeyName =?";
-            Cursor cursor = db.rawQuery(querySQL, new String[]{KeyName});
-            String result = "";
-            if (cursor.moveToFirst()) {
-                result = cursor.getString(cursor.getColumnIndex("Value"));
-            }
-            cursor.close();
-            return result;
         }
 
         @SuppressLint("Range")
         @Override
         protected Void doInBackground(Void... voids) {
-
             String querySQL = "select keyName,Value from config ";
             Cursor cursor = db.rawQuery(querySQL, null);
             while (cursor.moveToNext()) {
                 @SuppressLint("Range")
-                //String result = "";
                 String result = cursor.getString(cursor.getColumnIndex("Value"));
                 String name = cursor.getString(cursor.getColumnIndex("KeyName"));
 
@@ -2395,20 +2384,18 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     } catch (Exception e) {
                         Log.e(TAG, "doInBackground: " + e.getMessage());
                     }
-                    //GeneralVariables.setBaseFrequency(result.equals("") ? 1000 : Float.parseFloat(result));
                     GeneralVariables.setBaseFrequency(freq);
                 }
                 if (name.equalsIgnoreCase("synFreq")) {
                     GeneralVariables.synFrequency = !(result.equals("") || result.equals("0"));
                 }
                 if (name.equalsIgnoreCase("transDelay")) {
-                    if (result.matches("^\\d{1,4}$")) {// Regular expression, 1-4 digit number
+                    if (result.matches("^\\d{1,4}$")) {
                         GeneralVariables.transmitDelay = Integer.parseInt(result);
                     } else {
                         GeneralVariables.transmitDelay = FT8Common.FT8_TRANSMIT_DELAY;
                     }
                 }
-
                 if (name.equalsIgnoreCase("civ")) {
                     GeneralVariables.civAddress = result.equals("") ? 0xa4 : Integer.parseInt(result, 16);
                 }
@@ -2420,97 +2407,96 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     GeneralVariables.bandListIndex = OperationBand.getIndexByFreq(GeneralVariables.band);
                     GeneralVariables.mutableBandChange.postValue(GeneralVariables.bandListIndex);
                 }
-
                 if (name.equalsIgnoreCase("msgMode")) {
-                    GeneralVariables.simpleCallItemMode = result.equals("1") ;
+                    GeneralVariables.simpleCallItemMode = result.equals("1");
                 }
-
                 if (name.equalsIgnoreCase("ctrMode")) {
                     GeneralVariables.controlMode = result.equals("") ? ControlMode.VOX : Integer.parseInt(result);
                 }
-                if (name.equalsIgnoreCase("model")) {// Radio model
+                if (name.equalsIgnoreCase("model")) {
                     GeneralVariables.modelNo = result.equals("") ? 0 : Integer.parseInt(result);
                 }
-                if (name.equalsIgnoreCase("instruction")) {// Instruction set
+                if (name.equalsIgnoreCase("instruction")) {
                     GeneralVariables.instructionSet = result.equals("") ? 0 : Integer.parseInt(result);
                 }
-                if (name.equalsIgnoreCase("launchSupervision")) {// Transmit supervision
+                if (name.equalsIgnoreCase("launchSupervision")) {
                     GeneralVariables.launchSupervision = result.equals("") ?
                             GeneralVariables.DEFAULT_LAUNCH_SUPERVISION : Integer.parseInt(result);
                 }
-                if (name.equalsIgnoreCase("noReplyLimit")) {//
+                if (name.equalsIgnoreCase("noReplyLimit")) {
                     GeneralVariables.noReplyLimit = result.equals("") ? 0 : Integer.parseInt(result);
                 }
-                if (name.equalsIgnoreCase("autoFollowCQ")) {// Auto-follow CQ
+                if (name.equalsIgnoreCase("autoFollowCQ")) {
                     GeneralVariables.autoFollowCQ = (result.equals("") || result.equals("1"));
                 }
-                if (name.equalsIgnoreCase("autoCallFollow")) {// Auto-call followed
+                if (name.equalsIgnoreCase("autoCallFollow")) {
                     GeneralVariables.autoCallFollow = (result.equals("") || result.equals("1"));
                 }
-
-                // === TUNE on Freq Change Setting ===
                 if (name.equalsIgnoreCase("sendTuneOnFreqChange")) {
                     GeneralVariables.sendTuneOnFreqChange = result.equals("1");
                 }
-                // === Clear Call Hist on Freq Change Setting ===
                 if (name.equalsIgnoreCase("clearCallHistOnFreqChange")) {
                     GeneralVariables.clearCallHistOnFreqChange = result.equals("1");
                 }
-                // ======================================
-
-                if (name.equalsIgnoreCase("pttDelay")) {// PTT delay setting
+                if (name.equalsIgnoreCase("pttDelay")) {
                     GeneralVariables.pttDelay = result.equals("") ? 100 : Integer.parseInt(result);
                 }
-                if (name.equalsIgnoreCase("icomIp")) {// Icom IP address
+                if (name.equalsIgnoreCase("icomIp")) {
                     GeneralVariables.icomIp = result.equals("") ? "255.255.255.255" : result;
                 }
-                if (name.equalsIgnoreCase("icomPort")) {// Icom port
+                if (name.equalsIgnoreCase("icomPort")) {
                     GeneralVariables.icomUdpPort = result.equals("") ? 50001 : Integer.parseInt(result);
                 }
-                if (name.equalsIgnoreCase("icomUserName")) {// Icom username
+                if (name.equalsIgnoreCase("icomUserName")) {
                     GeneralVariables.icomUserName = result.equals("") ? "ic705" : result;
                 }
-                if (name.equalsIgnoreCase("icomPassword")) {// Icom password
-                    GeneralVariables.icomPassword = result;
+
+                // === [FIX] ИСПРАВЛЕННЫЙ БЛОК ПАРОЛЯ ===
+                if (name.equalsIgnoreCase("icomPassword")) {
+                    if (secureStorage != null && secureStorage.isAvailable()) {
+                        GeneralVariables.icomPassword = secureStorage.get("icom_password", result);
+                    } else {
+                        GeneralVariables.icomPassword = result; // Fallback для API < 23
+                    }
                 }
-                if (name.equalsIgnoreCase("volumeValue")) {// Output volume
+                // ======================================
+
+                if (name.equalsIgnoreCase("volumeValue")) {
                     GeneralVariables.volumePercent = result.equals("") ? 1.0f : Float.parseFloat(result) / 100f;
                 }
-                if (name.equalsIgnoreCase("excludedCallsigns")) {// Excluded callsigns
+                if (name.equalsIgnoreCase("excludedCallsigns")) {
                     GeneralVariables.addExcludedCallsigns(result);
                 }
-                if (name.equalsIgnoreCase("flexMaxRfPower")) {// Instruction set
+                if (name.equalsIgnoreCase("flexMaxRfPower")) {
                     GeneralVariables.flexMaxRfPower = result.equals("") ? 10 : Integer.parseInt(result);
                 }
-                if (name.equalsIgnoreCase("flexMaxTunePower")) {// Instruction set
+                if (name.equalsIgnoreCase("flexMaxTunePower")) {
                     GeneralVariables.flexMaxTunePower = result.equals("") ? 10 : Integer.parseInt(result);
                 }
-                if (name.equalsIgnoreCase("saveSWL")) {// Save decoded info
+                if (name.equalsIgnoreCase("saveSWL")) {
                     GeneralVariables.saveSWLMessage = result.equals("1");
                 }
-                if (name.equalsIgnoreCase("saveSWLQSO")) {// Save decoded info
+                if (name.equalsIgnoreCase("saveSWLQSO")) {
                     GeneralVariables.saveSWL_QSO = result.equals("1");
                 }
-                if (name.equalsIgnoreCase("audioBits")) {// Whether output audio is 32-bit float
+                if (name.equalsIgnoreCase("audioBits")) {
                     GeneralVariables.audioOutput32Bit = result.equals("1");
                 }
-                if (name.equalsIgnoreCase("audioRate")) {// Output audio sample rate
-                    GeneralVariables.audioSampleRate =Integer.parseInt( result);
+                if (name.equalsIgnoreCase("audioRate")) {
+                    GeneralVariables.audioSampleRate = Integer.parseInt(result);
                 }
-                if (name.equalsIgnoreCase("deepMode")) {// Whether deep decode mode
-                    GeneralVariables.deepDecodeMode =result.equals("1");
+                if (name.equalsIgnoreCase("deepMode")) {
+                    GeneralVariables.deepDecodeMode = result.equals("1");
                 }
-                if (name.equalsIgnoreCase("dataBits")) {// Serial data bits
-                    GeneralVariables.serialDataBits =Integer.parseInt(result);
+                if (name.equalsIgnoreCase("dataBits")) {
+                    GeneralVariables.serialDataBits = Integer.parseInt(result);
                 }
-                if (name.equalsIgnoreCase("stopBits")) {// Serial stop bits
-                    GeneralVariables.serialStopBits =Integer.parseInt(result);
+                if (name.equalsIgnoreCase("stopBits")) {
+                    GeneralVariables.serialStopBits = Integer.parseInt(result);
                 }
-                if (name.equalsIgnoreCase("parityBits")) {// Serial parity bits
-                    GeneralVariables.serialParity =Integer.parseInt(result);
+                if (name.equalsIgnoreCase("parityBits")) {
+                    GeneralVariables.serialParity = Integer.parseInt(result);
                 }
-
-                // Cloudlogs
                 if (name.equalsIgnoreCase("enableCloudlog")) {
                     GeneralVariables.enableCloudlog = result.equals("1");
                 }
@@ -2523,37 +2509,27 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 if (name.equalsIgnoreCase("cloudlogStationID")) {
                     GeneralVariables.cloudlogStationID = result;
                 }
-
-                // QRZ
                 if (name.equalsIgnoreCase("enableQRZ")) {
                     GeneralVariables.enableQRZ = result.equals("1");
                 }
                 if (name.equalsIgnoreCase("qrzApiKey")) {
                     GeneralVariables.qrzApiKey = result;
                 }
-
                 if (name.equalsIgnoreCase("swrSwitch")) {
                     GeneralVariables.swr_switch_on = result.equals("1");
                 }
                 if (name.equalsIgnoreCase("alcSwitch")) {
                     GeneralVariables.alc_switch_on = result.equals("1");
                 }
-
-                // [NEW] Load acceptDxCalls setting
                 if (name.equalsIgnoreCase("acceptDxCalls")) {
                     GeneralVariables.acceptDxCalls = result.equals("1");
                 }
-
             }
-
             cursor.close();
-
-            GetAllQSLCallsign.get(db);// Get QSO'd callsigns
-
+            GetAllQSLCallsign.get(db);
             if (onAfterQueryConfig != null) {
                 onAfterQueryConfig.doOnAfterQueryConfig(null, null);
             }
-
             return null;
         }
     }

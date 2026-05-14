@@ -28,6 +28,7 @@ import com.bg7yoz.ft8cn.R;
 import com.bg7yoz.ft8cn.icom.IComWifiRig;
 import com.bg7yoz.ft8cn.icom.XieGuWifiRig;
 import com.bg7yoz.ft8cn.rigs.InstructionSet;
+// [REMOVED] SecureStorage is private inner class in DatabaseOpr - cannot import directly
 
 public class LoginIcomRadioDialog extends Dialog {
     private static final String TAG = "LoginIcomRadioDialog";
@@ -72,17 +73,17 @@ public class LoginIcomRadioDialog extends Dialog {
                             GeneralVariables.getStringFromResource(R.string.connect_icom_ip)
                             , inputIcomAddressEdit.getText()));
                     mainViewModel.connectWifiRig(new IComWifiRig(GeneralVariables.icomIp
-                                    , GeneralVariables.icomUdpPort
-                                    , GeneralVariables.icomUserName
-                                    , GeneralVariables.icomPassword));
+                            , GeneralVariables.icomUdpPort
+                            , GeneralVariables.icomUserName
+                            , GeneralVariables.icomPassword));
                 } else if (GeneralVariables.instructionSet == InstructionSet.XIEGU_6100) {//协谷x6100
                     ToastMessage.show(String.format(
                             GeneralVariables.getStringFromResource(R.string.connect_xiegu_ip)
                             , inputIcomAddressEdit.getText()));
                     mainViewModel.connectWifiRig(new XieGuWifiRig(GeneralVariables.icomIp
-                                    , GeneralVariables.icomUdpPort
-                                    , GeneralVariables.icomUserName
-                                    , GeneralVariables.icomPassword));
+                            , GeneralVariables.icomUdpPort
+                            , GeneralVariables.icomUserName
+                            , GeneralVariables.icomPassword));
                 }
                 dismiss();
             }
@@ -100,11 +101,22 @@ public class LoginIcomRadioDialog extends Dialog {
 
             }
 
-            @Override
+            /*@Override
             public void afterTextChanged(Editable editable) {
                 checkInput();
                 GeneralVariables.icomIp = inputIcomAddressEdit.getText().toString().trim();
                 writeConfig("icomIp", inputIcomAddressEdit.getText().toString().trim());
+            }*/
+            @Override
+            public void afterTextChanged(Editable editable) {
+                checkInput();
+                String password = inputIcomPasswordEdit.getText().toString();
+
+                // Сохраняем в SecureStorage (ключ должен совпадать с migrateSensitiveConfigs)
+                mainViewModel.databaseOpr.saveSensitiveConfig("icom_password", password);
+
+                // Кэшируем в память
+                GeneralVariables.icomPassword = password;
             }
         });
 
@@ -160,8 +172,14 @@ public class LoginIcomRadioDialog extends Dialog {
             @Override
             public void afterTextChanged(Editable editable) {
                 checkInput();
-                writeConfig("icomPassword", inputIcomPasswordEdit.getText().toString());
-                GeneralVariables.icomPassword = inputIcomPasswordEdit.getText().toString();
+                String password = inputIcomPasswordEdit.getText().toString();
+
+                // [SECURITY] Save to encrypted storage via public wrapper method
+                // Key must match the one in DatabaseOpr.migrateSensitiveConfigs(): "icom_password"
+                mainViewModel.databaseOpr.saveSensitiveConfig("icom_password", password);
+
+                // Keep in memory for immediate use
+                GeneralVariables.icomPassword = password;
             }
         });
 
