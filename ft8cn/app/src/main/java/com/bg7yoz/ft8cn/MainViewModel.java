@@ -1424,6 +1424,8 @@ public class MainViewModel extends ViewModel {
      * Set the operation band on the connected rig.
      */
     public void setOperationBand() {
+        clearTransmittingMessage();     // Очистить очередь передачи
+        ft8TransmitSignal.resetToCQ();  // Сбросить CQ в состояние 6
         Log.d(TAG, "=== setOperationBand DEBUG ===");
         Log.d(TAG, "controlMode=" + GeneralVariables.controlMode);
         Log.d(TAG, "connectMode=" + GeneralVariables.connectMode);
