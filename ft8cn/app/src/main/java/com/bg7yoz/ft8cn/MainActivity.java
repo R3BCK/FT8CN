@@ -782,22 +782,38 @@ public class MainActivity extends AppCompatActivity {
         if (navController.getGraph().getStartDestination() == navController.getCurrentDestination().getId()) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this)
                     .setMessage(getString(R.string.exit_confirmation))
-                    .setPositiveButton(getString(R.string.exit)
-                            , new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    if (mainViewModel.ft8TransmitSignal.isActivated()) {
-                                        mainViewModel.ft8TransmitSignal.setActivated(false);
-                                    }
-                                    closeThisApp();
-                                }
-                            }).setNegativeButton(getString(R.string.cancel)
-                            , new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    dialogInterface.dismiss();
-                                }
-                            });
+                    .setPositiveButton(getString(R.string.exit), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            // 1. Останавливаем передачу
+                            if (mainViewModel.ft8TransmitSignal.isActivated()) {
+                                mainViewModel.ft8TransmitSignal.setActivated(false);
+                            }
+
+                            // 2. Полная остановка аудио-захвата
+                            if (mainViewModel.hamRecorder != null) {
+                                mainViewModel.hamRecorder.stopRecord();
+                            }
+
+                            // 3. Останавливаем фоновый сервис записи
+                            try {
+                                com.bg7yoz.ft8cn.service.RecordingForegroundService.stop(MainActivity.this);
+                            } catch (Exception e) {
+                                // Игнорируем ошибки остановки сервиса
+                            }
+
+                            // 4. Сбрасываем UI-флаги
+                            mainViewModel.mutableIsRecording.postValue(false);
+                            mainViewModel.mutableHamRecordIsRunning.postValue(false);
+
+                            closeThisApp();
+                        }
+                    }).setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            dialogInterface.dismiss();
+                        }
+                                    });
             builder.create().show();
 
         } else {

@@ -46,6 +46,55 @@ public class DecisionEngine {
     }
 
     /**
+     * [STATE MACHINE] Centralized override lifecycle management.
+     * Called at the beginning of every decision cycle.
+     * Clears override when retries exhausted, target cleared, or target becomes invalid.
+     *
+     * NOTE: Protocol step completion is handled by MainViewModel state transitions.
+     * This method focuses on breaking deadlocks (max retries, ghost targets).
+     */
+    private boolean evaluateOverrideLifecycle(DecisionContext ctx) {
+        if (!ctx.userOverrideActive) return false;
+
+        boolean shouldClear = false;
+        String reason = "";
+
+        // 1. Max retries reached (primary signal that dialogue failed)
+        if (GeneralVariables.noReplyLimit > 0 && ctx.noReplyCount >= GeneralVariables.noReplyLimit) {
+            shouldClear = true;
+            reason = "Max retries reached (" + ctx.noReplyCount + ")";
+        }
+        // 2. Target callsign cleared externally
+        else if (ctx.currentTarget == null || ctx.currentTarget.isEmpty()) {
+            shouldClear = true;
+            reason = "Target cleared";
+        }
+        // 3. [GHOST TARGET] Target disappeared from visible stations
+        else if (ctx.currentTarget != null && !ctx.currentTarget.isEmpty() && ctx.visibleStations != null) {
+            boolean targetVisible = false;
+            for (DatabaseOpr.StationRecord s : ctx.visibleStations) {
+                if (s.callsign.equals(ctx.currentTarget)) {
+                    targetVisible = true;
+                    break;
+                }
+            }
+            // If target gone AND we already tried calling it (noReplyCount > 0) → abort
+            if (!targetVisible && ctx.noReplyCount > 0) {
+                shouldClear = true;
+                reason = "Target disappeared from waterfall";
+            }
+        }
+
+        if (shouldClear) {
+            // Note: We do NOT modify ctx here because DecisionContext is a snapshot.
+            // We return true, and the caller (MainViewModel) will reset the actual StationContext.
+            Log.d(TAG, "[OVERRIDE] Auto-clear conditions met: " + reason);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Главный метод оценки: принимает контекст, список декодированных сообщений и доступ к БД,
      * возвращает действие для исполнения.
      *
@@ -70,7 +119,15 @@ public class DecisionEngine {
             return StationAction.txOwnCQ();
         }
 
-        // [P1] Ручной выбор пользователя
+        // [STATE MACHINE] Evaluate override state FIRST
+        boolean overrideShouldClear = evaluateOverrideLifecycle(ctx);
+
+        // If override should be cleared, return ABORT so MainViewModel can reset the real context
+        if (overrideShouldClear) {
+            return StationAction.abort("Override cleared by state machine");
+        }
+
+        // [P1] Ручной выбор пользователя (после проверки lifecycle)
         if (ctx.userOverrideActive && ctx.currentTarget != null && !ctx.currentTarget.isEmpty()) {
             Log.d(TAG, "[DECISION] userOverrideActive=true → TRANSMIT to " + ctx.currentTarget);
             Ft8Message msg = findMessageByCallsign(messages, ctx.currentTarget);

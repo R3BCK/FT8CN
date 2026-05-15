@@ -70,7 +70,7 @@ import com.bg7yoz.ft8cn.database.DatabaseOpr;
 import com.bg7yoz.ft8cn.database.OnAfterQueryFollowCallsigns;
 import com.bg7yoz.ft8cn.database.OperationBand;
 
-import com.bg7yoz.ft8cn.database.SecureStorage;
+//import com.bg7yoz.ft8cn.database.SecureStorage;
 
 import com.bg7yoz.ft8cn.decisions.Criterion;
 import com.bg7yoz.ft8cn.decisions.DecisionContext;
@@ -250,6 +250,7 @@ public class MainViewModel extends ViewModel {
             step = StationState.DialogueStep.IDLE;
             currentTarget = "";
             noReplyCount = 0;
+            userOverrideActive = false; // [FIX] Clear override flag
             Log.d(TAG, "State: resetToSeeking()");
         }
 
