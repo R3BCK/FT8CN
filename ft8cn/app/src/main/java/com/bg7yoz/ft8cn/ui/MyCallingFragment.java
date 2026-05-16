@@ -23,6 +23,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -62,16 +63,16 @@ public class MyCallingFragment extends Fragment {
 
     static {
         try {
-            // Пытаемся загрузить библиотеку в зависимости от настройки
+            // Attempt to load library based on setting
             boolean dxMode = com.bg7yoz.ft8cn.GeneralVariables.acceptDxCalls;
             String libName = dxMode ? "ft8cn_dx" : "ft8cn_std";
             System.loadLibrary(libName);
         } catch (UnsatisfiedLinkError e) {
-            // Fallback: пробуем загрузить стандартную
+            // Fallback: try to load standard
             try {
                 System.loadLibrary("ft8cn_std");
             } catch (UnsatisfiedLinkError e2) {
-                // Если не удалось, пробуем старое имя для совместимости
+                // If failed, try old name for compatibility
                 try {
                     System.loadLibrary("ft8cn");
                 } catch (UnsatisfiedLinkError e3) {
@@ -90,16 +91,19 @@ public class MyCallingFragment extends Fragment {
     //@RequiresApi(api = Build.VERSION_CODES.N)
     private void doCallNow(Ft8Message message) {
         mainViewModel.addFollowCallsign(message.getCallsignFrom());
-        if (!mainViewModel.ft8TransmitSignal.isActivated()) {
-            mainViewModel.ft8TransmitSignal.setActivated(true);
-            GeneralVariables.transmitMessages.add(message);//add message to follow list
-        }
-        //call initiator
-        mainViewModel.ft8TransmitSignal.setTransmit(message.getFromCallTransmitCallsign()
-                , 1, message.extraInfo);
-        mainViewModel.ft8TransmitSignal.transmitNow();
+        GeneralVariables.transmitMessages.add(message);
 
-        GeneralVariables.resetLaunchSupervision();//reset auto supervision
+        // [FIX] Use new method that updates state machine
+        mainViewModel.manualCallStation(
+                message.getCallsignFrom(),
+                message.i3,
+                message.n3,
+                message.extraInfo,
+                (long) message.freq_hz,
+                message.snr
+        );
+
+        GeneralVariables.resetLaunchSupervision();
     }
 
 
@@ -167,7 +171,15 @@ public class MyCallingFragment extends Fragment {
             case 8://query from log
                 navigateToLogFragment(ft8Message.getCallsignFrom());
                 break;
+            case 9: // [NEW] Call TARGET MYCALL SWR
+                Log.d(TAG, "Call SWR to: " + ft8Message.getCallsignTo());
+                mainViewModel.sendCustomTransmission(ft8Message.getCallsignTo(), "SWR");
+                break;
 
+            case 10: // [NEW] Call TARGET MYCALL RSWR
+                Log.d(TAG, "Call RSWR to: " + ft8Message.getCallsignTo());
+                mainViewModel.sendCustomTransmission(ft8Message.getCallsignTo(), "RSWR");
+                break;
 
         }
 
@@ -261,6 +273,13 @@ public class MyCallingFragment extends Fragment {
                 if (binding != null && binding.utcDelayTextView != null && getActivity() != null) {
                     // %+d automatically adds + or - sign before number
                     binding.utcDelayTextView.setText(String.format(Locale.US, "%+d", UtcTimer.delay));
+
+                    // [NEW] Update sequential slot display
+                    if (binding.seqTextView != null) {
+                        binding.seqTextView.setText(String.format(Locale.US, "seq: %d", UtcTimer.getNowSequential()));
+                    }
+                    // [/NEW]
+
                     // Use handler reference, not 'this'
                     utcDelayHandler.postDelayed(this, 500);
                 }
@@ -287,7 +306,8 @@ public class MyCallingFragment extends Fragment {
         });
 
 
-        //observe transmit state button changes
+        // [FIX] Declare observer BEFORE using it in observe() calls
+        // observe transmit state button changes
         Observer<Boolean> transmittingObserver = new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean aBoolean) {
@@ -314,7 +334,9 @@ public class MyCallingFragment extends Fragment {
                 }
             }
         };
+
         //show transmit state
+        // [FIX] Now observer is defined, safe to use
         mainViewModel.ft8TransmitSignal.mutableIsTransmitting.observe(getViewLifecycleOwner(), transmittingObserver);
         mainViewModel.ft8TransmitSignal.mutableIsActivated.observe(getViewLifecycleOwner(), transmittingObserver);
 
@@ -391,7 +413,9 @@ public class MyCallingFragment extends Fragment {
             }
         });
 
-        //set transmit button
+        // [OLD CODE - COMMENTED OUT]
+        /*
+        //set transmit button - direct call to restTransmitting(), bypasses state machine
         binding.setTransmitImageButton.setOnClickListener(new View.OnClickListener() {
             //@RequiresApi(api = Build.VERSION_CODES.N)
             @Override
@@ -402,6 +426,28 @@ public class MyCallingFragment extends Fragment {
                 }
                 mainViewModel.ft8TransmitSignal.setActivated(!mainViewModel.ft8TransmitSignal.isActivated());
                 GeneralVariables.resetLaunchSupervision();//reset auto supervision
+            }
+        });
+        */
+
+        // [NEW CODE] Request through ViewModel, let state machine decide
+        // This ensures all transmissions go through executeAction() for proper logging and state sync
+        // [NEW CODE] Request through ViewModel
+        binding.setTransmitImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mainViewModel.isManualControlAllowed()) {
+                    Log.d(TAG, "[UI_CLICK] Requesting manual CQ through ViewModel");
+                    mainViewModel.requestManualCQ();
+                } else {
+                    Log.w(TAG, "[UI_CLICK] Manual CQ blocked (opMode=" +
+                            mainViewModel.stationContext.opMode +
+                            " subState=" + mainViewModel.stationContext.subState + ")");
+                    Toast.makeText(getContext(), "Manual CQ not allowed in current state", Toast.LENGTH_SHORT).show();
+                }
+                // Toggle activated state for UI feedback only
+                mainViewModel.ft8TransmitSignal.setActivated(!mainViewModel.ft8TransmitSignal.isActivated());
+                GeneralVariables.resetLaunchSupervision();
             }
         });
 

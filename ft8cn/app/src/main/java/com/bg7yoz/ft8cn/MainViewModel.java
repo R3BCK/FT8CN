@@ -21,7 +21,7 @@ package com.bg7yoz.ft8cn;
  * - Removing comments breaks the "conversation history" of the codebase
  *
  * BEFORE DELETING ANY COMMENT, ask: "Does this explain a design decision,
- * a bug fix, or a state transition rule?" If yes → KEEP IT.
+ * a bug fix, or a state transition rule?" If yes -> KEEP IT.
  * ============================================================================
  */
 
@@ -43,8 +43,8 @@ import android.os.BatteryManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.os.Build;              // [NEW] Для проверки версии Android
-import android.view.WindowManager;    // [NEW] Для управления флагами окна
+import android.os.Build;              // [NEW] For Android version check
+import android.view.WindowManager;    // [NEW] For window flag management
 
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -237,7 +237,10 @@ public class MainViewModel extends ViewModel {
 
         // Configuration flags (mirrors GeneralVariables for quick access)
         public boolean dxModeEnabled = false;  // Allow pileup queueing
-        public boolean userOverrideActive = false;  // <-- Добавить эту строку!
+        public boolean userOverrideActive = false;
+        // [NEW] Flag: manual CQ request from UI
+        // This flag is set by UI and processed by evaluateStateMachine()
+        public boolean manualCQRequested;
 
         // === Helper methods for state transitions ===
 
@@ -268,6 +271,10 @@ public class MainViewModel extends ViewModel {
             step = StationState.DialogueStep.IDLE;
             currentTarget = "";
             Log.d(TAG, "State: entered SOFT_FINISH");
+        }
+        // [NEW] Reset manual CQ request flag
+        public void resetManualCQRequest() {
+            this.manualCQRequested = false;
         }
 
         /**
@@ -400,21 +407,21 @@ public class MainViewModel extends ViewModel {
 
         mutableFt8MessageList.setValue(ft8Messages);
 
-        // [CHANGED] Инициализируем библиотеку ПЕРЕД созданием FT8SignalListener
-        // Загружаем ft8cn_dx или ft8cn_std в зависимости от настройки acceptDxCalls
+        // [CHANGED] Initialize library BEFORE creating FT8SignalListener
+        // Load ft8cn_dx or ft8cn_std based on acceptDxCalls setting
         try {
             String libName = GeneralVariables.acceptDxCalls ? "ft8cn_dx" : "ft8cn_std";
             System.loadLibrary(libName);
             Log.d(TAG, "Loaded native library: " + libName);
         } catch (UnsatisfiedLinkError e) {
             Log.e(TAG, "Failed to load library: " + e.getMessage());
-            // Fallback: пробуем загрузить стандартную библиотеку
+            // Fallback: try to load standard library
             try {
                 System.loadLibrary("ft8cn_std");
                 Log.d(TAG, "Fallback: loaded ft8cn_std");
             } catch (UnsatisfiedLinkError e2) {
                 Log.e(TAG, "Fallback failed: " + e2.getMessage());
-                // Не выбрасываем исключение, чтобы приложение не упало сразу
+                // Do not throw exception to avoid immediate crash
             }
         }
 
@@ -456,9 +463,10 @@ public class MainViewModel extends ViewModel {
                 }
                 // Evaluate state transitions based on fresh messages and current context
                 evaluateStateMachine(messages, UtcTimer.getNowSequential());
+                findIncludedCallsigns(messages);
                 // ============================================================
 
-                findIncludedCallsigns(messages);
+                // findIncludedCallsigns(messages); // [DEBUG] Temporarily disabled for testing
                 /* old logic
                 if (!ft8TransmitSignal.isTransmitting()
                         && !isDeep
@@ -751,49 +759,60 @@ public class MainViewModel extends ViewModel {
      * Called every decode slot (~15 seconds) from ft8SignalListener.afterDecode().
      *
      * [STATE MACHINE LOGIC FLOW]
-     * 1. If not in OPERATING mode → skip (scanning modes ignore responses)
+     * 1. If not in OPERATING mode -> skip (scanning modes ignore responses)
      * 2. Build DecisionContext from current state + world model
-     * 3. Call DecisionEngine.evaluate() → get StationAction
+     * 3. Call DecisionEngine.evaluate() -> get StationAction
      * 4. Log decision for debugging/learning
      * 5. Execute action via executeAction()
      *
      * [PRIORITY ORDER in DecisionEngine] (first match wins)
-     * 1. Emergency stop → ABORT
-     * 2. User manual override → TRANSMIT to selected target
-     * 3. Direct call to MY callsign → immediate dialogue start
-     * 4. State-specific logic (SEEKING/IN_DIALOGUE/SOFT_FINISH/NOMADIC)
-     *
-     * @param messages List of newly decoded FT8 messages
-     * @param currentSlot Current UTC slot number (for timeout calculations)
-     */
-    /**
-     * Evaluates state transitions based on decoded messages and current context.
-     * Called every decode slot (~15 seconds) from ft8SignalListener.afterDecode().
-     *
-     * [STATE MACHINE LOGIC FLOW]
-     * 1. If not in OPERATING mode → skip (scanning modes ignore responses)
-     * 2. Build DecisionContext from current state + world model
-     * 3. Call DecisionEngine.evaluate() → get StationAction
-     * 4. Log decision for debugging/learning
-     * 5. Execute action via executeAction()
-     *
-     * [PRIORITY ORDER in DecisionEngine] (first match wins)
-     * 1. Emergency stop → ABORT
-     * 2. User manual override → TRANSMIT to selected target
-     * 3. Direct call to MY callsign → immediate dialogue start
+     * 1. Emergency stop -> ABORT
+     * 2. User manual override -> TRANSMIT to selected target
+     * 3. Direct call to MY callsign -> immediate dialogue start
      * 4. State-specific logic (SEEKING/IN_DIALOGUE/SOFT_FINISH/NOMADIC)
      *
      * @param messages List of newly decoded FT8 messages
      * @param currentSlot Current UTC slot number (for timeout calculations)
      */
     private void evaluateStateMachine(ArrayList<Ft8Message> messages, long currentSlot) {
-        Log.d(TAG, "[DEBUG] evaluateStateMachine called. Mode: " + stationContext.opMode + ", Messages: " + (messages != null ? messages.size() : 0));
+        Log.d(TAG, "[DEBUG] evaluateStateMachine called. Mode: " + stationContext.opMode +
+                ", Messages: " + (messages != null ? messages.size() : 0));
         StationContext ctx = stationContext;
 
+        // === [CRITICAL FIX #1] Check for replies from current dialogue partner FIRST ===
+        // This MUST run before manual CQ check and DecisionEngine evaluation
+        if (ctx.isInDialogue() && !ctx.currentTarget.isEmpty() && messages != null && !messages.isEmpty()) {
+            for (Ft8Message msg : messages) {
+                // Check if this message is FROM our current target AND addressed TO us
+                if (msg.getCallsignFrom().equalsIgnoreCase(ctx.currentTarget) &&
+                        GeneralVariables.checkIsMyCallsign(msg.getCallsignTo())) {
+
+                    Log.d(TAG, "[DIALOGUE] Reply detected from " + ctx.currentTarget +
+                            ": " + msg.getMessageText(false));
+
+                    // [CRITICAL] Advance our protocol step based on World Model state
+                    advanceDialogueStep(msg, ctx);
+
+                    // Update last reply timestamp to prevent timeout abort
+                    ctx.lastReplySlot = currentSlot;
+                    ctx.noReplyCount = 0;
+
+                    // No need to check other messages for this target in this slot
+                    break;
+                }
+            }
+        }
+        // ========================================================================
+
+        // [NEW] Check for manual CQ request (after reply processing)
+        if (stationContext.manualCQRequested) {
+            StationAction manualAction = processManualCQRequest();
+            executeAction(manualAction, currentSlot);
+            return; // Exit early, do not call DecisionEngine
+        }
+
         // [STATE MACHINE] Skip evaluation if not in OPERATING mode
-        // Scanning modes (RF/Audio) don't participate in dialogue logic
         if (ctx.opMode != StationState.OperationalMode.OPERATING) {
-            // Optional: update world model even in scanning modes for logging
             return;
         }
 
@@ -802,42 +821,26 @@ public class MainViewModel extends ViewModel {
         StationAction action = decisionEngine.evaluate(decisionCtx, messages, databaseOpr);
 
         // ========================================================================
-        // [FIX] STATE PERSISTENCE: Обновляем контекст на основе принятого решения
+        // [FIX] STATE PERSISTENCE: Update context based on decided action
         // ========================================================================
-        // Если движок решил ПЕРЕДАВАТЬ конкретной станции, мы должны "запомнить" это.
-        // Иначе в следующем слоте мы снова окажемся в SEEKING и начнем искать других.
         if (action.type == StationAction.ActionType.TRANSMIT && action.targetCallsign != null && !action.targetCallsign.isEmpty()) {
-
-            // 1. Запоминаем, с кем говорим
+            // 1. Remember who we're talking to
             stationContext.currentTarget = action.targetCallsign;
 
-            // 2. Переходим в режим диалога
+            // 2. Enter dialogue mode
             stationContext.subState = StationState.OperatingSubState.IN_DIALOGUE;
-
-            // 3. Обновляем шаг протокола (если движок его посчитал)
+            Log.d(TAG, "[CONTEXT UPDATE] currentTarget=" + stationContext.currentTarget +
+                    " subState=" + stationContext.subState);
+            // 3. Update protocol step
             if (action.protocolStep > 0 && action.protocolStep <= StationState.DialogueStep.values().length) {
-                // protocolStep обычно 1-based, массив enum 0-based
                 stationContext.step = StationState.DialogueStep.values()[action.protocolStep - 1];
             }
 
-            // 4. Фиксируем время последнего контакта
+            // 4. Record last contact time
             stationContext.lastReplySlot = currentSlot;
-
-            // 5. Если начали новый диалог (Шаг 1), сбрасываем счетчик ошибок
-            if (action.protocolStep == 1) {
-                stationContext.noReplyCount = 0;
-            }
-
-            // === [NEW] ===
-            // 6. [CRITICAL] Обновляем World Model: запоминаем, какой шаг МЫ отправили
-            // Это критически важно для синхронизации состояний!
-            // Без этого база данных "не знает", что мы уже ответили, и может предложить
-            // повторный ответ на то же сообщение.
-            DatabaseOpr.StationRecord targetRecord = DatabaseOpr.getStationRecord(action.targetCallsign);
-            // ===============
         }
 
-        // === Log decision (for debugging and learning) ===
+        // === Log decision ===
         Log.d(TAG, String.format("[DECISION] slot=%d state=%s action=%s target=%s priority=%.2f reason=\"%s\"",
                 currentSlot,
                 ctx.subState,
@@ -871,8 +874,8 @@ public class MainViewModel extends ViewModel {
         long bandMask = 1L << currentBandBit;
 
         // [DEBUG] Log current band info
-        Log.d(TAG, "[DEBUG] buildDecisionContext: band=" + GeneralVariables.band +
-                " bandBit=" + currentBandBit + " mask=0b" + Long.toBinaryString(bandMask));
+        //Log.d(TAG, "[DEBUG] buildDecisionContext: band=" + GeneralVariables.band +
+        //        " bandBit=" + currentBandBit + " mask=0b" + Long.toBinaryString(bandMask));
 
         // === [STEP 2] Get snapshot of World Model ===
         // Thread-safe copy of all stations tracked in RAM
@@ -884,10 +887,10 @@ public class MainViewModel extends ViewModel {
             boolean bandMatch = (s.bandsBitmap & bandMask) != 0;
             boolean notExpired = !s.isExpired();
             Log.d(TAG, "[DEBUG]   WM: " + s.callsign +
-                    " bitmap=0b" + Long.toBinaryString(s.bandsBitmap) +
-                    " bandMatch=" + bandMatch +
-                    " notExpired=" + notExpired +
-                    " lastSeen=" + s.lastSeenUtcSec +
+                    //" bitmap=0b" + Long.toBinaryString(s.bandsBitmap) +
+                    //" bandMatch=" + bandMatch +
+                    //" notExpired=" + notExpired +
+                    //" lastSeen=" + s.lastSeenUtcSec +
                     " state=" + s.ft8StateRelative);
         }
 
@@ -935,8 +938,8 @@ public class MainViewModel extends ViewModel {
         long timeUntilTxDeadline = Math.max(0, (slotStartSec + 12) - nowSec) * 1000;
 
         // [DEBUG] Log timing info
-        Log.d(TAG, "[DEBUG] Timing: slotStart=" + slotStartSec + " now=" + nowSec +
-                " timeUntilTxDeadline=" + timeUntilTxDeadline + "ms");
+        //Log.d(TAG, "[DEBUG] Timing: slotStart=" + slotStartSec + " now=" + nowSec +
+        //        " timeUntilTxDeadline=" + timeUntilTxDeadline + "ms");
 
         // === [STEP 7] Build and return DecisionContext ===
         return new DecisionContext(
@@ -957,7 +960,7 @@ public class MainViewModel extends ViewModel {
                 weights,                              // Scoring weights for HybridScorer
                 false,                                // emergencyStop
                 ctx.userOverrideActive,               // userOverrideActive
-                false                                 // forceOwnCQ (по умолчанию)
+                false                                 // forceOwnCQ (default)
         );
     }
 
@@ -982,17 +985,20 @@ public class MainViewModel extends ViewModel {
      * @param currentSlot Current UTC slot number (for timing-sensitive actions)
      */
     private void executeAction(StationAction action, long currentSlot) {
+        // [ENHANCED LOG] Full action details
+        Log.w(TAG, "[EXECUTE] type=" + action.type + " target=" + action.targetCallsign +
+                " step=" + action.protocolStep + " freqHz=" + action.freqHz +
+                " reason=\"" + action.reason + "\"");
         switch (action.type) {
             case TRANSMIT:
                 if (!ft8TransmitSignal.isActivated()) {
                     Log.d(TAG, "[ACTION] TRANSMIT blocked: transmission manually disabled");
-                    return; // Не передаём!
+                    return; // Do not transmit!
                 }
                 // === [ACTION] TRANSMIT: Start or continue transmission ===
-                // Log the decision details for debugging
                 Log.d(TAG, "[ACTION] TRANSMIT to " + action.targetCallsign +
                         " step=" + action.protocolStep + " reason=\"" + action.reason + "\"");
-                Log.d(TAG, "[ACTION] Technical params: freq=" + action.freqHz +
+                Log.d(TAG, "[ACTION] Technical params: freqHz=" + action.freqHz +
                         " snr=" + action.snr + " i3=" + action.i3 + " n3=" + action.n3);
 
                 // Activate transmit signal if not already active
@@ -1007,28 +1013,64 @@ public class MainViewModel extends ViewModel {
                 // Prepare extra info: use action.extraInfo if set, otherwise empty string
                 String txExtraInfo = (action.extraInfo != null) ? action.extraInfo : "";
 
+                // ========================================================================
+                // [FIX] CALCULATE SEQUENTIAL SLOT BEFORE TRANSMIT
+                // ========================================================================
+                int txSequential;
+
+                // Try to get partner's slot from World Model
+                if (action.targetCallsign != null && !action.targetCallsign.equals("CQ")) {
+                    DatabaseOpr.StationRecord record = DatabaseOpr.getStationRecord(action.targetCallsign);
+                    if (record != null && record.lastSequential >= 0) {
+                        txSequential = 1 - record.lastSequential; // Invert partner's slot
+                        Log.d(TAG, "[SEQUENTIAL] Using partner's slot: their=" + record.lastSequential + " → our=" + txSequential);
+                    } else {
+                        // Fallback: invert current UTC slot
+                        txSequential = 1 - (int)(UtcTimer.getNowSequential() % 2);
+                        Log.d(TAG, "[SEQUENTIAL] Fallback (no record): current=" + UtcTimer.getNowSequential() + " → our=" + txSequential);
+                    }
+                } else {
+                    // For CQ: just invert current slot
+                    txSequential = 1 - (int)(UtcTimer.getNowSequential() % 2);
+                }
+                // ========================================================================
+
                 // Start transmission with parameters from StationAction
-                // No need to search currentMessages - all data is already in the action
                 ft8TransmitSignal.setTransmit(
                         new TransmitCallsign(
                                 action.i3,                    // Hash part 1 (callsign)
                                 action.n3,                    // Hash part 2 (grid)
                                 action.targetCallsign,        // Target callsign
                                 txFrequency,                  // Frequency in Hz
-                                0,                            // Sequence (computed internally)
+                                txSequential,                 // [FIX] Calculated Slot (0 or 1)
                                 action.snr),                  // Measured SNR
                         action.protocolStep,                  // FT8 protocol step (1-6)
                         txExtraInfo);                         // Extra text (grid, report, etc.)
 
-                // Increment no-reply counter (side effect of attempting transmission)
-                //stationContext.noReplyCount++;
+                // [FIX] Count retry attempts properly
+                if (action.targetCallsign != null &&
+                        stationContext.currentTarget != null &&
+                        action.targetCallsign.equals(stationContext.currentTarget)) {
+                    stationContext.noReplyCount++;
+                    Log.d(TAG, "[RETRY] Calling " + action.targetCallsign + " (attempt " + stationContext.noReplyCount + ")");
+                } else if (action.targetCallsign != null && !action.targetCallsign.equals(stationContext.currentTarget)) {
+                    stationContext.noReplyCount = 0;
+                    Log.d(TAG, "[NEW TARGET] Switched to " + action.targetCallsign + ", reset counter");
+                }
+
                 Log.d(TAG, "[ACTION] TX started (attempt " + stationContext.noReplyCount +
                         " to " + action.targetCallsign + ")");
                 break;
 
             case WAIT:
-                // === [ACTION] WAIT: Do nothing, just increment counters ===
-                Log.d(TAG, "[ACTION] WAIT (noReplyCount=" + (stationContext.noReplyCount + 1) + ")");
+                // [DEBUG] Detailed diagnostics for WAIT state
+                // [DEBUG] Detailed diagnostics for WAIT state
+                //Log.w(TAG, "[WAIT_DIAGNOSTIC] activated=" + ft8TransmitSignal.isActivated() +
+                //        " transmitting=" + ft8TransmitSignal.isTransmitting() +
+                //        " queueSize=" + (GeneralVariables.transmitMessages != null ?
+                //        GeneralVariables.transmitMessages.size() : 0) +
+                //        " manualCQReq=" + stationContext.manualCQRequested);
+                // [/DEBUG]
                 stationContext.noReplyCount++;
                 break;
 
@@ -1080,10 +1122,10 @@ public class MainViewModel extends ViewModel {
             case TX_OWN_CQ:
                 Log.d(TAG, "[ACTION] TX_OWN_CQ: Transmitting own CQ (priority reset)");
 
-                // Сбрасываем передачу в режим CQ
+                // Reset transmission to CQ mode
                 ft8TransmitSignal.resetToCQ();
 
-                // Активируем передачу, если нужно
+                // Activate transmit if needed
                 if (!ft8TransmitSignal.isActivated()) {
                     ft8TransmitSignal.setActivated(true);
                 }
@@ -1174,7 +1216,7 @@ public class MainViewModel extends ViewModel {
         // If someone calls us directly, start dialogue immediately (interrupts seeking)
         for (Ft8Message msg : messages) {
             if (GeneralVariables.checkIsMyCallsign(msg.getCallsignTo()) && !msg.checkIsCQ()) {
-                Log.d(TAG, "State: SEEKING → IN_DIALOGUE (direct call from " + msg.getCallsignFrom() + ")");
+                Log.d(TAG, "State: SEEKING -> IN_DIALOGUE (direct call from " + msg.getCallsignFrom() + ")");
                 ctx.currentTarget = msg.getCallsignFrom();
                 ctx.subState = OperatingSubState.IN_DIALOGUE;
                 ctx.step = DialogueStep.CALLING;
@@ -1234,7 +1276,7 @@ public class MainViewModel extends ViewModel {
 
                     // [COMPLETION CHECK] If QSO finished (step 5 or 6), transition to SOFT_FINISH
                     if (fOrder != null && (fOrder == 5 || fOrder == 6)) {
-                        Log.d(TAG, "State: QSO completed with " + ctx.currentTarget + " → SOFT_FINISH");
+                        Log.d(TAG, "State: QSO completed with " + ctx.currentTarget + " -> SOFT_FINISH");
                         ctx.enterSoftFinish();
                     }
                     return; // Exit after processing reply
@@ -1253,12 +1295,12 @@ public class MainViewModel extends ViewModel {
      */
     /*
     private void processSoftFinishState(ArrayList<Ft8Message> messages, StationContext ctx, long currentSlot) {
-        // [RESUME TRIGGER] Check if a recent target calls us → resume dialogue
+        // [RESUME TRIGGER] Check if a recent target calls us -> resume dialogue
         if (messages != null && !ctx.recentTargets.isEmpty()) {
             for (Ft8Message msg : messages) {
                 if (ctx.recentTargets.contains(msg.getCallsignFrom()) &&
                         GeneralVariables.checkIsMyCallsign(msg.getCallsignTo())) {
-                    Log.d(TAG, "State: SOFT_FINISH → IN_DIALOGUE (resume with " + msg.getCallsignFrom() + ")");
+                    Log.d(TAG, "State: SOFT_FINISH -> IN_DIALOGUE (resume with " + msg.getCallsignFrom() + ")");
                     ctx.currentTarget = msg.getCallsignFrom();
                     ctx.subState = OperatingSubState.IN_DIALOGUE;
                     ctx.step = DialogueStep.CALLING;
@@ -1278,7 +1320,7 @@ public class MainViewModel extends ViewModel {
         // [TIMEOUT TO SCAN_AUDIO] If no activity for extended period, switch to audio calibration
         int softFinishTimeout = 8; // 8 slots = 2 minutes of silence
         if (currentSlot - ctx.lastReplySlot > softFinishTimeout) {
-            Log.d(TAG, "State: SOFT_FINISH timeout (" + softFinishTimeout + " slots) → SCANNING_AUDIO");
+            Log.d(TAG, "State: SOFT_FINISH timeout (" + softFinishTimeout + " slots) -> SCANNING_AUDIO");
             ctx.opMode = OperationalMode.SCANNING_AUDIO;
             ctx.resetToSeeking(); // Clear dialogue state
             // Optional: trigger audio calibration routine here
@@ -1293,16 +1335,16 @@ public class MainViewModel extends ViewModel {
     // [NEW] Reset state machine on frequency change / history clear
     // ========================================================================
     /**
-     * [NEW] Вызывать при смене частоты или очистке истории сообщений.
-     * Сбрасывает машину состояний и ставит приоритет на собственный CQ.
+     * [NEW] Call on frequency change or history clear.
+     * Resets state machine and prioritizes own CQ.
      *
-     * Это гарантирует, что после смены условий система начнёт с чистого листа
-     * и сначала попытается передать собственный CQ, прежде чем отвечать другим.
+     * This ensures that after condition changes, system starts fresh
+     * and first tries to transmit own CQ before answering others.
      */
     public void resetStateMachineOnFreqChange() {
         Log.d(TAG, "=== resetStateMachineOnFreqChange ===");
 
-        // Сброс контекста принятия решений
+        // Reset decision context
         stationContext.userOverrideActive = false;
         stationContext.currentTarget = "";
         stationContext.subState = StationState.OperatingSubState.SEEKING;
@@ -1310,12 +1352,12 @@ public class MainViewModel extends ViewModel {
         stationContext.noReplyCount = 0;
         stationContext.lastReplySlot = 0;
 
-        // Сброс кэша DecisionEngine
+        // Reset DecisionEngine cache
         if (decisionEngine != null) {
             decisionEngine.resetCache();
         }
 
-        // Очистка очереди передачи (если включена настройка)
+        // Clear transmit queue if enabled
         if (GeneralVariables.clearCallHistOnFreqChange) {
             clearTransmittingMessage();
             Log.d(TAG, "Transmit queue cleared");
@@ -1428,8 +1470,8 @@ public class MainViewModel extends ViewModel {
      * Set the operation band on the connected rig.
      */
     public void setOperationBand() {
-        clearTransmittingMessage();     // Очистить очередь передачи
-        ft8TransmitSignal.resetToCQ();  // Сбросить CQ в состояние 6
+        clearTransmittingMessage();     // Clear transmit queue
+        ft8TransmitSignal.resetToCQ();  // Reset CQ to state 6
         Log.d(TAG, "=== setOperationBand DEBUG ===");
         Log.d(TAG, "controlMode=" + GeneralVariables.controlMode);
         Log.d(TAG, "connectMode=" + GeneralVariables.connectMode);
@@ -1861,7 +1903,7 @@ public class MainViewModel extends ViewModel {
 
                 // === Clear Calling history if enabled ===
                 if (GeneralVariables.clearCallHistOnFreqChange) {
-                    clearTransmittingMessage(); //Critical: НЕ ТРОГАТЬ! НЕ УДАЛЯТЬ, НЕ ИЗМЕНЯТЬ
+                    clearTransmittingMessage(); //Critical: DO NOT TOUCH! DO NOT DELETE, DO NOT MODIFY
                     ToastMessage.show("Calling history cleared");
                 }
                 // =======================================
@@ -1945,4 +1987,239 @@ public class MainViewModel extends ViewModel {
     // ========================================================================
     // [END NEW] Secure config wrapper
     // ========================================================================
+
+    // [NEW] Public method for UI: request manual CQ transmission
+    // This method sets a flag and triggers state machine evaluation
+    public void requestManualCQ() {
+        Log.d(TAG, "[UI_REQUEST] Manual CQ requested from UI");
+        stationContext.manualCQRequested = true;
+
+        // Immediately re-evaluate state (do not wait for next slot)
+        // [FIX] executeAction requires (StationAction, long currentSlot)
+        evaluateStateMachine(null, UtcTimer.getNowSequential());
+    }
+
+    // [NEW] Check if manual control is allowed in current state
+    // Returns true only if we are in OPERATING mode and SEEKING substate
+    public boolean isManualControlAllowed() {
+        return stationContext.opMode == StationState.OperationalMode.OPERATING &&
+                stationContext.subState == StationState.OperatingSubState.SEEKING &&
+                !stationContext.userOverrideActive;
+    }
+
+    // [NEW] Process manual CQ request within state machine
+    // Called from evaluateStateMachine() when manualCQRequested is true
+    // [NEW] Process manual CQ request within state machine
+    // Called from evaluateStateMachine() when manualCQRequested is true
+// [NEW] Process manual CQ request within state machine
+// Called from evaluateStateMachine() when manualCQRequested is true
+    private StationAction processManualCQRequest() {
+        Log.d(TAG, "[MANUAL_CQ] Processing request in state=" + stationContext.subState);
+
+        if (!isManualControlAllowed()) {
+            Log.w(TAG, "[MANUAL_CQ] Rejected: manual control not allowed (opMode=" +
+                    stationContext.opMode + " subState=" + stationContext.subState + ")");
+            stationContext.resetManualCQRequest();
+            // [FIX] Use factory method instead of private constructor
+            return StationAction.wait("Manual CQ rejected by state");
+        }
+
+        // Create TRANSMIT action for CQ using factory method
+        // Factory method signature (based on StationAction.java):
+        // transmit(String callsign, int step, String reason, long freqHz, int snr, int i3, int n3, String extraInfo)
+        StationAction cqAction = StationAction.transmit(
+                "CQ",                                    // callsign - target to transmit to
+                6,                                       // step - protocol step (6 = CQ_MODE)
+                "Manual CQ requested from UI",           // reason - for logging/debugging
+                GeneralVariables.band,                   // freqHz - frequency in Hz for transmission
+                0,                                       // snr - measured SNR (0 for CQ)
+                0,                                       // i3 - hash part 1 (0 for CQ)
+                0,                                       // n3 - hash part 2 + grid (0 for CQ)
+                ""                                       // extraInfo - additional text (grid, report, etc.)
+        );
+
+        // Reset flag after creating action
+        stationContext.resetManualCQRequest();
+
+        Log.d(TAG, "[MANUAL_CQ] Created action: " + cqAction.type + " target=" + cqAction.targetCallsign);
+        return cqAction;
+    }
+    // MainViewModel.java, add getters for Fragment access
+
+    // [NEW] Getter for stationContext.opMode (for UI feedback)
+    public StationState.OperationalMode getStationContextOpMode() {
+        return stationContext.opMode;
+    }
+
+    // [NEW] Getter for stationContext.subState (for UI feedback)
+    public StationState.OperatingSubState getStationContextSubState() {
+        return stationContext.subState;
+    }
+
+    // [NEW] Manual call to specific station - updates state machine context
+    public void manualCallStation(String callsign, int i3, int n3, String extraInfo, long freqHz, int snr) {
+        Log.d(TAG, "[MANUAL_CALL] Requested for " + callsign);
+
+        // [NEW] CRITICAL: Check partner's sequential slot!
+        DatabaseOpr.StationRecord record = DatabaseOpr.getStationRecord(callsign);
+        if (record != null && record.lastSequential >= 0) {
+            int expectedOurSlot = (record.lastSequential == 0) ? 1 : 0;
+            long currentSlot = UtcTimer.getNowSequential();
+
+            if (currentSlot % 2 != expectedOurSlot) {
+                Log.w(TAG, "[MANUAL_CALL] Wrong slot! Partner seq=" + record.lastSequential +
+                        ", our expected=" + expectedOurSlot + ", current=" + currentSlot +
+                        ". Waiting for correct slot...");
+                // Wait for correct slot or show warning to user
+                return;
+            }
+        }
+        // Update state machine context
+        stationContext.userOverrideActive = true;
+        stationContext.currentTarget = callsign;
+        stationContext.subState = StationState.OperatingSubState.IN_DIALOGUE;
+        stationContext.step = StationState.DialogueStep.CALLING;
+        stationContext.noReplyCount = 0;
+        stationContext.lastReplySlot = UtcTimer.getNowSequential();
+
+        // Activate transmit if needed
+        if (!ft8TransmitSignal.isActivated()) {
+            ft8TransmitSignal.setActivated(true);
+        }
+
+        // === [CRITICAL] FT8 SEQUENTIAL LOGIC ===
+        // Pass -1 for sequential to trigger auto-inversion in FT8TransmitSignal
+        // This ensures we always respond in the opposite slot from our partner
+        // ==========================================
+
+        // Start transmission
+        ft8TransmitSignal.setTransmit(
+                new TransmitCallsign(i3, n3, callsign, freqHz, -1, snr),  // [FIX] -1 for auto-inverted sequential
+                1,  // protocol step 1 = calling
+                extraInfo
+        );
+
+        Log.d(TAG, "[MANUAL_CALL] Started transmission to " + callsign);
+    }
+
+    /**
+     * [NEW] Send custom quick-message to target station.
+     * Formats: "TARGET MYCALL SWR" or "TARGET MYCALL RSWR"
+     * Updates state machine context to prevent automatic CQ override.
+     * @param targetCallsign Station to call
+     * @param customSuffix Suffix to append (e.g., "SWR", "RSWR")
+     */
+    public void sendCustomTransmission(String targetCallsign, String customSuffix) {
+        Log.d(TAG, "[CUSTOM_TX] Requested: to=" + targetCallsign + " suffix=" + customSuffix);
+
+        // [STATE LOCK] Prevent DecisionEngine from switching to CQ mode
+        stationContext.userOverrideActive = true;
+        stationContext.currentTarget = targetCallsign;
+        stationContext.subState = StationState.OperatingSubState.IN_DIALOGUE;
+        stationContext.step = StationState.DialogueStep.CALLING;
+        stationContext.noReplyCount = 0;
+        stationContext.lastReplySlot = UtcTimer.getNowSequential();
+
+        // Activate transmitter if idle
+        if (!ft8TransmitSignal.isActivated()) {
+            ft8TransmitSignal.setActivated(true);
+        }
+
+        // Build message: TO_CALLSIGN MY_CALLSIGN [SUFFIX]
+        String messageText = targetCallsign + " " + GeneralVariables.myCallsign + " " + customSuffix;
+        String upperMsg = messageText.toUpperCase();
+
+        // [FIX] Skip creating Ft8Message object - no no-arg constructor available
+        // Transmission is handled directly by setTransmit(), UI will show it via normal decode flow
+
+        // === [CRITICAL] FT8 SEQUENTIAL LOGIC ===
+        // Pass -1 for sequential to trigger auto-inversion in FT8TransmitSignal
+        // This ensures we always respond in the opposite slot from our partner
+        // ==========================================
+
+        // Trigger transmission directly
+        ft8TransmitSignal.setTransmit(
+                new TransmitCallsign(0, 0, targetCallsign, GeneralVariables.band, -1, 0),  // [FIX] -1 for auto-inverted sequential
+                1,  // Protocol step 1 (initial call)
+                upperMsg
+        );
+        ft8TransmitSignal.transmitNow();
+
+        Log.d(TAG, "[CUSTOM_TX] Started: " + upperMsg);
+    }
+
+    // ========================================================================
+// [NEW] Dialogue step advancement helper
+// Uses ft8StateRelative from World Model as single source of truth
+// ========================================================================
+    /**
+     * Advance dialogue step based on partner's state in World Model.
+     * [STATE MACHINE] This ensures we always respond to the correct step.
+     *
+     * ft8StateRelative meaning (what PARTNER sent to us):
+     * 0 = unknown/CQ
+     * 1 = grid (response to CQ)
+     * 2 = report (-XX)
+     * 3 = R-report (R-XX)
+     * 4 = RR73/RRR
+     *
+     * We respond with step = theirState + 1
+     *
+     * @param msg The message that triggered this check (for logging)
+     * @param ctx Current station context (will be updated)
+     */
+    private void advanceDialogueStep(Ft8Message msg, StationContext ctx) {
+        // Only process if we have a current dialogue target
+        if (ctx.currentTarget == null || ctx.currentTarget.isEmpty()) {
+            return;
+        }
+
+        // Get station record from World Model (RAM cache)
+        DatabaseOpr.StationRecord record = DatabaseOpr.getStationRecord(ctx.currentTarget);
+        if (record == null) {
+            Log.w(TAG, "[STEP_ADVANCE] No record found for " + ctx.currentTarget);
+            return;
+        }
+
+        int theirState = record.ft8StateRelative;
+        Log.d(TAG, "[STEP_ADVANCE] " + ctx.currentTarget + " ft8StateRelative=" + theirState +
+                " (our step=" + ctx.step + ")");
+
+        // Map their state to our expected response step
+        // theirState: what THEY sent | our response: what WE should send next
+        // 1 (grid)    -> we send report (step 2)
+        // 2 (report)  -> we send R-report (step 3)
+        // 3 (R-report)-> we send RR73 (step 4)
+        // 4 (RR73)    -> we send 73 (step 5)
+
+        if (theirState >= 1 && theirState <= 4) {
+            // DialogueStep enum is 0-based: IDLE=0, CALLING=1, REPORT=2, CONFIRM=3, CLOSING=4, FINISHED=5
+            // So theirState=1 (grid) -> we want step=2 (REPORT enum index)
+            int targetStepIndex = theirState; // Direct mapping: theirState 1->enum[1]=CALLING, but we want next...
+
+            // Actually: if they sent step N, we respond with step N+1
+            // But ft8StateRelative is what they SENT, so:
+            // they sent 1 (grid) -> we respond with 2 (report) -> enum index 2 = REPORT
+            // they sent 2 (report) -> we respond with 3 (R-report) -> enum index 3 = CONFIRM
+            // etc.
+
+            StationState.DialogueStep[] steps = StationState.DialogueStep.values();
+            if (theirState < steps.length) {
+                StationState.DialogueStep expectedOurStep = steps[theirState];
+                Log.d(TAG, "[STEP_ADVANCE DEBUG] target=" + ctx.currentTarget +
+                        " theirState=" + theirState +
+                        " expectedOurStep=" + expectedOurStep +
+                        " currentCtxStep=" + ctx.step +
+                        " willUpdate=" + (expectedOurStep != ctx.step) +
+                        " record.ft8StateRelative=" + record.ft8StateRelative);
+                if (expectedOurStep != ctx.step) {
+                    Log.d(TAG, "[STEP_ADVANCE] Updating: " + ctx.step + " -> " + expectedOurStep +
+                            " (based on their ft8StateRelative=" + theirState + ")");
+                    ctx.step = expectedOurStep;
+                    ctx.lastReplySlot = UtcTimer.getNowSequential(); // Reset timeout on progress
+                }
+            }
+        }
+    }
+
 }

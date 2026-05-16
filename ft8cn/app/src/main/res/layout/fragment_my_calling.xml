@@ -123,16 +123,32 @@
                 android:id="@+id/utcDelayTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="4dp"
+                android:layout_marginEnd="2dp"
                 android:text="--"
                 android:textColor="@color/bar_text_view_color"
-                android:textSize="12sp"
+                android:textSize="13sp"
                 android:fontFamily="monospace"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/setTransmitImageButton"
+                app:layout_constraintEnd_toStartOf="@+id/seqTextView"
                 app:layout_constraintStart_toEndOf="@+id/timerTextView"
                 app:layout_constraintTop_toBottomOf="@+id/rfFrequencyTextView"
                 tools:text="---" />
+
+            <!-- [NEW] Sequential slot indicator -->
+            <TextView
+                android:id="@+id/seqTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/bar_text_view_color"
+                android:text="seq: -"
+                android:textSize="14sp"
+                android:layout_marginStart="1dp"
+                android:layout_marginEnd="1dp"
+                app:layout_constraintStart_toEndOf="@id/utcDelayTextView"
+                app:layout_constraintEnd_toStartOf="@id/setTransmitImageButton"
+                app:layout_constraintTop_toBottomOf="@+id/rfFrequencyTextView"
+                app:layout_constraintBottom_toBottomOf="parent" />
+            <!-- [/NEW] -->
 
             <!-- [RIGHT] Кнопка отправки/передачи -->
             <ImageButton

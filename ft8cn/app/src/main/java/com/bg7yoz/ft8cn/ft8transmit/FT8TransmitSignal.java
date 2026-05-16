@@ -213,6 +213,17 @@ public class FT8TransmitSignal {
 
     @SuppressLint("DefaultLocale")
     public void setTransmit(TransmitCallsign transmitCallsign, int functionOrder, String toMaidenheadGrid) {
+        // [DEBUG] Трассировка всех вызовов setTransmit
+        Log.w(TAG, "[SET_TRANSMIT_CALLED] targetCallsign=" + transmitCallsign.callsign +
+                " functionOrder=" + functionOrder +
+                " frequency=" + transmitCallsign.frequency +
+                " sequential=" + transmitCallsign.sequential +
+                " snr=" + transmitCallsign.snr +
+                " activated=" + isActivated() +
+                " transmitting=" + isTransmitting() +
+                " stack=" + android.util.Log.getStackTraceString(new Throwable()));
+        // [/DEBUG]
+
         messageStartTime = 0;
         if (GeneralVariables.checkFun1(toMaidenheadGrid)) {
             this.toMaidenheadGrid = toMaidenheadGrid;
@@ -239,17 +250,18 @@ public class FT8TransmitSignal {
         if (transmitCallsign.frequency == 0) transmitCallsign.frequency = GeneralVariables.getBaseFrequency();
         if (GeneralVariables.synFrequency) setBaseFrequency(transmitCallsign.frequency);
 
-        // === [FIX] ИНВЕРСИЯ SEQUENTIAL ===
-        // Если целевая станция передала в seq=0, отвечаем в seq=1 (и наоборот)
-        // Это критически важно для FT8 протокола!
+        // === [FIX] SEQUENTIAL SLOT LOGIC ===
+        // Мы ожидаем, что MainViewModel уже вычислил правильный слот (0 или 1).
+        // Если передан -1, используем fallback (инверсия текущего UTC).
         if (transmitCallsign.sequential >= 0) {
-            // Инвертируем sequential: 0→1, 1→0
-            this.sequential = 1 - transmitCallsign.sequential;
+            this.sequential = transmitCallsign.sequential; // Берем готовое значение
+            Log.d(TAG, "[SEQUENTIAL] Applied explicit slot: " + this.sequential);
         } else {
-            // Если sequential не задан, используем текущий UTC sequential
-            this.sequential = UtcTimer.getNowSequential();
+            // Fallback для старых вызовов или CQ без контекста
+            this.sequential = 1 - UtcTimer.getNowSequential();
+            Log.w(TAG, "[SEQUENTIAL] Calculated fallback slot: " + this.sequential);
         }
-        // ================================
+        // ==================================
 
         mutableSequential.postValue(sequential);
         generateFun();

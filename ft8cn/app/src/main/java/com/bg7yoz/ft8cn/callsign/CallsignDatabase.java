@@ -13,6 +13,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.database.sqlite.SQLiteException;
 
 import androidx.annotation.Nullable;
 
@@ -65,8 +66,15 @@ public class CallsignDatabase extends SQLiteOpenHelper {
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-
+    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
+        if (oldVersion < 19) {
+            try {
+                sqLiteDatabase.execSQL("ALTER TABLE station_world_model ADD COLUMN last_sequential INTEGER DEFAULT -1");
+                Log.d(TAG, "Added last_sequential column to station_world_model");
+            } catch (SQLiteException e) {
+                Log.w(TAG, "Column last_sequential may already exist", e);
+            }
+        }
     }
 
 

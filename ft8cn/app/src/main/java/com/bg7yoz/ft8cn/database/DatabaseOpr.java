@@ -3,11 +3,7 @@ package com.bg7yoz.ft8cn.database;
  * Database operation class. Most operations are asynchronous (except HTTP-related).
  * The database has gone through multiple versions, so there is an onUpgrade method.
  * Configuration information is also saved in the database.
- *
- * @author BGY70Z
- * @date 2023-03-20
- */
-
+ * @author BGY70Z @date 2023-03-20 */
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.AssetManager;
@@ -31,12 +27,10 @@ import com.bg7yoz.ft8cn.log.QSLRecordStr;
 import com.bg7yoz.ft8cn.rigs.BaseRigOperation;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
 import com.bg7yoz.ft8cn.database.SecureStorage;
-
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -46,17 +40,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
-
 import java.util.List;  // Для World Model snapshot
 import java.util.concurrent.ConcurrentHashMap;  // Для потокобезопасного кэша
 import java.util.concurrent.locks.ReentrantLock;  // Для синхронизации
-
 // [NEW] Secure storage imports
 import android.content.SharedPreferences;
 import android.os.Build;
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKey;
-
 public class DatabaseOpr extends SQLiteOpenHelper {
     private static final String TAG = "DatabaseOpr";
     @SuppressLint("StaticFieldLeak")
@@ -67,28 +58,25 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     private SecureStorage secureStorage;
     private static final String SECURE_PREFS_NAME = "ft8cn_secure_prefs";
     private static final String MIGRATION_FLAG_KEY = "secure_migration_done_v1";
-
     // OPTIMIZATION: In-memory cache for DXCC prefix lookups to avoid repeated DB queries
     // This significantly speeds up country name resolution in the Calling window
     private static final Map<String, String> dxccPrefixCache = new ConcurrentHashMap<>();
     private static final ReentrantLock cacheLock = new ReentrantLock();
     private static boolean dxccCacheLoaded = false;
-
     public static DatabaseOpr getInstance(@Nullable Context context, @Nullable String databaseName) {
         if (instance == null) {
-            instance = new DatabaseOpr(context, databaseName, null, 17);
+            instance = new DatabaseOpr(context, databaseName, null, 19);
         }
         return instance;
     }
-
     public DatabaseOpr(@Nullable Context context, @Nullable String name,
                        @androidx.annotation.Nullable SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
         this.context = context;
-
         // Connect to database, if entity database does not exist, onCreate method will be called to initialize
         db = this.getWritableDatabase();
         // [NEW] Initialize secure storage for sensitive data
+        ensureWorldModelSchema();
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 MasterKey masterKey = new MasterKey.Builder(context)
@@ -111,14 +99,12 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             Log.e(TAG, "Failed to init SecureStorage: " + e.getMessage());
             secureStorage = null;
         }
-
         // [NEW] Migrate sensitive configs if needed
         if (secureStorage != null && !isMigrationDone()) {
             migrateSensitiveConfigs();
             markMigrationDone();
         }
     }
-
     /**
      * Called when entity database does not exist. Can create data and add files here.
      *
@@ -131,25 +117,18 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         createTables(sqLiteDatabase);// Create data tables
         // Create QSO log table
         createQSLTable(sqLiteDatabase);
-
         // Create DXCC table
         createDxccTables(sqLiteDatabase);
-
         // Create ITU table
         createItuTables(sqLiteDatabase);
-
         // Create CQZONE table
         createCqZoneTables(sqLiteDatabase);
-
         // Create callsign-grid mapping table
         createCallsignQTHTables(sqLiteDatabase);
-
         // Create SWL-related tables
         createSWLTables(sqLiteDatabase);
-
         // Create indexes
         createIndex(sqLiteDatabase);
-
         // Создание таблицы World Model
         sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS station_world_model (" +
                 "callsign TEXT PRIMARY KEY," +
@@ -165,39 +144,34 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 "ft8_state_relative INTEGER DEFAULT 0," +
                 "priority_score REAL DEFAULT 0," +
                 "is_new_dx INTEGER DEFAULT 0," +
-                "last_updated_sec INTEGER" +
+                "last_updated_sec INTEGER," +
+                "last_sequential INTEGER DEFAULT -1" +  // [NEW] CRITICAL: Store partner's TX slot
                 ")");
-
         sqLiteDatabase.execSQL("CREATE INDEX IF NOT EXISTS idx_world_model_priority ON station_world_model(priority_score DESC, last_freq_hz)");
         // [NEW] Add default value for acceptDxCalls
         sqLiteDatabase.execSQL("INSERT OR IGNORE INTO config (KeyName, Value) VALUES ('acceptDxCalls', '0')");
-
         // [REMOVED] Old setting no longer used
         // sqLiteDatabase.execSQL("INSERT OR IGNORE INTO config (KeyName, Value) VALUES ('multipleAnswersMode', '0')");
     }
-
     @Override
-    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
+    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
+        Log.w(TAG, "onUpgrade: oldVersion=" + oldVersion + ", newVersion=" + newVersion);
+
         // Create QSO log table version 2
         createQSLTable(sqLiteDatabase);
-
         // Create DXCC table
         createDxccTables(sqLiteDatabase);
-
         // Create ITU table
         createItuTables(sqLiteDatabase);
-
         // Create CQZONE table
         createCqZoneTables(sqLiteDatabase);
-
         // Create callsign-grid mapping table
         createCallsignQTHTables(sqLiteDatabase);
-
         // Create SWL-related tables
         createSWLTables(sqLiteDatabase);
-
         // Create indexes
         createIndex(sqLiteDatabase);
+
         // Создание таблицы World Model при обновлении
         sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS station_world_model (" +
                 "callsign TEXT PRIMARY KEY," +
@@ -213,18 +187,44 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 "ft8_state_relative INTEGER DEFAULT 0," +
                 "priority_score REAL DEFAULT 0," +
                 "is_new_dx INTEGER DEFAULT 0," +
-                "last_updated_sec INTEGER" +
+                "last_updated_sec INTEGER," +
+                "last_sequential INTEGER DEFAULT -1" +  // [NEW]
                 ")");
         sqLiteDatabase.execSQL("CREATE INDEX IF NOT EXISTS idx_world_model_priority ON station_world_model(priority_score DESC, last_freq_hz)");
 
+        // === [CRITICAL FIX] Миграция: добавить колонку в СУЩЕСТВУЮЩУЮ таблицу ===
+        try {
+            Log.d(TAG, "Checking if last_sequential column exists...");
+
+            // Проверяем, существует ли колонка last_sequential
+            Cursor cursor = sqLiteDatabase.rawQuery("PRAGMA table_info(station_world_model)", null);
+            boolean hasColumn = false;
+            if (cursor != null) {
+                Log.d(TAG, "Existing columns in station_world_model:");
+                while (cursor.moveToNext()) {
+                    // Индекс 1 = имя колонки
+                    String columnName = cursor.getString(1);
+                    Log.d(TAG, "  - " + columnName);
+                    if ("last_sequential".equals(columnName)) {
+                        hasColumn = true;
+                    }
+                }
+                cursor.close();
+            }
+
+            // Если колонки нет, добавляем её через ALTER TABLE
+            if (!hasColumn) {
+                Log.d(TAG, "Migration: Column NOT found. Adding last_sequential via ALTER TABLE...");
+                sqLiteDatabase.execSQL("ALTER TABLE station_world_model ADD COLUMN last_sequential INTEGER DEFAULT -1");
+                Log.d(TAG, "Migration SUCCESS: Column added!");
+            } else {
+                Log.d(TAG, "Migration: Column already exists, skipping ALTER TABLE");
+            }
+        } catch (SQLiteException e) {
+            Log.e(TAG, "Migration ERROR: " + e.getMessage(), e);
+        }
         // [NEW] Add setting for existing users upgrading app
         sqLiteDatabase.execSQL("INSERT OR IGNORE INTO config (KeyName, Value) VALUES ('acceptDxCalls', '0')");
-
-        // [REMOVED] Old setting no longer used
-        // sqLiteDatabase.execSQL("INSERT OR IGNORE INTO config (KeyName, Value) VALUES ('multipleAnswersMode', '0')");
-
-        // Delete equals sign from DXCC prefix list
-        //deleteDxccPrefixEqual(sqLiteDatabase);
     }
 
     // OPTIMIZATION: Enable WAL mode and performance PRAGMAs when database is opened
@@ -238,18 +238,19 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     @Override
     public void onOpen(SQLiteDatabase db) {
         super.onOpen(db);
+        ensureWorldModelSchema();
         if (!db.isReadOnly()) {
             try {
+                // === [CRITICAL] Ensure schema is up to date ===
+
                 // [FIX] Use rawQuery for PRAGMA statements that return values
                 // PRAGMA journal_mode returns the new mode, so we use rawQuery and close cursor
                 Cursor cursor = db.rawQuery("PRAGMA journal_mode = WAL", null);
                 if (cursor != null) { cursor.close(); }
-
                 // These PRAGMAs don't return data, execSQL is safe
                 db.execSQL("PRAGMA synchronous = NORMAL");
                 db.execSQL("PRAGMA cache_size = 32000"); // Было 8000
                 db.execSQL("PRAGMA busy_timeout = 5000");
-
                 Log.d(TAG, "Database performance optimizations applied: WAL mode, cache=8MB, synchronous=NORMAL");
             } catch (Exception e) {
                 // If PRAGMA fails, continue with default settings - database still works
@@ -258,24 +259,21 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         }
     }
 
+
     public SQLiteDatabase getDb() {
         return db;
     }
-
     private void createTables(SQLiteDatabase sqLiteDatabase) {
         try {
             // Create configuration table
-            sqLiteDatabase.execSQL("CREATE TABLE config (KeyName TEXT,Value TEXT,\n" +
+            sqLiteDatabase.execSQL("CREATE TABLE config (KeyName TEXT,Value TEXT, " +
                     "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT)");
-
             // Create followed callsigns table, UNIQUE means no duplicates, insert OR IGNORE into
             sqLiteDatabase.execSQL("CREATE TABLE followCallsigns (callsign  TEXT UNIQUE)");
-
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
         }
     }
-
     /**
      * Add column to table
      *
@@ -292,7 +290,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         }
         cursor.close();
     }
-
     /**
      * Check if table exists
      *
@@ -309,7 +306,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         }
         return false;
     }
-
     /**
      * Check if index exists
      * @param db
@@ -325,12 +321,10 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         }
         return false;
     }
-
     // CHANGED: Fixed double-quoted string literal warning - use single quotes for SQL strings
     private void deleteDxccPrefixEqual(SQLiteDatabase db) {
         db.execSQL("DELETE from dxcc_prefix where prefix LIKE '=%'");
     }
-
     /**
      * Create QSO log table
      */
@@ -342,32 +336,27 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     , "isLotW_import INTEGER DEFAULT 0");
             alterTable(sqLiteDatabase, "QSLTable", "isLotW_QSL"
                     , "isLotW_QSL INTEGER DEFAULT 0");
-
         } else {
-            sqLiteDatabase.execSQL("CREATE TABLE QSLTable (\n" +
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
-                    "isQSL INTEGER DEFAULT 0,\n" +// Whether QSL confirmed
-                    "isLotW_import INTEGER DEFAULT 0,\n" +// Whether imported from LoTW
-                    "isLotW_QSL INTEGER DEFAULT 0,\n" +
-
-
-                    "call TEXT,\n" +
-                    "gridsquare TEXT,\n" +
-                    "mode TEXT,\n" +
-                    "rst_sent TEXT,\n" +
-                    "rst_rcvd TEXT,\n" +
-                    "qso_date TEXT,\n" +
-                    "time_on TEXT,\n" +
-                    "qso_date_off TEXT,\n" +
-                    "time_off TEXT,\n" +
-                    "band TEXT,\n" +
-                    "freq TEXT,\n" +
-                    "station_callsign TEXT,\n" +
-                    "my_gridsquare TEXT,\n" +
+            sqLiteDatabase.execSQL("CREATE TABLE QSLTable ( " +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "isQSL INTEGER DEFAULT 0, " +// Whether QSL confirmed
+                    "isLotW_import INTEGER DEFAULT 0, " +// Whether imported from LoTW
+                    "isLotW_QSL INTEGER DEFAULT 0, " +
+                    "call TEXT, " +
+                    "gridsquare TEXT, " +
+                    "mode TEXT, " +
+                    "rst_sent TEXT, " +
+                    "rst_rcvd TEXT, " +
+                    "qso_date TEXT, " +
+                    "time_on TEXT, " +
+                    "qso_date_off TEXT, " +
+                    "time_off TEXT, " +
+                    "band TEXT, " +
+                    "freq TEXT, " +
+                    "station_callsign TEXT, " +
+                    "my_gridsquare TEXT, " +
                     "comment TEXT)");
         }
-
-
         if (checkTableExists(sqLiteDatabase, "QslCallsigns")) {
             alterTable(sqLiteDatabase, "QslCallsigns", "isQSL"
                     , "isQSL INTEGER DEFAULT 0");
@@ -380,69 +369,61 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     , "startTime TEXT DEFAULT '0'");
         } else {
             sqLiteDatabase.execSQL("CREATE TABLE QslCallsigns (" +
-                    "ID INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
-                    "isQSL INTEGER DEFAULT 0,\n" +
-                    "isLotW_import INTEGER DEFAULT 0,\n" +
-                    "isLotW_QSL INTEGER DEFAULT 0,\n" +
-
+                    "ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "isQSL INTEGER DEFAULT 0, " +
+                    "isLotW_import INTEGER DEFAULT 0, " +
+                    "isLotW_QSL INTEGER DEFAULT 0, " +
                     "callsign TEXT, startTime TEXT," +
                     "finishTime TEXT, mode TEXT," +
-                    "grid TEXT,\n" +
+                    "grid TEXT, " +
                     "band TEXT,band_i INTEGER)");
         }
-
         if (!checkTableExists(sqLiteDatabase, "Messages")) {
-            sqLiteDatabase.execSQL("CREATE TABLE Messages (\n" +
-                    "ID INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
-                    "I3 INTEGER,\n" +
-                    "N3 INTEGER,\n" +
-                    "Protocol TEXT,\n" +
-                    "UTC INTEGER,\n" +
-                    "SNR INTEGER,\n" +
-                    "TIME_SEC REAL,\n" +
-                    "FREQ INTEGER,\n" +
-                    "CALL_TO TEXT,\n" +
-                    "CALL_FROM TEXT,\n" +
-                    "EXTRAL TEXT,\n" +
-                    "REPORT INTEGER,\n" +
+            sqLiteDatabase.execSQL("CREATE TABLE Messages ( " +
+                    "ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "I3 INTEGER, " +
+                    "N3 INTEGER, " +
+                    "Protocol TEXT, " +
+                    "UTC INTEGER, " +
+                    "SNR INTEGER, " +
+                    "TIME_SEC REAL, " +
+                    "FREQ INTEGER, " +
+                    "CALL_TO TEXT, " +
+                    "CALL_FROM TEXT, " +
+                    "EXTRAL TEXT, " +
+                    "REPORT INTEGER, " +
                     "BAND INTEGER)");
         }
     }
-
-
     /**
      * Create DXCC-related tables: dxccList, dxcc_prefix, dxcc_grid
      */
     private void createDxccTables(SQLiteDatabase sqLiteDatabase) {
         if (!checkTableExists(sqLiteDatabase, "dxccList")) {
-            sqLiteDatabase.execSQL("CREATE TABLE dxccList (\n" +
+            sqLiteDatabase.execSQL("CREATE TABLE dxccList ( " +
                     "id INTEGER ," +
-                    "\tdxcc INTEGER,\n" +
-                    "\tcc TEXT,\n" +
-                    "\tccc TEXT,\n" +
-                    "\tname TEXT,\n" +
-                    "\tcontinent TEXT,\n" +
-                    "\tituzone TEXT,\n" +
-                    "\tcqzone TEXT,\n" +
-                    "\ttimezone INTEGER,\n" +
-                    "\tccode INTEGER,\n" +
-                    "\taname TEXT,\n" +
-                    "\tpp TEXT,\n" +
-                    "\tlat REAL,\n" +
-                    "\tlon REAL\n" +
+                    "\tdxcc INTEGER, " +
+                    "\tcc TEXT, " +
+                    "\tccc TEXT, " +
+                    "\tname TEXT, " +
+                    "\tcontinent TEXT, " +
+                    "\tituzone TEXT, " +
+                    "\tcqzone TEXT, " +
+                    "\ttimezone INTEGER, " +
+                    "\tccode INTEGER, " +
+                    "\taname TEXT, " +
+                    "\tpp TEXT, " +
+                    "\tlat REAL, " +
+                    "\tlon REAL " +
                     ");");
-
-            sqLiteDatabase.execSQL("CREATE TABLE dxcc_prefix (\n" +
-                    "\tdxcc INTEGER,\n" +
-                    "\tprefix TEXT\n" +
+            sqLiteDatabase.execSQL("CREATE TABLE dxcc_prefix ( " +
+                    "\tdxcc INTEGER, " +
+                    "\tprefix TEXT " +
                     ");");
-
-            sqLiteDatabase.execSQL("CREATE TABLE dxcc_grid (\n" +
-                    "\tdxcc INTEGER,\n" +
-                    "\tgrid TEXT\n" +
+            sqLiteDatabase.execSQL("CREATE TABLE dxcc_grid ( " +
+                    "\tdxcc INTEGER, " +
+                    "\tgrid TEXT " +
                     ");");
-
-
             // Import DXCC mapping data into database
             new Thread(new Runnable() {
                 @Override
@@ -456,9 +437,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 }
             }).start();
         }
-
     }
-
     /**
      * OPTIMIZATION: Populate the in-memory DXCC prefix cache for fast lookups
      * This method reads all prefix->country mappings from the database once
@@ -469,7 +448,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         try {
             if (dxccCacheLoaded) return; // Already loaded
             dxccPrefixCache.clear();
-
             Cursor cursor = db.rawQuery("SELECT prefix, name FROM dxcc_prefix dp " +
                     "INNER JOIN dxccList dl ON dp.dxcc = dl.dxcc", null);
             if (cursor != null) {
@@ -488,7 +466,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             cacheLock.unlock();
         }
     }
-
     /**
      * OPTIMIZATION: Fast country lookup by callsign prefix using in-memory cache
      * Falls back to database query only if cache is not loaded or prefix not found.
@@ -499,25 +476,21 @@ public class DatabaseOpr extends SQLiteOpenHelper {
      */
     public String getCountryByCallsign(String callsign) {
         if (callsign == null || callsign.isEmpty()) return "";
-
         // OPTIMIZATION: Inline prefix extraction since GeneralVariables.getPrefix() doesn't exist
         // Extract prefix: take first 1-4 uppercase letters/digits, stop at special chars
         String prefix = extractPrefix(callsign).toUpperCase();
         if (prefix.isEmpty()) return "";
-
         // Try cache first (O(1) lookup)
         String country = dxccPrefixCache.get(prefix);
         if (country != null) {
             return country;
         }
-
         // Cache miss or not loaded - fallback to database
         if (!dxccCacheLoaded) {
             populateDxccPrefixCache();
             country = dxccPrefixCache.get(prefix);
             if (country != null) return country;
         }
-
         // Final fallback: query database directly
         Cursor cursor = db.rawQuery("SELECT name FROM dxcc_prefix dp " +
                         "INNER JOIN dxccList dl ON dp.dxcc = dl.dxcc WHERE dp.prefix = ?",
@@ -537,7 +510,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         if (cursor != null) cursor.close();
         return "";
     }
-
     /**
      * OPTIMIZATION: Helper method to extract callsign prefix (1-4 chars)
      * Handles special cases like portable operations (R3BCK/P), etc.
@@ -547,10 +519,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
      */
     private String extractPrefix(String callsign) {
         if (callsign == null || callsign.isEmpty()) return "";
-
         // Remove common suffixes that indicate portable/mobile operations
         String cleaned = callsign.toUpperCase();
-
         // Find position of special characters that end the prefix
         int endPos = cleaned.length();
         for (int i = 0; i < cleaned.length(); i++) {
@@ -568,15 +538,12 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 break;
             }
         }
-
         // Take first 1-4 characters as prefix
         String prefix = cleaned.substring(0, Math.min(endPos, 4));
-
         // Remove trailing non-letters (some prefixes end with digit)
         // Keep standard format: letters+digit (e.g., "R3", "UA3", "W1")
         return prefix;
     }
-
     /**
      * OPTIMIZATION: Clear the DXCC prefix cache (use when DXCC data is updated)
      */
@@ -589,7 +556,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             cacheLock.unlock();
         }
     }
-
     /**
      * Import ITU zone mapping table into database
      *
@@ -606,7 +572,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             }).start();
         }
     }
-
     private void createCqZoneTables(SQLiteDatabase sqLiteDatabase) {
         if (!checkTableExists(sqLiteDatabase, "cqzoneList")) {
             sqLiteDatabase.execSQL("CREATE TABLE cqzoneList (cqzone INTEGER,grid TEXT)");
@@ -618,7 +583,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             }).start();
         }
     }
-
     /**
      * Create callsign-grid mapping table
      *
@@ -630,56 +594,52 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     ",updateTime Int ,PRIMARY KEY(callsign))");
         }
     }
-
     private void createSWLTables(SQLiteDatabase sqLiteDatabase) {
         //Log.e(TAG,"upgrade database.");
         if (!checkTableExists(sqLiteDatabase, "SWLMessages")) {
-            sqLiteDatabase.execSQL("CREATE TABLE SWLMessages (\n" +
-                    "\tID INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
-                    "\tI3 INTEGER,\n" +
-                    "\tN3 INTEGER,\n" +
-                    "\tProtocol TEXT,\n" +
-                    "\tUTC TEXT,\n" +
-                    "\tSNR INTEGER,\n" +
-                    "\tTIME_SEC REAL,\n" +
-                    "\tFREQ INTEGER,\n" +
-                    "\tCALL_TO TEXT,\n" +
-                    "\tCALL_FROM TEXT,\n" +
-                    "\tEXTRAL TEXT,\n" +
-                    "\tREPORT INTEGER,\n" +
-                    "\tBAND INTEGER\n" +
+            sqLiteDatabase.execSQL("CREATE TABLE SWLMessages ( " +
+                    "\tID INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "\tI3 INTEGER, " +
+                    "\tN3 INTEGER, " +
+                    "\tProtocol TEXT, " +
+                    "\tUTC TEXT, " +
+                    "\tSNR INTEGER, " +
+                    "\tTIME_SEC REAL, " +
+                    "\tFREQ INTEGER, " +
+                    "\tCALL_TO TEXT, " +
+                    "\tCALL_FROM TEXT, " +
+                    "\tEXTRAL TEXT, " +
+                    "\tREPORT INTEGER, " +
+                    "\tBAND INTEGER " +
                     ")");
             sqLiteDatabase.execSQL("CREATE INDEX SWLMessages_CALL_TO_IDX " +
                     "ON SWLMessages (CALL_TO,CALL_FROM)");
             sqLiteDatabase.execSQL("CREATE INDEX SWLMessages_UTC_IDX ON SWLMessages (UTC)");
         }
-
         if (!checkTableExists(sqLiteDatabase, "SWLQSOTable")) {
             // [FIX] Заменены двойные кавычки на квадратные скобки для имени колонки call (SQLite keyword)
-            sqLiteDatabase.execSQL("CREATE TABLE SWLQSOTable (\n" +
-                    "\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
-                    "\t[call] TEXT,\n" +
-                    "\tgridsquare TEXT,\n" +
-                    "\tmode TEXT,\n" +
-                    "\trst_sent TEXT,\n" +
-                    "\trst_rcvd TEXT,\n" +
-                    "\tqso_date TEXT,\n" +
-                    "\ttime_on TEXT,\n" +
-                    "\tqso_date_off TEXT,\n" +
-                    "\ttime_off TEXT,\n" +
-                    "\tband TEXT,\n" +
-                    "\tfreq TEXT,\n" +
-                    "\tstation_callsign TEXT,\n" +
-                    "\tmy_gridsquare TEXT,\n" +
-                    "\toperator TEXT,\n" +
+            sqLiteDatabase.execSQL("CREATE TABLE SWLQSOTable ( " +
+                    "\tid INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "\t[call] TEXT, " +
+                    "\tgridsquare TEXT, " +
+                    "\tmode TEXT, " +
+                    "\trst_sent TEXT, " +
+                    "\trst_rcvd TEXT, " +
+                    "\tqso_date TEXT, " +
+                    "\ttime_on TEXT, " +
+                    "\tqso_date_off TEXT, " +
+                    "\ttime_off TEXT, " +
+                    "\tband TEXT, " +
+                    "\tfreq TEXT, " +
+                    "\tstation_callsign TEXT, " +
+                    "\tmy_gridsquare TEXT, " +
+                    "\toperator TEXT, " +
                     "\tcomment TEXT)");
         }else {
             alterTable(sqLiteDatabase, "SWLQSOTable", "operator"
                     , "operator TEXT");
         }
     }
-
-
     /**
      * OPTIMIZATION: Create indexes to improve query speed
      * @param sqLiteDatabase Database
@@ -706,13 +666,10 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             sqLiteDatabase.execSQL("CREATE INDEX QSLTable_band_call_IDX ON QSLTable (band,[call])");
         }
     }
-
-
     public void loadItuDataFromFile(SQLiteDatabase db) {
         AssetManager assetManager = context.getAssets();
         InputStream inputStream;
         db.execSQL("delete from ituList");
-
         String insertSQL = "INSERT INTO ituList (itu,grid)" +
                 "VALUES(?,?)";
         try {
@@ -734,7 +691,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             Log.e(TAG, "loadDataFromFile: " + e.getMessage());
         }
     }
-
     public void loadICqZoneDataFromFile(SQLiteDatabase db) {
         AssetManager assetManager = context.getAssets();
         InputStream inputStream;
@@ -760,8 +716,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             Log.e(TAG, "loadDataFromFile: " + e.getMessage());
         }
     }
-
-
     public ArrayList<DxccObject> loadDxccDataFromFile() {
         AssetManager assetManager = context.getAssets();
         InputStream inputStream;
@@ -772,7 +726,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             inputStream.read(bytes);
             JSONObject jsonObject = new JSONObject(new String(bytes));
             JSONArray array = jsonObject.names();
-
             for (int i = 0; i < array.length(); i++) {
                 if (array.getString(i).equals("-1")) continue;
                 JSONObject dxccObject = new JSONObject(jsonObject.getString(array.getString(i)));
@@ -797,7 +750,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 dxcc.pp = dxccObject.getString("pp");
                 dxcc.lat = dxccObject.getDouble("lat");
                 dxcc.lon = dxccObject.getDouble("lon");
-
                 JSONArray mh = dxccObject.getJSONArray("mh");
                 for (int j = 0; j < mh.length(); j++) {
                     dxcc.grid.add(mh.getString(j));
@@ -809,7 +761,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 dxccObjects.add(dxcc);
                 //Log.e(TAG, "loadDataFromFile: id:" + dxcc.id + " dxcc:" + dxcc.dxcc);
             }
-
             inputStream.close();
         } catch (IOException | JSONException e) {
             e.printStackTrace();
@@ -817,8 +768,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         }
         return dxccObjects;
     }
-
-
     /**
      * Write callsign-grid mapping to table
      *
@@ -830,16 +779,13 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         new AddCallsignQTH(db).execute(callsign, grid);
         //Log.d(TAG, String.format("addCallsignQTH: callsign:%s,grid:%s", callsign, grid));
     }
-
     // Query configuration.
     public void getConfigByKey(String KeyName, OnAfterQueryConfig onAfterQueryConfig) {
         new QueryConfig(db, KeyName, onAfterQueryConfig).execute();
     }
-
     public void getCallSign(String callsign, String fieldName, String tableName, OnGetCallsign getCallsign) {
         new QueryCallsign(db, tableName, fieldName, callsign, getCallsign).execute();
     }
-
     /**
      * Write configuration, asynchronous operation
      */
@@ -847,11 +793,9 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         Log.d(TAG, "writeConfig: Value:" + Value);
         new WriteConfig(db, KeyName, Value, onAfterWriteConfig).execute();
     }
-
     public void writeMessage(ArrayList<Ft8Message> messages) {
         new WriteMessages(db, messages).execute();
     }
-
     /**
      * Read followed callsign list
      *
@@ -860,7 +804,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     public void getFollowCallsigns(OnAfterQueryFollowCallsigns onAffterQueryFollowCallsigns) {
         new GetFollowCallSigns(db, onAffterQueryFollowCallsigns).execute();
     }
-
     /**
      * Query SWL MESSAGE count per BAND
      * @param onAfterQueryFollowCallsigns Callback
@@ -868,7 +811,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     public void getMessageLogTotal(OnAfterQueryFollowCallsigns onAfterQueryFollowCallsigns) {
         new GetMessageLogTotal(db, onAfterQueryFollowCallsigns).execute();
     }
-
     /**
      * Query SWL QSO count per month
      * @param onAfterQueryFollowCallsigns Callback
@@ -876,8 +818,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     public void getSWLQsoLogTotal(OnAfterQueryFollowCallsigns onAfterQueryFollowCallsigns) {
         new GetSWLQsoTotal(db, onAfterQueryFollowCallsigns).execute();
     }
-
-
     /**
      * Add followed callsign to database
      *
@@ -886,7 +826,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     public void addFollowCallsign(String callsign) {
         new AddFollowCallSign(db, callsign).execute();
     }
-
     /**
      * Clear followed callsigns
      */
@@ -898,7 +837,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             }
         }).start();
     }
-
     /**
      * Delete QSO logs
      */
@@ -910,7 +848,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             }
         }).start();
     }
-
     /**
      * Delete SWL QSO logs
      */
@@ -930,7 +867,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     public void addQSL_Callsign(QSLRecord qslRecord) {
         new AddQSL_Info(this, qslRecord).execute();
     }
-
     /**
      * Save SWL QSO to database, SWL QSO criteria: must have signal reports from both parties. Does not include own callsign.
      * @param qslRecord QSO log record
@@ -938,25 +874,20 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     public void addSWL_QSO(QSLRecord qslRecord) {
         new Add_SWL_QSO_Info(this, qslRecord).execute();
     }
-
     // Delete followed callsign from database
     public void deleteFollowCallsign(String callsign) {
         new DeleteFollowCallsign(db, callsign).execute();
     }
-
     // Get all configuration parameters
     public void getAllConfigParameter(OnAfterQueryConfig onAfterQueryConfig) {
         new GetAllConfigParameter(db, secureStorage, onAfterQueryConfig).execute();
     }
-
     /**
      * Query all successfully QSO'd callsigns, filter by frequency
      */
     public void getAllQSLCallsigns() {
         new LoadAllQSLCallsigns(db).execute();
     }
-
-
     /**
      * Find QSL callsign records by callsign
      *
@@ -966,7 +897,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     public void getQSLCallsignsByCallsign(boolean showAll,int offset,String callsign, int filter, OnQueryQSLCallsign onQueryQSLCallsign) {
         new GetQLSCallsignByCallsign(showAll,offset,db, callsign, filter, onQueryQSLCallsign).execute();
     }
-
     /**
      * Query already QSO'd grids, mainly used for GridTracker
      * Can know which grids are QSO, which are QSL
@@ -976,7 +906,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     public void getQsoGridQuery(OnGetQsoGrids onGetQsoGrids) {
         new GetQsoGrids(db, onGetQsoGrids).execute();
     }
-
     /**
      * Query QSL records by callsign
      *
@@ -986,7 +915,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     public void getQSLRecordByCallsign(boolean showAll,int offset,String callsign, int filter, OnQueryQSLRecordCallsign onQueryQSLRecordCallsign) {
         new GetQSLByCallsign(showAll,offset,db, callsign, filter, onQueryQSLRecordCallsign).execute();
     }
-
     /**
      * Delete QSO callsign
      *
@@ -995,7 +923,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     public void deleteQSLCallsign(int id) {
         new DeleteQSLCallsignByID(db, id).execute();
     }
-
     /**
      * Delete log
      *
@@ -1004,7 +931,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     public void deleteQSLByID(int id) {
         new DeleteQSLByID(db, id).execute();
     }
-
     /**
      * Modify manual confirmation of log
      *
@@ -1014,11 +940,9 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     public void setQSLTableIsQSL(boolean isQSL, int id) {
         new SetQSLTableIsQSL(db, id, isQSL).execute();
     }
-
     public void setQSLCallsignIsQSL(boolean isQSL, int id) {
         new SetQSLCallsignIsQSL(db, id, isQSL).execute();
     }
-
     /**
      * Query callsign-grid mapping from database, after query, data is written to GeneralVariables.callsignAndGrids
      *
@@ -1027,154 +951,152 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     public void getCallsignQTH(String callsign) {
         new GetCallsignQTH(db).execute(callsign);
     }
-
-
-//    /**
-//     * Write string to file
-//     * @param file
-//     * @param data
-//     */
-//    private void writeStrToFile(File file, String data) {
-//        FileOutputStream fileOutputStream = null;
-//        try {
-//            fileOutputStream = new FileOutputStream(file, true);
-//            fileOutputStream.write(data.getBytes());
-//        } catch (IOException e) {
-//            Log.e(TAG, String.format("Failed to write file: %s", e.getMessage()));
-//        } finally {
-//            try {
-//                if (fileOutputStream != null) {
-//                    fileOutputStream.close();
-//                }
-//            } catch (IOException e) {
-//                Log.e(TAG, String.format("Failed to close file: %s", e.getMessage()));
-//            }
-//        }
-//    }
-
-//    /**
-//     * Write log data to file for sharing etc.
-//     * @param cursor Cursor
-//     * @param isSWL Whether SWL mode
-//     */
-//    @SuppressLint({"DefaultLocale", "Range"})
-//    public void downQSLTableToFile(File adiFile, Cursor cursor, boolean isSWL){
-//
-//        writeStrToFile(adiFile,"FT8CN ADIF Export<eoh>\n");
-//        int count =0;
-//        cursor.moveToPosition(-1);
-//        while (cursor.moveToNext()) {
-//            count++;
-//            writeStrToFile(adiFile,String.format("<call:%d>%s "
-//                    , cursor.getString(cursor.getColumnIndex("call")).length()
-//                    , cursor.getString(cursor.getColumnIndex("call"))));
-//            if (!isSWL) {
-//                if (cursor.getInt(cursor.getColumnIndex("isLotW_QSL")) == 1) {
-//                    writeStrToFile(adiFile,"<QSL_RCVD:1>Y ");
-//                } else {
-//                    writeStrToFile(adiFile,"<QSL_RCVD:1>N ");
-//                }
-//                if (cursor.getInt(cursor.getColumnIndex("isQSL")) == 1) {
-//                    writeStrToFile(adiFile,"<QSL_MANUAL:1>Y ");
-//                } else {
-//                    writeStrToFile(adiFile,"<QSL_MANUAL:1>N ");
-//                }
-//            } else {
-//                writeStrToFile(adiFile,"<swl:1>Y ");
-//            }
-//
-//            if (cursor.getString(cursor.getColumnIndex("gridsquare")) != null) {
-//                writeStrToFile(adiFile,String.format("<gridsquare:%d>%s "
-//                        , cursor.getString(cursor.getColumnIndex("gridsquare")).length()
-//                        , cursor.getString(cursor.getColumnIndex("gridsquare"))));
-//            }
-//
-//            if (cursor.getString(cursor.getColumnIndex("mode")) != null) {
-//                writeStrToFile(adiFile,String.format("<mode:%d>%s "
-//                        , cursor.getString(cursor.getColumnIndex("mode")).length()
-//                        , cursor.getString(cursor.getColumnIndex("mode"))));
-//            }
-//
-//            if (cursor.getString(cursor.getColumnIndex("rst_sent")) != null) {
-//                writeStrToFile(adiFile,String.format("<rst_sent:%d>%s "
-//                        , cursor.getString(cursor.getColumnIndex("rst_sent")).length()
-//                        , cursor.getString(cursor.getColumnIndex("rst_sent"))));
-//            }
-//
-//            if (cursor.getString(cursor.getColumnIndex("rst_rcvd")) != null) {
-//                writeStrToFile(adiFile,String.format("<rst_rcvd:%d>%s "
-//                        , cursor.getString(cursor.getColumnIndex("rst_rcvd")).length()
-//                        , cursor.getString(cursor.getColumnIndex("rst_rcvd"))));
-//            }
-//
-//            if (cursor.getString(cursor.getColumnIndex("qso_date")) != null) {
-//                writeStrToFile(adiFile,String.format("<qso_date:%d>%s "
-//                        , cursor.getString(cursor.getColumnIndex("qso_date")).length()
-//                        , cursor.getString(cursor.getColumnIndex("qso_date"))));
-//            }
-//
-//            if (cursor.getString(cursor.getColumnIndex("time_on")) != null) {
-//                writeStrToFile(adiFile,String.format("<time_on:%d>%s "
-//                        , cursor.getString(cursor.getColumnIndex("time_on")).length()
-//                        , cursor.getString(cursor.getColumnIndex("time_on"))));
-//            }
-//
-//            if (cursor.getString(cursor.getColumnIndex("qso_date_off")) != null) {
-//                writeStrToFile(adiFile,String.format("<qso_date_off:%d>%s "
-//                        , cursor.getString(cursor.getColumnIndex("qso_date_off")).length()
-//                        , cursor.getString(cursor.getColumnIndex("qso_date_off"))));
-//            }
-//
-//            if (cursor.getString(cursor.getColumnIndex("time_off")) != null) {
-//                writeStrToFile(adiFile,String.format("<time_off:%d>%s "
-//                        , cursor.getString(cursor.getColumnIndex("time_off")).length()
-//                        , cursor.getString(cursor.getColumnIndex("time_off"))));
-//            }
-//
-//            if (cursor.getString(cursor.getColumnIndex("band")) != null) {
-//                writeStrToFile(adiFile,String.format("<band:%d>%s "
-//                        , cursor.getString(cursor.getColumnIndex("band")).length()
-//                        , cursor.getString(cursor.getColumnIndex("band"))));
-//            }
-//
-//            if (cursor.getString(cursor.getColumnIndex("freq")) != null) {
-//                writeStrToFile(adiFile,String.format("<freq:%d>%s "
-//                        , cursor.getString(cursor.getColumnIndex("freq")).length()
-//                        , cursor.getString(cursor.getColumnIndex("freq"))));
-//            }
-//
-//            if (cursor.getString(cursor.getColumnIndex("station_callsign")) != null) {
-//                writeStrToFile(adiFile,String.format("<station_callsign:%d>%s "
-//                        , cursor.getString(cursor.getColumnIndex("station_callsign")).length()
-//                        , cursor.getString(cursor.getColumnIndex("station_callsign"))));
-//            }
-//
-//            if (cursor.getString(cursor.getColumnIndex("my_gridsquare")) != null) {
-//                writeStrToFile(adiFile,String.format("<my_gridsquare:%d>%s "
-//                        , cursor.getString(cursor.getColumnIndex("my_gridsquare")).length()
-//                        , cursor.getString(cursor.getColumnIndex("my_gridsquare"))));
-//            }
-//
-//            if (cursor.getColumnIndex("operator") != -1) {
-//                if (cursor.getString(cursor.getColumnIndex("operator")) != null) {
-//                    writeStrToFile(adiFile,String.format("<operator:%d>%s "
-//                            , cursor.getString(cursor.getColumnIndex("operator")).length()
-//                            , cursor.getString(cursor.getColumnIndex("operator"))));
-//                }
-//            }
-//            String comment = cursor.getString(cursor.getColumnIndex("comment"));
-//
-//            //<comment:15>Distance: 99 km <eor>
-//            //When writing to database, must add " km"
-//            writeStrToFile(adiFile,String.format("<comment:%d>%s <eor>\n"
-//                    , comment.length()
-//                    , comment));
-//        }
-//        Log.e(TAG,String.format("Wrote %d records",count));
-//
-//        cursor.close();
-//    }
-
+    //    /**
+    //     * Write string to file
+    //     * @param file
+    //     * @param data
+    //     */
+    //    private void writeStrToFile(File file, String data) {
+    //        FileOutputStream fileOutputStream = null;
+    //        try {
+    //            fileOutputStream = new FileOutputStream(file, true);
+    //            fileOutputStream.write(data.getBytes());
+    //        } catch (IOException e) {
+    //            Log.e(TAG, String.format("Failed to write file: %s", e.getMessage()));
+    //        } finally {
+    //            try {
+    //                if (fileOutputStream != null) {
+    //                    fileOutputStream.close();
+    //                }
+    //            } catch (IOException e) {
+    //                Log.e(TAG, String.format("Failed to close file: %s", e.getMessage()));
+    //            }
+    //        }
+    //    }
+    //    /**
+    //     * Write log data to file for sharing etc.
+    //     * @param cursor Cursor
+    //     * @param isSWL Whether SWL mode
+    //     */
+    //    @SuppressLint({"DefaultLocale", "Range"})
+    //    public void downQSLTableToFile(File adiFile, Cursor cursor, boolean isSWL){
+    //
+    //        writeStrToFile(adiFile,"FT8CN ADIF Export<eoh>
+        //");
+        //        int count =0;
+        //        cursor.moveToPosition(-1);
+        //        while (cursor.moveToNext()) {
+        //            count++;
+        //            writeStrToFile(adiFile,String.format("<call:%d>%s "
+        //                    , cursor.getString(cursor.getColumnIndex("call")).length()
+        //                    , cursor.getString(cursor.getColumnIndex("call"))));
+        //            if (!isSWL) {
+        //                if (cursor.getInt(cursor.getColumnIndex("isLotW_QSL")) == 1) {
+        //                    writeStrToFile(adiFile,"<QSL_RCVD:1>Y ");
+        //                } else {
+        //                    writeStrToFile(adiFile,"<QSL_RCVD:1>N ");
+        //                }
+        //                if (cursor.getInt(cursor.getColumnIndex("isQSL")) == 1) {
+        //                    writeStrToFile(adiFile,"<QSL_MANUAL:1>Y ");
+        //                } else {
+        //                    writeStrToFile(adiFile,"<QSL_MANUAL:1>N ");
+        //                }
+        //            } else {
+        //                writeStrToFile(adiFile,"<swl:1>Y ");
+        //            }
+        //
+        //            if (cursor.getString(cursor.getColumnIndex("gridsquare")) != null) {
+        //                writeStrToFile(adiFile,String.format("<gridsquare:%d>%s "
+        //                        , cursor.getString(cursor.getColumnIndex("gridsquare")).length()
+        //                        , cursor.getString(cursor.getColumnIndex("gridsquare"))));
+        //            }
+        //
+        //            if (cursor.getString(cursor.getColumnIndex("mode")) != null) {
+        //                writeStrToFile(adiFile,String.format("<mode:%d>%s "
+        //                        , cursor.getString(cursor.getColumnIndex("mode")).length()
+        //                        , cursor.getString(cursor.getColumnIndex("mode"))));
+        //            }
+        //
+        //            if (cursor.getString(cursor.getColumnIndex("rst_sent")) != null) {
+        //                writeStrToFile(adiFile,String.format("<rst_sent:%d>%s "
+        //                        , cursor.getString(cursor.getColumnIndex("rst_sent")).length()
+        //                        , cursor.getString(cursor.getColumnIndex("rst_sent"))));
+        //            }
+        //
+        //            if (cursor.getString(cursor.getColumnIndex("rst_rcvd")) != null) {
+        //                writeStrToFile(adiFile,String.format("<rst_rcvd:%d>%s "
+        //                        , cursor.getString(cursor.getColumnIndex("rst_rcvd")).length()
+        //                        , cursor.getString(cursor.getColumnIndex("rst_rcvd"))));
+        //            }
+        //
+        //            if (cursor.getString(cursor.getColumnIndex("qso_date")) != null) {
+        //                writeStrToFile(adiFile,String.format("<qso_date:%d>%s "
+        //                        , cursor.getString(cursor.getColumnIndex("qso_date")).length()
+        //                        , cursor.getString(cursor.getColumnIndex("qso_date"))));
+        //            }
+        //
+        //            if (cursor.getString(cursor.getColumnIndex("time_on")) != null) {
+        //                writeStrToFile(adiFile,String.format("<time_on:%d>%s "
+        //                        , cursor.getString(cursor.getColumnIndex("time_on")).length()
+        //                        , cursor.getString(cursor.getColumnIndex("time_on"))));
+        //            }
+        //
+        //            if (cursor.getString(cursor.getColumnIndex("qso_date_off")) != null) {
+        //                writeStrToFile(adiFile,String.format("<qso_date_off:%d>%s "
+        //                        , cursor.getString(cursor.getColumnIndex("qso_date_off")).length()
+        //                        , cursor.getString(cursor.getColumnIndex("qso_date_off"))));
+        //            }
+        //
+        //            if (cursor.getString(cursor.getColumnIndex("time_off")) != null) {
+        //                writeStrToFile(adiFile,String.format("<time_off:%d>%s "
+        //                        , cursor.getString(cursor.getColumnIndex("time_off")).length()
+        //                        , cursor.getString(cursor.getColumnIndex("time_off"))));
+        //            }
+        //
+        //            if (cursor.getString(cursor.getColumnIndex("band")) != null) {
+        //                writeStrToFile(adiFile,String.format("<band:%d>%s "
+        //                        , cursor.getString(cursor.getColumnIndex("band")).length()
+        //                        , cursor.getString(cursor.getColumnIndex("band"))));
+        //            }
+        //
+        //            if (cursor.getString(cursor.getColumnIndex("freq")) != null) {
+        //                writeStrToFile(adiFile,String.format("<freq:%d>%s "
+        //                        , cursor.getString(cursor.getColumnIndex("freq")).length()
+        //                        , cursor.getString(cursor.getColumnIndex("freq"))));
+        //            }
+        //
+        //            if (cursor.getString(cursor.getColumnIndex("station_callsign")) != null) {
+        //                writeStrToFile(adiFile,String.format("<station_callsign:%d>%s "
+        //                        , cursor.getString(cursor.getColumnIndex("station_callsign")).length()
+        //                        , cursor.getString(cursor.getColumnIndex("station_callsign"))));
+        //            }
+        //
+        //            if (cursor.getString(cursor.getColumnIndex("my_gridsquare")) != null) {
+        //                writeStrToFile(adiFile,String.format("<my_gridsquare:%d>%s "
+        //                        , cursor.getString(cursor.getColumnIndex("my_gridsquare")).length()
+        //                        , cursor.getString(cursor.getColumnIndex("my_gridsquare"))));
+        //            }
+        //
+        //            if (cursor.getColumnIndex("operator") != -1) {
+        //                if (cursor.getString(cursor.getColumnIndex("operator")) != null) {
+        //                    writeStrToFile(adiFile,String.format("<operator:%d>%s "
+        //                            , cursor.getString(cursor.getColumnIndex("operator")).length()
+        //                            , cursor.getString(cursor.getColumnIndex("operator"))));
+        //                }
+        //            }
+        //            String comment = cursor.getString(cursor.getColumnIndex("comment"));
+        //
+        //            //<comment:15>Distance: 99 km <eor>
+        //            //When writing to database, must add " km"
+        //            writeStrToFile(adiFile,String.format("<comment:%d>%s <eor>
+        //"
+    //                    , comment.length()
+    //                    , comment));
+    //        }
+    //        Log.e(TAG,String.format("Wrote %d records",count));
+    //
+    //        cursor.close();
+    //    }
     /**
      * Generate ADIF text content
      * @param cursor Cursor
@@ -1184,8 +1106,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     @SuppressLint({"Range", "DefaultLocale"})
     public String downQSLTable(Cursor cursor, boolean isSWL) {
         StringBuilder logStr = new StringBuilder();
-
-        logStr.append("FT8CN ADIF Export<eoh>\n");
+        logStr.append("FT8CN ADIF Export<eoh>");
         cursor.moveToPosition(-1);
         while (cursor.moveToNext()) {
             logStr.append(String.format("<call:%d>%s "
@@ -1205,79 +1126,66 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             } else {
                 logStr.append("<swl:1>Y ");
             }
-
             if (cursor.getString(cursor.getColumnIndex("gridsquare")) != null) {
                 logStr.append(String.format("<gridsquare:%d>%s "
                         , cursor.getString(cursor.getColumnIndex("gridsquare")).length()
                         , cursor.getString(cursor.getColumnIndex("gridsquare"))));
             }
-
             if (cursor.getString(cursor.getColumnIndex("mode")) != null) {
                 logStr.append(String.format("<mode:%d>%s "
                         , cursor.getString(cursor.getColumnIndex("mode")).length()
                         , cursor.getString(cursor.getColumnIndex("mode"))));
             }
-
             if (cursor.getString(cursor.getColumnIndex("rst_sent")) != null) {
                 logStr.append(String.format("<rst_sent:%d>%s "
                         , cursor.getString(cursor.getColumnIndex("rst_sent")).length()
                         , cursor.getString(cursor.getColumnIndex("rst_sent"))));
             }
-
             if (cursor.getString(cursor.getColumnIndex("rst_rcvd")) != null) {
                 logStr.append(String.format("<rst_rcvd:%d>%s "
                         , cursor.getString(cursor.getColumnIndex("rst_rcvd")).length()
                         , cursor.getString(cursor.getColumnIndex("rst_rcvd"))));
             }
-
             if (cursor.getString(cursor.getColumnIndex("qso_date")) != null) {
                 logStr.append(String.format("<qso_date:%d>%s "
                         , cursor.getString(cursor.getColumnIndex("qso_date")).length()
                         , cursor.getString(cursor.getColumnIndex("qso_date"))));
             }
-
             if (cursor.getString(cursor.getColumnIndex("time_on")) != null) {
                 logStr.append(String.format("<time_on:%d>%s "
                         , cursor.getString(cursor.getColumnIndex("time_on")).length()
                         , cursor.getString(cursor.getColumnIndex("time_on"))));
             }
-
             if (cursor.getString(cursor.getColumnIndex("qso_date_off")) != null) {
                 logStr.append(String.format("<qso_date_off:%d>%s "
                         , cursor.getString(cursor.getColumnIndex("qso_date_off")).length()
                         , cursor.getString(cursor.getColumnIndex("qso_date_off"))));
             }
-
             if (cursor.getString(cursor.getColumnIndex("time_off")) != null) {
                 logStr.append(String.format("<time_off:%d>%s "
                         , cursor.getString(cursor.getColumnIndex("time_off")).length()
                         , cursor.getString(cursor.getColumnIndex("time_off"))));
             }
-
             if (cursor.getString(cursor.getColumnIndex("band")) != null) {
                 logStr.append(String.format("<band:%d>%s "
                         , cursor.getString(cursor.getColumnIndex("band")).length()
                         , cursor.getString(cursor.getColumnIndex("band"))));
             }
-
             if (cursor.getString(cursor.getColumnIndex("freq")) != null) {
                 logStr.append(String.format("<freq:%d>%s "
                         , cursor.getString(cursor.getColumnIndex("freq")).length()
                         , cursor.getString(cursor.getColumnIndex("freq"))));
             }
-
             if (cursor.getString(cursor.getColumnIndex("station_callsign")) != null) {
                 logStr.append(String.format("<station_callsign:%d>%s "
                         , cursor.getString(cursor.getColumnIndex("station_callsign")).length()
                         , cursor.getString(cursor.getColumnIndex("station_callsign"))));
             }
-
             if (cursor.getString(cursor.getColumnIndex("my_gridsquare")) != null) {
                 logStr.append(String.format("<my_gridsquare:%d>%s "
                         , cursor.getString(cursor.getColumnIndex("my_gridsquare")).length()
                         , cursor.getString(cursor.getColumnIndex("my_gridsquare"))));
             }
-
             if (cursor.getColumnIndex("operator") != -1) {
                 if (cursor.getString(cursor.getColumnIndex("operator")) != null) {
                     logStr.append(String.format("<operator:%d>%s "
@@ -1285,20 +1193,16 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                             , cursor.getString(cursor.getColumnIndex("operator"))));
                 }
             }
-
             String comment = cursor.getString(cursor.getColumnIndex("comment"));
-
             //<comment:15>Distance: 99 km <eor>
             //When writing to database, must add " km"
-            logStr.append(String.format("<comment:%d>%s <eor>\n"
+            logStr.append(String.format("<comment:%d>%s <eor>"
                     , comment.length()
                     , comment));
         }
-
         cursor.close();
         return logStr.toString();
     }
-
     /**
      * List already QSO'd DXCC zones
      */
@@ -1310,44 +1214,37 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 String querySQL;
                 Cursor cursor;
                 Log.d(TAG, "run: Importing divisions...");
-
                 // Import already QSO'd dxcc
-                querySQL = "SELECT DISTINCT dl.pp FROM   dxcc_grid dg\n" +
-                        "inner join  QSLTable q\n" +
+                querySQL = "SELECT DISTINCT dl.pp FROM   dxcc_grid dg " +
+                        "inner join  QSLTable q " +
                         "on  dg.grid =UPPER(SUBSTR(q.gridsquare,1,4))  LEFT JOIN dxccList dl on dg.dxcc =dl.dxcc";
                 cursor = db.rawQuery(querySQL, null);
                 while (cursor.moveToNext()) {
                     GeneralVariables.addDxcc(cursor.getString(cursor.getColumnIndex("pp")));
                 }
                 cursor.close();
-
                 // Import already QSO'd CQ zones
-                querySQL = "SELECT DISTINCT  cl.cqzone  as cq FROM   cqzoneList cl\n" +
-                        "inner join  QSLTable q\n" +
+                querySQL = "SELECT DISTINCT  cl.cqzone  as cq FROM   cqzoneList cl " +
+                        "inner join  QSLTable q " +
                         "on  cl.grid =UPPER(SUBSTR(q.gridsquare,1,4)) ";
                 cursor = db.rawQuery(querySQL, null);
                 while (cursor.moveToNext()) {
                     GeneralVariables.addCqZone(cursor.getInt(cursor.getColumnIndex("cq")));
                 }
                 cursor.close();
-
                 // Import already QSO'd itu zones
-                querySQL = "SELECT DISTINCT il.itu   FROM   ituList il\n" +
-                        "inner join  QSLTable q\n" +
+                querySQL = "SELECT DISTINCT il.itu   FROM   ituList il " +
+                        "inner join  QSLTable q " +
                         "on  il.grid =UPPER(SUBSTR(q.gridsquare,1,4))";
                 cursor = db.rawQuery(querySQL, null);
                 while (cursor.moveToNext()) {
                     GeneralVariables.addItuZone(cursor.getInt(cursor.getColumnIndex("itu")));
                 }
                 cursor.close();
-
                 Log.d(TAG, "run: Division import complete...");
             }
         }).start();
-
     }
-
-
     /**
      * Check if QSO'd callsign exists, if exists return TRUE and update isLotW_QSL
      *
@@ -1361,7 +1258,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         // Check if callsign already exists
         String querySQL = "select * from QslCallsigns WHERE (callsign=?)" +
                 "and (startTime=?) and(finishTime=?) and(mode=?)";
-
         Cursor cursor = db.rawQuery(querySQL, new String[]{
                 record.getToCallsign()
                 , record.getStartTime()
@@ -1374,13 +1270,12 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             newRecord.id = cursor.getLong(cursor.getColumnIndex("ID"));
         }
         cursor.close();
-//        if (newRecord.id != -1) {// Record already exists
-//            querySQL = "UPDATE   QslCallsigns set isLotW_QSL=? WHERE ID=?";
-//            db.execSQL(querySQL, new Object[]{newRecord.isLotW_QSL ? '1' : '0', newRecord.id});
-//        }
+        //        if (newRecord.id != -1) {// Record already exists
+        //            querySQL = "UPDATE   QslCallsigns set isLotW_QSL=? WHERE ID=?";
+        //            db.execSQL(querySQL, new Object[]{newRecord.isLotW_QSL ? '1' : '0', newRecord.id});
+        //        }
         return newRecord.id != -1;//
     }
-
     @SuppressLint("Range")
     public boolean checkIsQSL(QSLRecord record) {
         QSLRecord newRecord = record;
@@ -1388,7 +1283,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         // Check if log record already exists
         String querySQL = "select * from QSLTable WHERE (call=?)" +
                 "and (qso_date=?) and(time_on=?) and(mode=?)";
-
         Cursor cursor = db.rawQuery(querySQL, new String[]{
                 record.getToCallsign()
                 , record.getQso_date()
@@ -1401,14 +1295,12 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             newRecord.id = cursor.getLong(cursor.getColumnIndex("id"));
         }
         cursor.close();
-
-//        if (newRecord.id != -1) {// Record already exists
-//            querySQL = "UPDATE   QSLTable set isLotW_QSL=? WHERE ID=?";
-//            db.execSQL(querySQL, new Object[]{newRecord.isLotW_QSL ? '1' : '0', newRecord.id});
-//        }
+        //        if (newRecord.id != -1) {// Record already exists
+        //            querySQL = "UPDATE   QSLTable set isLotW_QSL=? WHERE ID=?";
+        //            db.execSQL(querySQL, new Object[]{newRecord.isLotW_QSL ? '1' : '0', newRecord.id});
+        //        }
         return newRecord.id != -1;//
     }
-
     @SuppressLint("Range")
     public boolean doInsertQSLData(QSLRecord record,AfterInsertQSLData afterInsertQSLData) {
         if (record.getToCallsign() == null) {
@@ -1417,7 +1309,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             }
             return false;
         }
-
         String querySQL;
         if (!checkQSLCallsign(record)) {// If record does not exist, add
             querySQL = "INSERT INTO  QslCallsigns (callsign" +
@@ -1447,7 +1338,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                         , new Object[]{1, record.getToCallsign(), record.getStartTime()
                                 , record.getEndTime(), record.getMode()});
             }
-
             if (record.isLotW_QSL) {
                 db.execSQL("UPDATE  QslCallsigns  SET isLotW_QSL=? " +
                                 "WHERE  (callsign=?)AND(startTime=?)AND(finishTime=?)AND(mode=?)"
@@ -1460,15 +1350,11 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                         , new Object[]{record.getToMaidenGrid(), record.getToCallsign(), record.getStartTime()
                                 , record.getEndTime(), record.getMode()});
             }
-
         }
-
-
         if (!checkIsQSL(record)) {// If log data does not exist, add
             querySQL = "INSERT INTO QSLTable(call, isQSL,isLotW_import,isLotW_QSL,gridsquare, mode, rst_sent, rst_rcvd, qso_date, " +
                     "time_on, qso_date_off, time_off, band, freq, station_callsign, my_gridsquare," +
                     "comment)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-
             db.execSQL(querySQL, new String[]{record.getToCallsign()
                     , String.valueOf(record.isQSL ? 1 : 0)
                     , String.valueOf(record.isLotW_import ? 1 : 0)
@@ -1479,7 +1365,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     , String.valueOf(record.getReceivedReport())
                     , record.getQso_date()
                     , record.getTime_on()
-
                     , record.getQso_date_off()
                     , record.getTime_off()
                     , record.getBandLength()// Wavelength//RigOperationConstant.getMeterFromFreq(qslRecord.getBandFreq())
@@ -1490,7 +1375,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             if (afterInsertQSLData!=null){
                 afterInsertQSLData.doAfterInsert(false,true);// New QSL
             }
-
         } else {
             if (record.isQSL) {
                 db.execSQL("UPDATE  QSLTable  SET isQSL=? " +
@@ -1548,15 +1432,12 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                                 , record.getTime_on()
                                 , record.getMode()});
             }
-
             if (afterInsertQSLData!=null){
                 afterInsertQSLData.doAfterInsert(false,false);// Already exists, needs update
             }
         }
         return true;
     }
-
-
     /**
      * Query configuration class
      */
@@ -1564,13 +1445,11 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         private final SQLiteDatabase db;
         private final String KeyName;
         private final OnAfterQueryConfig afterQueryConfig;
-
         public QueryConfig(SQLiteDatabase db, String keyName, OnAfterQueryConfig afterQueryConfig) {
             this.db = db;
             KeyName = keyName;
             this.afterQueryConfig = afterQueryConfig;
         }
-
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -1578,7 +1457,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 afterQueryConfig.doOnBeforeQueryConfig(KeyName);
             }
         }
-
         @SuppressLint("Range")
         @Override
         protected Void doInBackground(Void... voids) {
@@ -1597,14 +1475,12 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             return null;
         }
     }
-
     static class QueryCallsign extends AsyncTask<Void, Void, Void> {
         private final SQLiteDatabase db;
         private final String tableName;
         private final String fieldName;
         private final String callSign;
         private OnGetCallsign onGetCallsign;
-
         public QueryCallsign(SQLiteDatabase db, String tableName, String fieldName
                 , String callSign, OnGetCallsign onGetCallsign) {
             this.db = db;
@@ -1613,7 +1489,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             this.callSign = callSign;
             this.onGetCallsign = onGetCallsign;
         }
-
         @SuppressLint("Range")
         @Override
         protected Void doInBackground(Void... voids) {
@@ -1629,13 +1504,11 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 if (onGetCallsign != null) {
                     onGetCallsign.doOnAfterGetCallSign(false);
                 }
-
             }
             cursor.close();
             return null;
         }
     }
-
     /**
      * Write configuration class
      */
@@ -1644,14 +1517,12 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         private final String KeyName;
         private final String Value;
         private final OnAfterWriteConfig afterWriteConfig;
-
         public WriteConfig(SQLiteDatabase db, String keyName, String Value, OnAfterWriteConfig afterWriteConfig) {
             this.db = db;
             this.KeyName = keyName;
             this.afterWriteConfig = afterWriteConfig;
             this.Value = Value;
         }
-
         @SuppressLint("Range")
         @Override
         protected Void doInBackground(Void... voids) {
@@ -1665,7 +1536,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             return null;
         }
     }
-
     /**
      * OPTIMIZATION: Write messages to database using batch transaction
      * Original implementation executed execSQL() per message, causing frequent fsync calls.
@@ -1674,20 +1544,16 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     static class WriteMessages extends AsyncTask<Void, Void, Void> {
         private final SQLiteDatabase db;
         private ArrayList<Ft8Message> messages;
-
         public WriteMessages(SQLiteDatabase db, ArrayList<Ft8Message> messages) {
             this.db = db;
             this.messages = messages;
         }
-
         @Override
         protected Void doInBackground(Void... voids) {
             if (messages == null || messages.isEmpty()) return null;
-
             String sql = "INSERT INTO SWLMessages(I3,N3,Protocol,UTC,SNR,TIME_SEC,FREQ,CALL_FROM" +
-                    ",CALL_TO,EXTRAL,REPORT,BAND)\n" +
+                    ",CALL_TO,EXTRAL,REPORT,BAND) " +
                     "VALUES(?,?,?,?,?,?,?,?,?,?,?,?)";
-
             // OPTIMIZATION: Wrap all inserts in a single transaction
             db.beginTransaction();
             try {
@@ -1717,19 +1583,16 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             return null;
         }
     }
-
     /**
      * Write followed callsigns to database
      */
     static class AddFollowCallSign extends AsyncTask<Void, Void, Void> {
         private final SQLiteDatabase db;
         private final String callSign;
-
         public AddFollowCallSign(SQLiteDatabase db, String callSign) {
             this.db = db;
             this.callSign = callSign;
         }
-
         @SuppressLint("Range")
         @Override
         protected Void doInBackground(Void... voids) {
@@ -1738,18 +1601,15 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             return null;
         }
     }
-
     /**
      * Write data to callsign-grid mapping table, AsyncTask String is multi-parameter, passed as array to doInBackground
      * So, first element is callsign, second is grid
      */
     static class AddCallsignQTH extends AsyncTask<String, Void, Void> {
         private final SQLiteDatabase db;
-
         public AddCallsignQTH(SQLiteDatabase db) {
             this.db = db;
         }
-
         @Override
         protected Void doInBackground(String... strings) {
             if (strings.length == 2) {
@@ -1760,7 +1620,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             return null;
         }
     }
-
     static class Add_SWL_QSO_Info extends AsyncTask<Void, Void, Void>{
         private final DatabaseOpr databaseOpr;
         private QSLRecord qslRecord;
@@ -1783,9 +1642,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             });
             // Add record
             querySQL = "INSERT INTO SWLQSOTable([call], gridsquare, mode, rst_sent, rst_rcvd, qso_date, " +
-                    "time_on, qso_date_off, time_off, band, freq, station_callsign, my_gridsquare,operator,comment)\n" +
+                    "time_on, qso_date_off, time_off, band, freq, station_callsign, my_gridsquare,operator,comment) " +
                     "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-
             databaseOpr.db.execSQL(querySQL, new String[]{qslRecord.getToCallsign()
                     , qslRecord.getToMaidenGrid()
                     , qslRecord.getMode()
@@ -1793,7 +1651,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     , String.valueOf(qslRecord.getReceivedReport())
                     , qslRecord.getQso_date()
                     , qslRecord.getTime_on()
-
                     , qslRecord.getQso_date_off()
                     , qslRecord.getTime_off()
                     , qslRecord.getBandLength()// Wavelength//RigOperationConstant.getMeterFromFreq(qslRecord.getBandFreq())
@@ -1802,13 +1659,9 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     , qslRecord.getMyMaidenGrid()
                     , GeneralVariables.myCallsign// My callsign, not both parties' callsign
                     , qslRecord.getComment()});
-
-
             return null;
         }
-
     }
-
     /**
      * Write successfully QSO'd callsigns to database
      */
@@ -1816,13 +1669,10 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         //private final SQLiteDatabase db;
         private final DatabaseOpr databaseOpr;
         private QSLRecord qslRecord;
-
         public AddQSL_Info(DatabaseOpr opr, QSLRecord qslRecord) {
             this.databaseOpr = opr;
             this.qslRecord = qslRecord;
         }
-
-
         @SuppressLint("Range")
         @Override
         protected Void doInBackground(Void... voids) {
@@ -1830,20 +1680,16 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             return null;
         }
     }
-
-
     /**
      * Delete followed callsign from database
      */
     static class DeleteFollowCallsign extends AsyncTask<Void, Void, Void> {
         private final SQLiteDatabase db;
         private final String callSign;
-
         public DeleteFollowCallsign(SQLiteDatabase db, String callSign) {
             this.db = db;
             this.callSign = callSign;
         }
-
         @SuppressLint("Range")
         @Override
         protected Void doInBackground(Void... voids) {
@@ -1852,22 +1698,19 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             return null;
         }
     }
-
     /**
      * Query grid from callsign-grid mapping table, parameter is callsign
      */
     static class GetCallsignQTH extends AsyncTask<String, Void, Void> {
         private final SQLiteDatabase db;
-
         GetCallsignQTH(SQLiteDatabase db) {
             this.db = db;
         }
-
         @SuppressLint("Range")
         @Override
         protected Void doInBackground(String... strings) {
             if (strings.length == 0) return null;
-            String querySQL = "select grid from CallsignQTH cq \n" +
+            String querySQL = "select grid from CallsignQTH cq " +
                     "WHERE callsign =?";
             Cursor cursor = db.rawQuery(querySQL, new String[]{strings[0]});
             if (cursor.moveToFirst()) {
@@ -1875,20 +1718,16 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                         , cursor.getString(cursor.getColumnIndex("grid")));
             }
             cursor.close();
-
             return null;
         }
     }
-
     static class GetMessageLogTotal extends AsyncTask<Void, Void, Void> {
         private final SQLiteDatabase db;
         private final OnAfterQueryFollowCallsigns onAffterQueryFollowCallsigns;
-
         public GetMessageLogTotal(SQLiteDatabase db, OnAfterQueryFollowCallsigns onAffterQueryFollowCallsigns) {
             this.db = db;
             this.onAffterQueryFollowCallsigns = onAffterQueryFollowCallsigns;
         }
-
         @Override
         @SuppressLint({"Range", "DefaultLocale"})
         protected Void doInBackground(Void... voids) {
@@ -1912,22 +1751,18 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             return null;
         }
     }
-
-
     static class GetSWLQsoTotal extends AsyncTask<Void, Void, Void> {
         private final SQLiteDatabase db;
         private final OnAfterQueryFollowCallsigns onAffterQueryFollowCallsigns;
-
         public GetSWLQsoTotal(SQLiteDatabase db, OnAfterQueryFollowCallsigns onAffterQueryFollowCallsigns) {
             this.db = db;
             this.onAffterQueryFollowCallsigns = onAffterQueryFollowCallsigns;
         }
-
         @Override
         @SuppressLint({"Range", "DefaultLocale"})
         protected Void doInBackground(Void... voids) {
-            String querySQL = "select count(*) as c,substr(qso_date_off,1,6) as t \n" +
-                    "from SWLQSOTable s\n" +
+            String querySQL = "select count(*) as c,substr(qso_date_off,1,6) as t " +
+                    "from SWLQSOTable s " +
                     "group by substr(qso_date_off,1,6)";
             Cursor cursor = db.rawQuery(querySQL, new String[]{});
             ArrayList<String> callsigns = new ArrayList<>();
@@ -1948,21 +1783,16 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             return null;
         }
     }
-
-
-
     /**
      * Get followed callsigns from database class
      */
     static class GetFollowCallSigns extends AsyncTask<Void, Void, Void> {
         private final SQLiteDatabase db;
         private final OnAfterQueryFollowCallsigns onAffterQueryFollowCallsigns;
-
         public GetFollowCallSigns(SQLiteDatabase db, OnAfterQueryFollowCallsigns onAffterQueryFollowCallsigns) {
             this.db = db;
             this.onAffterQueryFollowCallsigns = onAffterQueryFollowCallsigns;
         }
-
         @Override
         protected Void doInBackground(Void... voids) {
             String querySQL = "select callsign from followCallsigns";
@@ -1982,62 +1812,49 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             return null;
         }
     }
-
     public static class GetCallsignMapGrid extends AsyncTask<Void, Void, Void> {
         SQLiteDatabase db;
-
         public GetCallsignMapGrid(SQLiteDatabase db) {
             this.db = db;
         }
-
         @SuppressLint("Range")
         @Override
         protected Void doInBackground(Void... voids) {
-
-            String querySQL = "select DISTINCT callsign,grid from QslCallsigns qc \n" +
-                    "where LENGTH(grid)>3\n" +
+            String querySQL = "select DISTINCT callsign,grid from QslCallsigns qc " +
+                    "where LENGTH(grid)>3 " +
                     "order by ID ";
             Cursor cursor = db.rawQuery(querySQL, null);
             while (cursor.moveToNext()) {
                 GeneralVariables.addCallsignAndGrid(cursor.getString(cursor.getColumnIndex("callsign"))
                         , cursor.getString(cursor.getColumnIndex("grid")));
-
             }
             cursor.close();
             return null;
         }
     }
-
     public interface OnGetQsoGrids {
         void onAfterQuery(HashMap<String, Boolean> grids);
     }
-
-
     static class GetQsoGrids extends AsyncTask<Void, Void, Void> {
         SQLiteDatabase db;
         HashMap<String, Boolean> grids = new HashMap<>();
         OnGetQsoGrids onGetQsoGrids;
-
         public GetQsoGrids(SQLiteDatabase db, OnGetQsoGrids onGetQsoGrids) {
             this.db = db;
             this.onGetQsoGrids = onGetQsoGrids;
         }
-
         @SuppressLint("Range")
         @Override
         protected Void doInBackground(Void... voids) {
-
-            String querySQL = "select qc.gridsquare ,count(*) as cc,SUM(isQSL)+SUM(isLotW_QSL)as isQSL\n" +
-                    "from QSLTable  qc\n" +
-                    "WHERE LENGTH (qc.gridsquare)>2 \n" +
-                    "group by qc.gridsquare\n" +
+            String querySQL = "select qc.gridsquare ,count(*) as cc,SUM(isQSL)+SUM(isLotW_QSL)as isQSL " +
+                    "from QSLTable  qc " +
+                    "WHERE LENGTH (qc.gridsquare)>2 " +
+                    "group by qc.gridsquare " +
                     "ORDER by SUM(isQSL)+SUM(isLotW_QSL) desc";
             Cursor cursor = db.rawQuery(querySQL, null);
-
             while (cursor.moveToNext()) {
                 grids.put(cursor.getString(cursor.getColumnIndex("gridsquare"))
                         , cursor.getInt(cursor.getColumnIndex("isQSL")) != 0);
-
             }
             cursor.close();
             if (onGetQsoGrids != null) {
@@ -2046,7 +1863,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             return null;
         }
     }
-
     static class GetQSLByCallsign extends AsyncTask<Void, Void, Void> {
         boolean showAll;
         int offset;
@@ -2054,7 +1870,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         String callsign;
         int filter;
         OnQueryQSLRecordCallsign onQueryQSLRecordCallsign;
-
         public GetQSLByCallsign(boolean showAll,int offset,SQLiteDatabase db, String callsign, int queryFilter, OnQueryQSLRecordCallsign onQueryQSLRecordCallsign) {
             this.showAll=showAll;
             this.offset=offset;
@@ -2063,17 +1878,16 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             this.filter = queryFilter;
             this.onQueryQSLRecordCallsign = onQueryQSLRecordCallsign;
         }
-
         @SuppressLint("Range")
         @Override
         protected Void doInBackground(Void... voids) {
             String filterStr;
             switch (filter) {
                 case 1:
-                    filterStr = "and((isQSL =1)or(isLotW_QSL =1))\n";
+                    filterStr = "and((isQSL =1)or(isLotW_QSL =1)) ";
                     break;
                 case 2:
-                    filterStr = "and((isQSL =0)and(isLotW_QSL =0))\n";
+                    filterStr = "and((isQSL =0)and(isLotW_QSL =0)) ";
                     break;
                 default:
                     filterStr = "";
@@ -2082,10 +1896,10 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             if (!showAll){
                 limitStr="limit 100 offset "+offset;
             }
-            String querySQL = "select * from QSLTable where ([call] like ?) \n" +
+            String querySQL = "select * from QSLTable where ([call] like ?) " +
                     filterStr +
-                    " ORDER BY qso_date DESC, time_off DESC\n"+
-                    //" order by ID desc\n"+
+                    " ORDER BY qso_date DESC, time_off DESC "+
+                    //" order by ID desc "+
                     limitStr;
             Cursor cursor = db.rawQuery(querySQL, new String[]{"%" + callsign + "%"});
             ArrayList<QSLRecordStr> records = new ArrayList<>();
@@ -2103,7 +1917,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 record.setTime_on(String.format("%s-%s"
                         , cursor.getString(cursor.getColumnIndex("qso_date"))
                         , cursor.getString(cursor.getColumnIndex("time_on"))));
-
                 record.setTime_off(String.format("%s-%s"
                         , cursor.getString(cursor.getColumnIndex("qso_date_off"))
                         , cursor.getString(cursor.getColumnIndex("time_off"))));
@@ -2121,7 +1934,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             return null;
         }
     }
-
     /**
      * Query successfully QSO'd callsigns by callsign
      */
@@ -2132,7 +1944,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         OnQueryQSLCallsign onQueryQSLCallsign;
         int offset;
         boolean showAll;
-
         public GetQLSCallsignByCallsign(boolean showAll,int offset,SQLiteDatabase db, String callsign, int queryFilter, OnQueryQSLCallsign onQueryQSLCallsign) {
             this.showAll=showAll;
             this.offset=offset;
@@ -2141,17 +1952,16 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             this.filter = queryFilter;
             this.onQueryQSLCallsign = onQueryQSLCallsign;
         }
-
         @SuppressLint("Range")
         @Override
         protected Void doInBackground(Void... voids) {
             String filterStr;
             switch (filter) {
                 case 1:
-                    filterStr = "and((q.isQSL =1)or(q.isLotW_QSL =1))\n";
+                    filterStr = "and((q.isQSL =1)or(q.isLotW_QSL =1)) ";
                     break;
                 case 2:
-                    filterStr = "and((q.isQSL =0)and(q.isLotW_QSL =0))\n";
+                    filterStr = "and((q.isQSL =0)and(q.isLotW_QSL =0)) ";
                     break;
                 default:
                     filterStr = "";
@@ -2162,18 +1972,16 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             }
             // [FIX] Заменены двойные кавычки на одинарные в строке конкатенации для названия единицы измерения
             String querySQL = "select q.[call] as callsign ,q.gridsquare as grid" +
-                    ",q.band||' ('||q.freq||' MHz)' as band \n" +
-                    ",q.qso_date as last_time ,q.mode ,q.isQSL,q.isLotW_QSL\n" +
-                    "from QSLTable q inner join QSLTable q2 ON q.id =q2.id \n" +
-                    "where (q.[call] like ?)\n" +
+                    ",q.band||' ('||q.freq||' MHz)' as band " +
+                    ",q.qso_date as last_time ,q.mode ,q.isQSL,q.isLotW_QSL " +
+                    "from QSLTable q inner join QSLTable q2 ON q.id =q2.id " +
+                    "where (q.[call] like ?) " +
                     filterStr +
-                    "group by q.[call] ,q.gridsquare,q.freq ,q.qso_date,q.band\n" +
-                    ",q.mode,q.isQSL,q.isLotW_QSL\n" +
-                    "HAVING q.qso_date =MAX(q2.qso_date) \n" +
-                    "order by q.qso_date desc\n"+
+                    "group by q.[call] ,q.gridsquare,q.freq ,q.qso_date,q.band " +
+                    ",q.mode,q.isQSL,q.isLotW_QSL " +
+                    "HAVING q.qso_date =MAX(q2.qso_date) " +
+                    "order by q.qso_date desc "+
                     limitStr;
-
-
             Cursor cursor = db.rawQuery(querySQL, new String[]{"%" + callsign + "%"});
             ArrayList<QSLCallsignRecord> records = new ArrayList<>();
             while (cursor.moveToNext()) {
@@ -2194,15 +2002,12 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             return null;
         }
     }
-
-
     /**
      * Get QSO'd callsigns
      */
     @SuppressLint("DefaultLocale")
     static class GetAllQSLCallsign {
         public static void get(SQLiteDatabase db) {
-
             //String querySQL = "select distinct [call] from QSLTable where freq=?";
             // Changed to use wavelength BAND to get QSO'd callsigns
             String querySQL = "select distinct [call] from QSLTable where band=?";
@@ -2218,11 +2023,9 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             }
             cursor.close();
             GeneralVariables.QSL_Callsign_list = callsigns;
-
             querySQL = "select distinct [call] from QSLTable where band<>?";
             cursor = db.rawQuery(querySQL, new String[]{
                     BaseRigOperation.getMeterFromFreq(GeneralVariables.band)});
-
             ArrayList<String> other_callsigns = new ArrayList<>();
             while (cursor.moveToNext()) {
                 @SuppressLint("Range")
@@ -2234,68 +2037,54 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             cursor.close();
             GeneralVariables.QSL_Callsign_list_other_band = other_callsigns;
         }
-
     }
-
-
     /**
      * Delete QSO callsign by ID
      */
     static class DeleteQSLCallsignByID extends AsyncTask<Void, Void, Void> {
         private final SQLiteDatabase db;
         private final int id;
-
         public DeleteQSLCallsignByID(SQLiteDatabase db, int id) {
             this.db = db;
             this.id = id;
         }
-
-
         @Override
         protected Void doInBackground(Void... voids) {
             db.execSQL("delete from QslCallsigns where id=?", new Object[]{id});
             return null;
         }
     }
-
-
     /**
      * Delete log by ID
      */
     static class DeleteQSLByID extends AsyncTask<Void, Void, Void> {
         private final SQLiteDatabase db;
         private final int id;
-
         public DeleteQSLByID(SQLiteDatabase db, int id) {
             this.db = db;
             this.id = id;
         }
-
         @Override
         protected Void doInBackground(Void... voids) {
             db.execSQL("delete from QSLTable where id=?", new Object[]{id});
             return null;
         }
     }
-
     static class SetQSLCallsignIsQSL extends AsyncTask<Void, Void, Void> {
         private final SQLiteDatabase db;
         private final int id;
         private final boolean isQSL;
-
         public SetQSLCallsignIsQSL(SQLiteDatabase db, int id, boolean isQSL) {
             this.db = db;
             this.id = id;
             this.isQSL = isQSL;
         }
-
         @Override
         protected Void doInBackground(Void... voids) {
             db.execSQL("UPDATE QslCallsigns SET isQSL=? where id=?", new Object[]{isQSL ? "1" : "0", id});
             return null;
         }
     }
-
     /**
      * Set log manual confirmation
      */
@@ -2303,49 +2092,40 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         private final SQLiteDatabase db;
         private final int id;
         private final boolean isQSL;
-
         public SetQSLTableIsQSL(SQLiteDatabase db, int id, boolean isQSL) {
             this.db = db;
             this.id = id;
             this.isQSL = isQSL;
         }
-
         @Override
         protected Void doInBackground(Void... voids) {
             db.execSQL("UPDATE QSLTable SET isQSL=? where id=?", new Object[]{isQSL ? "1" : "0", id});
             return null;
         }
     }
-
-
     /**
      * Query all successfully QSO'd callsigns, filter by frequency at time of QSO
      */
     static class LoadAllQSLCallsigns extends AsyncTask<Void, Void, Void> {
         private final SQLiteDatabase db;
-
         public LoadAllQSLCallsigns(SQLiteDatabase db) {
             this.db = db;
         }
-
         @Override
         protected Void doInBackground(Void... voids) {
             GetAllQSLCallsign.get(db);// Get QSO'd callsigns
             return null;
         }
     }
-
     static class GetAllConfigParameter extends AsyncTask<Void, Void, Void> {
         private final SQLiteDatabase db;
         private final SecureStorage secureStorage;
         private OnAfterQueryConfig onAfterQueryConfig;
-
         public GetAllConfigParameter(SQLiteDatabase db, SecureStorage secureStorage, OnAfterQueryConfig onAfterQueryConfig) {
             this.db = db;
             this.secureStorage = secureStorage;
             this.onAfterQueryConfig = onAfterQueryConfig;
         }
-
         @SuppressLint("Range")
         @Override
         protected Void doInBackground(Void... voids) {
@@ -2355,7 +2135,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 @SuppressLint("Range")
                 String result = cursor.getString(cursor.getColumnIndex("Value"));
                 String name = cursor.getString(cursor.getColumnIndex("KeyName"));
-
                 if (name.equalsIgnoreCase("grid")) {
                     GeneralVariables.setMyMaidenheadGrid(result);
                 }
@@ -2450,7 +2229,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 if (name.equalsIgnoreCase("icomUserName")) {
                     GeneralVariables.icomUserName = result.equals("") ? "ic705" : result;
                 }
-
                 // === [FIX] ИСПРАВЛЕННЫЙ БЛОК ПАРОЛЯ ===
                 if (name.equalsIgnoreCase("icomPassword")) {
                     if (secureStorage != null && secureStorage.isAvailable()) {
@@ -2460,7 +2238,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     }
                 }
                 // ======================================
-
                 if (name.equalsIgnoreCase("volumeValue")) {
                     GeneralVariables.volumePercent = result.equals("") ? 1.0f : Float.parseFloat(result) / 100f;
                 }
@@ -2533,7 +2310,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             return null;
         }
     }
-
     // [NEW] Helper method to read config value with default fallback
     public String readConfig(String keyName, String defaultValue) {
         String querySQL = "SELECT Value FROM config WHERE KeyName = ?";
@@ -2545,7 +2321,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         }
         return result;
     }
-
     // [NEW] Migration method to remove old settings
     public void migrateRemoveOldSettings() {
         try {
@@ -2564,7 +2339,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     private static final ReentrantLock worldModelLock = new ReentrantLock();
     private static long lastWorldModelSave = 0;
     private static final long WORLD_MODEL_SAVE_INTERVAL_MS = 30000;
-
     public static class StationRecord {
         public final String callsign;
         public long bandsBitmap;
@@ -2579,19 +2353,19 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         public int ft8StateRelative;      // Что они нам прислали
         public float priorityScore;
         public boolean isNewDx;
+        // [NEW] CRITICAL: Store partner's TX slot for correct alternating response
+        public int lastSequential = -1;   // -1 = unknown
 
         public StationRecord(String callsign) {
             this.callsign = callsign;
             this.ft8StateRelative = 0;
             this.priorityScore = 10f;
         }
-
         public boolean isExpired() {
             long ageSlots = (com.bg7yoz.ft8cn.timer.UtcTimer.getNowSequential() - lastSeenUtcSec) / 15;
             return ageSlots > 4;
         }
     }
-
     /**
      * Band frequency to bit index mapping.
      * [FIX] Uses range-based matching: each configured frequency defines START of 3 kHz FT8 segment.
@@ -2602,76 +2376,60 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     public static int freqToBandBit(long freqHz) {
         // Each frequency from bands.txt defines START of 3 kHz FT8 segment
         // Format: {startFreq, endFreq, bitIndex}
-
         // 160m
         if (freqHz >= 1810000L && freqHz < 1813000L) return 0;
         if (freqHz >= 1840000L && freqHz < 1843000L) return 1;
         if (freqHz >= 1908000L && freqHz < 1911000L) return 2;
-
         // 80m
         if (freqHz >= 3531000L && freqHz < 3534000L) return 3;
         if (freqHz >= 3567000L && freqHz < 3570000L) return 4;
         if (freqHz >= 3573000L && freqHz < 3576000L) return 5;
         if (freqHz >= 3585000L && freqHz < 3588000L) return 6;
-
         // 60m
         if (freqHz >= 5126000L && freqHz < 5129000L) return 7;
         if (freqHz >= 5357000L && freqHz < 5360000L) return 8;
         if (freqHz >= 5362000L && freqHz < 5365000L) return 9;
-
         // 40m
         if (freqHz >= 7041000L && freqHz < 7044000L) return 10;
         if (freqHz >= 7056000L && freqHz < 7059000L) return 11;
         if (freqHz >= 7071000L && freqHz < 7074000L) return 12;
         if (freqHz >= 7074000L && freqHz < 7077000L) return 13;  // Main FT8
         if (freqHz >= 7080000L && freqHz < 7083000L) return 14;
-
         // 30m
         if (freqHz >= 10131000L && freqHz < 10134000L) return 15;
         if (freqHz >= 10133000L && freqHz < 10136000L) return 16;
         if (freqHz >= 10136000L && freqHz < 10139000L) return 17;  // Main FT8
         if (freqHz >= 10143000L && freqHz < 10146000L) return 18;
-
         // 20m
         if (freqHz >= 14071000L && freqHz < 14074000L) return 19;
         if (freqHz >= 14074000L && freqHz < 14077000L) return 20;  // Main FT8
         if (freqHz >= 14090000L && freqHz < 14093000L) return 21;  // Second FT8 segment
-
         // 17m
         if (freqHz >= 18095000L && freqHz < 18098000L) return 22;
         if (freqHz >= 18100000L && freqHz < 18103000L) return 23;  // Main FT8
-
         // 15m
         if (freqHz >= 21074000L && freqHz < 21077000L) return 24;  // Main FT8
         if (freqHz >= 21091000L && freqHz < 21094000L) return 25;
-
         // 12m
         if (freqHz >= 24911000L && freqHz < 24914000L) return 26;
         if (freqHz >= 24915000L && freqHz < 24918000L) return 27;  // Main FT8
-
         // 10m
         if (freqHz >= 28074000L && freqHz < 28077000L) return 28;  // Main FT8
         if (freqHz >= 28095000L && freqHz < 28098000L) return 29;
-
         // 8m
         if (freqHz >= 40680000L && freqHz < 40683000L) return 30;
-
         // 6m
         if (freqHz >= 50310000L && freqHz < 50313000L) return 31;
         if (freqHz >= 50313000L && freqHz < 50316000L) return 32;  // Main
         if (freqHz >= 50323000L && freqHz < 50326000L) return 33;
-
         // 4m
         if (freqHz >= 70100000L && freqHz < 70103000L) return 34;
         if (freqHz >= 70154000L && freqHz < 70157000L) return 35;  // Main
-
         // 2m
         if (freqHz >= 144174000L && freqHz < 144177000L) return 36;  // Main
         if (freqHz >= 144460000L && freqHz < 144463000L) return 37;
-
         // 70cm
         if (freqHz >= 432174000L && freqHz < 432177000L) return 38;
-
         // Fallback: broad band bits
         long kHz = freqHz / 1000;
         if (kHz >= 1800 && kHz < 2000) return 40;
@@ -2689,26 +2447,26 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         if (kHz >= 70000 && kHz < 71000) return 52;
         if (kHz >= 144000 && kHz < 148000) return 53;
         if (kHz >= 432000 && kHz < 450000) return 54;
-
         return 63;
     }
-
     /**
      * Update station record from decoded message - RAM cache + async DB save
      */
     /**
      * Update station record from decoded message - RAM cache + async DB save
+     */
+    /**
+     * Update station record from decoded message - RAM cache + SYNC DB save
      */
     public void updateStationFromMessage(Ft8Message msg, String qth, String dxcc, int ituZone, int cqZone, float bearing) {
         String callsign = msg.getCallsignFrom();
         if (callsign == null || callsign.isEmpty()) return;
-
         callsign = callsign.toUpperCase().trim();
         int detectedState = parseMessageState(msg);
 
         // [DEBUG] Лог входящего сообщения
-        Log.d(TAG, "[DEBUG] updateStationFromMessage: callsign=" + callsign +
-                " msg.freq_hz=" + msg.freq_hz + " (offset in Hz)");
+        //Log.d(TAG, "[DEBUG] updateStationFromMessage: callsign=" + callsign +
+        //        " msg.freq_hz=" + msg.freq_hz + " (offset in Hz)");
 
         worldModelLock.lock();
         try {
@@ -2733,17 +2491,21 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             long fullFrequency = GeneralVariables.band + Math.round(msg.freq_hz);
 
             // [DEBUG] Лог полной частоты
-            Log.d(TAG, "[DEBUG]   fullFrequency=" + fullFrequency +
-                    " (band=" + GeneralVariables.band + " + offset=" + Math.round(msg.freq_hz) + ")");
+            //Log.d(TAG, "[DEBUG]   fullFrequency=" + fullFrequency +
+            //        " (band=" + GeneralVariables.band + " + offset=" + Math.round(msg.freq_hz) + ")");
 
             int bandBit = freqToBandBit(fullFrequency);
 
             // [DEBUG] Лог результата
-            Log.d(TAG, "[DEBUG]   bandBit=" + bandBit + " for fullFreq=" + fullFrequency);
+            //Log.d(TAG, "[DEBUG]   bandBit=" + bandBit + " for fullFreq=" + fullFrequency);
 
             record.bandsBitmap |= (1L << bandBit);
 
-            // НАДО (правильно):
+            // [NEW] CRITICAL: Save partner's sequential slot
+            // This is essential for alternating TX slots in FT8
+            record.lastSequential = msg.getSequence();
+            Log.d(TAG, "[SEQUENTIAL] " + callsign + " TX in slot " + msg.getSequence());
+
             if (detectedState >= 1 && detectedState <= 4) {
                 // [FIX] Сохраняем МАКСИМАЛЬНОЕ состояние, чтобы не терять прогресс диалога
                 int oldState = record.ft8StateRelative;
@@ -2757,19 +2519,41 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             }
 
             record.priorityScore = calculatePriorityScore(record);
-            scheduleWorldModelSave();
+
+            // ========================================================================
+            // [SYNC FIX] START
+            // Принудительная немедленная запись в БД.
+            // Мы убираем задержку в 30 секунд, чтобы RAM-кэш и База данных
+            // были синхронизированы мгновенно после декодирования.
+            // Это гарантирует, что при сбое данные не потеряются.
+            // ========================================================================
+            try {
+                String sql = "INSERT OR REPLACE INTO station_world_model VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                db.execSQL(sql, new Object[]{
+                        record.callsign, record.bandsBitmap, record.lastFreqHz, record.lastSeenUtcSec,
+                        record.lastSnr, record.lastQth, record.lastBearing, record.dxccCode, record.lastItuZone, record.lastCqZone,
+                        record.ft8StateRelative, record.priorityScore, record.isNewDx ? 1 : 0, System.currentTimeMillis() / 1000,
+                        record.lastSequential  // [NEW] 15th parameter
+                });
+            } catch (Exception e) {
+                Log.e(TAG, "[SYNC FIX] Failed to write single record to DB: " + e.getMessage());
+            }
+            // ========================================================================
+            // [SYNC FIX] END
+            // ========================================================================
+
+            // Отключаем отложенное сохранение, так как мы уже сохранили всё сейчас.
+            // scheduleWorldModelSave();
+
         } finally {
             worldModelLock.unlock();
         }
     }
-
     private int parseMessageState(Ft8Message msg) {
         if (msg == null) return 0;
         String extra = msg.extraInfo != null ? msg.extraInfo : "";
         boolean toMe = GeneralVariables.checkIsMyCallsign(msg.getCallsignTo());
-
         if (!toMe) return msg.checkIsCQ() ? 6 : 0;
-
         if (extra.contains("RR73") || extra.contains("RRR") || extra.contains("RRR73")) return 4;
         if (extra.startsWith("R") && extra.length() <= 4) return 3;
         if (extra.matches("^-?\\d{1,3}$")) return 2;
@@ -2777,7 +2561,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         if (grid.length() >= 4) return 1;
         return 1;
     }
-
     private float calculatePriorityScore(StationRecord record) {
         if (record == null) return 0f;
         float score = 10f + record.lastSnr * 1.2f;
@@ -2792,27 +2575,23 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         if (GeneralVariables.checkQSLCallsign(record.callsign)) score -= 20f;
         return Math.max(0f, score);
     }
-
     public static List<StationRecord> getStationWorldModelSnapshot() {
         worldModelLock.lock();
         try { return new ArrayList<>(stationWorldModel.values()); }
         finally { worldModelLock.unlock(); }
     }
-
     public static StationRecord getStationRecord(String callsign) {
         if (callsign == null) return null;
         worldModelLock.lock();
         try { return stationWorldModel.get(callsign.toUpperCase()); }
         finally { worldModelLock.unlock(); }
     }
-
     private void scheduleWorldModelSave() {
         long now = System.currentTimeMillis();
         if (now - lastWorldModelSave < WORLD_MODEL_SAVE_INTERVAL_MS) return;
         lastWorldModelSave = now;
         new SaveWorldModelTask(db, new ArrayList<>(stationWorldModel.values())).execute();
     }
-
     private static class SaveWorldModelTask extends AsyncTask<Void, Void, Void> {
         private final SQLiteDatabase db;
         private final List<StationRecord> records;
@@ -2822,7 +2601,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         @Override
         protected Void doInBackground(Void... voids) {
             if (records.isEmpty()) return null;
-
             // Проверка: существует ли таблица
             Cursor cursor = null;
             try {
@@ -2834,14 +2612,16 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             } finally {
                 if (cursor != null) cursor.close();
             }
-
             db.beginTransaction();
             try {
-                String sql = "INSERT OR REPLACE INTO station_world_model VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                String sql = "INSERT OR REPLACE INTO station_world_model VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
                 for (StationRecord r : records) {
-                    db.execSQL(sql, new Object[]{r.callsign, r.bandsBitmap, r.lastFreqHz, r.lastSeenUtcSec,
+                    db.execSQL(sql, new Object[]{
+                            r.callsign, r.bandsBitmap, r.lastFreqHz, r.lastSeenUtcSec,
                             r.lastSnr, r.lastQth, r.lastBearing, r.dxccCode, r.lastItuZone, r.lastCqZone,
-                            r.ft8StateRelative, r.priorityScore, r.isNewDx ? 1 : 0, System.currentTimeMillis() / 1000});
+                            r.ft8StateRelative, r.priorityScore, r.isNewDx ? 1 : 0, System.currentTimeMillis() / 1000,
+                            r.lastSequential  // [NEW] 15th parameter
+                    });
                 }
                 db.setTransactionSuccessful();
             } catch (SQLiteException e) {
@@ -2862,25 +2642,20 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     // ========================================================================
     private static class SecureStorage {
         private final SharedPreferences prefs;
-
         SecureStorage(SharedPreferences prefs) {
             this.prefs = prefs;
         }
-
         boolean isAvailable() {
             return prefs != null;
         }
-
         void save(String key, String value) {
             if (!isAvailable()) return;
             prefs.edit().putString(key, value).apply();
         }
-
         String get(String key, String defaultValue) {
             if (!isAvailable()) return defaultValue;
             return prefs.getString(key, defaultValue);
         }
-
         void remove(String key) {
             if (!isAvailable()) return;
             prefs.edit().remove(key).apply();
@@ -2892,7 +2667,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     // ========================================================================
     // [NEW] Methods for secure config handling with fallback
     // ========================================================================
-
     /**
      * Save sensitive value to secure storage (if available) or plain config table (fallback).
      * Used for passwords, API keys, tokens.
@@ -2909,7 +2683,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             writeConfig(key, value, null);
         }
     }
-
     /**
      * Read sensitive value from secure storage (if available) or plain config table (fallback).
      * @param key Config key name
@@ -2927,14 +2700,12 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         // Fallback: read from plain config table
         return readConfig(key, defaultValue);
     }
-
     /**
      * Migrate existing sensitive configs from plain DB to secure storage.
      * Called once on first run after update.
      */
     private void migrateSensitiveConfigs() {
         Log.d(TAG, "Starting migration of sensitive configs to SecureStorage...");
-
         // List of config keys that contain sensitive data
         String[] sensitiveKeys = new String[] {
                 "cloudlog_password",
@@ -2944,7 +2715,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 "flex_api_key"
                 // Добавьте другие ключи с паролями по необходимости
         };
-
         for (String key : sensitiveKeys) {
             String value = readConfig(key, null);
             if (value != null && !value.isEmpty()) {
@@ -2959,7 +2729,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         }
         Log.d(TAG, "Sensitive config migration completed");
     }
-
     /**
      * Check if sensitive config migration has been performed.
      * @return true if migration flag exists in secure storage
@@ -2968,7 +2737,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         if (secureStorage == null || !secureStorage.isAvailable()) return true;
         return secureStorage.get(MIGRATION_FLAG_KEY, "0").equals("1");
     }
-
     /**
      * Mark migration as completed.
      */
@@ -2976,7 +2744,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         if (secureStorage == null || !secureStorage.isAvailable()) return;
         secureStorage.save(MIGRATION_FLAG_KEY, "1");
     }
-
     /**
      * Remove sensitive value from both secure and plain storage.
      * @param key Config key name
@@ -2999,7 +2766,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
      */
     public String getDatabaseStatistics() {
         StringBuilder stats = new StringBuilder();
-
         try {
             // 1. File size
             File dbFile = context.getDatabasePath("data.db");
@@ -3008,18 +2774,16 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 stats.append("Database file: ").append(sizeKB >= 1024
                         ? String.format("%.1f MB", sizeKB / 1024.0)
                         : sizeKB + " KB");
-                stats.append("\n\n");
+                stats.append("\n");
             }
-
             // 2. QSO log count
             Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM QSLTable", null);
             if (cursor != null && cursor.moveToFirst()) {
                 int qsoCount = cursor.getInt(0);
                 stats.append("QSO Log entries: ").append(qsoCount);
                 stats.append("\n");
-                cursor.close();
+                        cursor.close();
             }
-
             // 3. Callsigns count
             cursor = db.rawQuery("SELECT COUNT(*) FROM QslCallsigns", null);
             if (cursor != null && cursor.moveToFirst()) {
@@ -3028,7 +2792,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 stats.append("\n");
                 cursor.close();
             }
-
             // 4. SWL messages count
             cursor = db.rawQuery("SELECT COUNT(*) FROM SWLMessages", null);
             if (cursor != null && cursor.moveToFirst()) {
@@ -3037,7 +2800,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 stats.append("\n");
                 cursor.close();
             }
-
             // 5. Last QSO date
             cursor = db.rawQuery("SELECT MAX(qso_date) || ' ' || MAX(time_on) FROM QSLTable", null);
             if (cursor != null && cursor.moveToFirst()) {
@@ -3048,7 +2810,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 }
                 cursor.close();
             }
-
             // 6. Followed callsigns
             cursor = db.rawQuery("SELECT COUNT(*) FROM followCallsigns", null);
             if (cursor != null && cursor.moveToFirst()) {
@@ -3056,15 +2817,46 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 stats.append("\nFollowed callsigns: ").append(followCount);
                 cursor.close();
             }
-
         } catch (Exception e) {
             stats.append("Error getting statistics: ").append(e.getMessage());
             Log.e(TAG, "getDatabaseStatistics error: " + e.getMessage());
         }
-
         return stats.toString();
     }
     // ========================================================================
     // [END NEW] Database Statistics
     // ========================================================================
+
+    /**
+     * [CRITICAL FIX] Ensure station_world_model has last_sequential column.
+     * Called on every DB open - idempotent, safe to run multiple times.
+     */
+    private void ensureWorldModelSchema() {
+        try {
+            // Check if column exists
+            Cursor cursor = db.rawQuery("PRAGMA table_info(station_world_model)", null);
+            boolean hasColumn = false;
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    String name = cursor.getString(1); // column name at index 1
+                    if ("last_sequential".equals(name)) {
+                        hasColumn = true;
+                        break;
+                    }
+                }
+                cursor.close();
+            }
+
+            // Add column if missing
+            if (!hasColumn) {
+                Log.w(TAG, "SCHEMA FIX: Adding last_sequential column to station_world_model");
+                db.execSQL("ALTER TABLE station_world_model ADD COLUMN last_sequential INTEGER DEFAULT -1");
+                Log.d(TAG, "SCHEMA FIX: Column added successfully");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "SCHEMA FIX ERROR: " + e.getMessage(), e);
+            // Don't crash - app can continue without this column (just won't save sequential)
+        }
+    }
+
 }

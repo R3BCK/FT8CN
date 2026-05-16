@@ -68,6 +68,13 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
                                         GeneralVariables.getStringFromResource(R.string.calling_receiver)
                                         , ft8Message.getCallsignTo(), ft8Message.toWhere))
                                 .setActionView(view);
+
+                        // [NEW] Custom quick-transmit options for Target station
+                        contextMenu.add(0, 9, 0, "Call SWR")
+                                .setActionView(view);
+                        contextMenu.add(0, 10, 0, "Call RSWR")
+                                .setActionView(view);
+                        // [/NEW]
                     }
                     //means calling me, add reply menu
                     //if (ft8Message.getCallsignTo().equals(GeneralVariables.myCallsign)) {
