@@ -238,22 +238,21 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     @Override
     public void onOpen(SQLiteDatabase db) {
         super.onOpen(db);
-        ensureWorldModelSchema();
+
+        // [FIX] УДАЛИТЬ этот вызов! ensureWorldModelSchema() уже вызывается в конструкторе
+        // после инициализации this.db. Вызов здесь приводит к NullPointerException,
+        // потому что onOpen() вызывается фреймворком ДО завершения конструктора.
+        // ensureWorldModelSchema();  ← УДАЛИТЬ ЭТУ СТРОКУ!
+
         if (!db.isReadOnly()) {
             try {
-                // === [CRITICAL] Ensure schema is up to date ===
-
-                // [FIX] Use rawQuery for PRAGMA statements that return values
-                // PRAGMA journal_mode returns the new mode, so we use rawQuery and close cursor
                 Cursor cursor = db.rawQuery("PRAGMA journal_mode = WAL", null);
                 if (cursor != null) { cursor.close(); }
-                // These PRAGMAs don't return data, execSQL is safe
                 db.execSQL("PRAGMA synchronous = NORMAL");
-                db.execSQL("PRAGMA cache_size = 32000"); // Было 8000
+                db.execSQL("PRAGMA cache_size = 32000");
                 db.execSQL("PRAGMA busy_timeout = 5000");
                 Log.d(TAG, "Database performance optimizations applied: WAL mode, cache=8MB, synchronous=NORMAL");
             } catch (Exception e) {
-                // If PRAGMA fails, continue with default settings - database still works
                 Log.w(TAG, "Failed to apply database optimizations: " + e.getMessage());
             }
         }
@@ -2506,16 +2505,28 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             record.lastSequential = msg.getSequence();
             Log.d(TAG, "[SEQUENTIAL] " + callsign + " TX in slot " + msg.getSequence());
 
-            if (detectedState >= 1 && detectedState <= 4) {
-                // [FIX] Сохраняем МАКСИМАЛЬНОЕ состояние, чтобы не терять прогресс диалога
+// [FIX] Обновляем состояние ТОЛЬКО для релевантных сообщений:
+// 1. Нам адресованных (toMe = true)
+// 2. CQ вызовов (detectedState == 6)
+// 3. Новых DX на бэнде (isNewDx = true)
+
+            boolean isRelevantToUs = GeneralVariables.checkIsMyCallsign(msg.getCallsignTo());
+            boolean isCQ = msg.checkIsCQ();
+
+            if (isRelevantToUs && detectedState >= 1 && detectedState <= 4) {
+                // Сообщение нам адресовано - обновляем состояние диалога
                 int oldState = record.ft8StateRelative;
                 record.ft8StateRelative = Math.max(record.ft8StateRelative, detectedState);
                 if (record.ft8StateRelative != oldState) {
                     Log.d(TAG, "[STATE] " + callsign + ": " + oldState + " → " + record.ft8StateRelative);
                 }
-            } else if (detectedState == 6) {
-                // CQ состояние обновляем только если диалог ещё не начался
-                if (record.ft8StateRelative < 1) record.ft8StateRelative = 6;
+            } else if (isCQ && record.ft8StateRelative < 1) {
+                // CQ вызов - помечаем только если ещё не в диалоге
+                record.ft8StateRelative = 6;
+            } else if (!isRelevantToUs && !isCQ) {
+                // Просто декодированное сообщение (не нам и не CQ)
+                // Не обновляем ft8StateRelative - оставляем 0
+                // Индикаторы D/I/C не должны гореть
             }
 
             record.priorityScore = calculatePriorityScore(record);

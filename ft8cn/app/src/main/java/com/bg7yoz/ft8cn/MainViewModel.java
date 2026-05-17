@@ -1471,7 +1471,15 @@ public class MainViewModel extends ViewModel {
      */
     public void setOperationBand() {
         clearTransmittingMessage();     // Clear transmit queue
-        ft8TransmitSignal.resetToCQ();  // Reset CQ to state 6
+
+        // [FIX] Check if myCallsign is set before resetting CQ
+        // This prevents StringIndexOutOfBoundsException in GenerateFT8.checkI3ByCallsign()
+        if (GeneralVariables.myCallsign != null && !GeneralVariables.myCallsign.isEmpty()) {
+            ft8TransmitSignal.resetToCQ();  // Reset CQ to state 6
+        } else {
+            Log.w(TAG, "setOperationBand: myCallsign not set, skipping resetToCQ");
+        }
+
         Log.d(TAG, "=== setOperationBand DEBUG ===");
         Log.d(TAG, "controlMode=" + GeneralVariables.controlMode);
         Log.d(TAG, "connectMode=" + GeneralVariables.connectMode);

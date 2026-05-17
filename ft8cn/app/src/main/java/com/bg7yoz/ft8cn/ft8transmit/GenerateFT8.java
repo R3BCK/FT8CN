@@ -93,6 +93,16 @@ public class GenerateFT8 {
     }
 
     public static int checkI3ByCallsign(String callsign) {
+        // [FIX] Check for null or empty callsign FIRST
+        if (callsign == null || callsign.isEmpty()) {
+            return 0;
+        }
+
+        // [FIX] Check length before substring() to avoid IndexOutOfBoundsException
+        if (callsign.length() < 2) {
+            return 1; // Treat short callsigns as standard
+        }
+
         String substring = callsign.substring(callsign.length() - 2);
         if (substring.equals("/P")) {
             if (callsign.length() <= 8) {
@@ -114,9 +124,8 @@ public class GenerateFT8 {
         if (callsign.length() > 6) {
             return 4;
         }
-        if (callsign.length() == 0) {
-            return 0;
-        }
+        // [REMOVED] Redundant check: already handled at start
+        // if (callsign.length() == 0) { return 0; }
         return 1;
     }
 

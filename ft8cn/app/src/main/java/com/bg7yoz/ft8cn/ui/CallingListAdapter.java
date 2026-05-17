@@ -1,4 +1,5 @@
 package com.bg7yoz.ft8cn.ui;
+package com.bg7yoz.ft8cn.ui;
 /**
  * Message list Adapter. Used for decode interface, calling interface, grid tracker.
  * Different periods have different backgrounds. Total 4 background colors.
