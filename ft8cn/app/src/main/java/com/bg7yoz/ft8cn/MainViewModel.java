@@ -1,4 +1,8 @@
+// [FIX-2026-05-17] BEGIN: Fixed initialization of worked entities maps
+// Issue: QslCallsigns table in fork does not contain dxcc/cq_zone/itu_zone columns
+// Fix: Load callsigns from log, then query DXCC info via CallsignDatabase for each
 package com.bg7yoz.ft8cn;
+
 /**
  * MainViewModel class for FT8 signal decoding and related data.
  * Lives for the entire APP lifecycle.
@@ -375,6 +379,12 @@ public class MainViewModel extends ViewModel {
     }
 
     public MainViewModel() {
+        // [FIX-2026-05-17] Initialize callsignDatabase BEFORE initWorkedEntitiesFromQSL
+        // This ensures we can query DXCC/CQ/ITU info for each callsign in the log
+        GeneralVariables.callsignDatabase = CallsignDatabase.getInstance(
+                GeneralVariables.getMainContext(), "callsigns.db", 19);
+        Log.d("DXCC_INIT", "callsignDatabase initialized: " + (GeneralVariables.callsignDatabase != null));
+
         databaseOpr = DatabaseOpr.getInstance(GeneralVariables.getMainContext(), "data.db");
         mutableIsDecoding.postValue(false);
 
@@ -389,6 +399,9 @@ public class MainViewModel extends ViewModel {
 
         mutableIsFlexRadio.setValue(false);
         mutableIsXieguRadio.setValue(false);
+
+        // [FIX-2026-05-17] Now callsignDatabase is ready, so this will work correctly
+        initWorkedEntitiesFromQSL();
 
         utcTimer = new UtcTimer(10, false, new OnUtcTimer() {
             @Override
@@ -1052,7 +1065,7 @@ public class MainViewModel extends ViewModel {
                         stationContext.currentTarget != null &&
                         action.targetCallsign.equals(stationContext.currentTarget)) {
                     stationContext.noReplyCount++;
-                    Log.d(TAG, "[RETRY] Calling " + action.targetCallsign + " (attempt " + stationContext.noReplyCount + ")");
+                    Log.d(TAG, "[RETRY] Calling " + action.targetCallsign + "(attempt " + stationContext.noReplyCount + ")");
                 } else if (action.targetCallsign != null && !action.targetCallsign.equals(stationContext.currentTarget)) {
                     stationContext.noReplyCount = 0;
                     Log.d(TAG, "[NEW TARGET] Switched to " + action.targetCallsign + ", reset counter");
@@ -2229,5 +2242,100 @@ public class MainViewModel extends ViewModel {
             }
         }
     }
+
+// [FIX-2026-05-17] BEGIN: Rewritten to work with fork's database schema
+    /**
+     * Load worked DXCC/CQ/ITU entities from QSL log into memory maps.
+     * Fork-specific: QslCallsigns table does not contain dxcc/cq_zone/itu_zone columns.
+     * Solution: Query callsigns from log, then look up location info via CallsignDatabase.
+     */
+    private void initWorkedEntitiesFromQSL() {
+        Log.d("DXCC_INIT", "=== initWorkedEntitiesFromQSL START ===");
+
+        if (databaseOpr == null) {
+            Log.e("DXCC_INIT", "databaseOpr is NULL!");
+            return;
+        }
+
+        // [FIX-2026-05-17] Ensure callsignDatabase is initialized
+        if (GeneralVariables.callsignDatabase == null) {
+            Log.w("DXCC_INIT", "callsignDatabase not initialized, attempting now...");
+            GeneralVariables.callsignDatabase = CallsignDatabase.getInstance(
+                    GeneralVariables.getMainContext(), "callsigns.db", 19);
+        }
+
+        if (GeneralVariables.callsignDatabase == null) {
+            Log.e("DXCC_INIT", "FAILED to initialize callsignDatabase - icons will not work!");
+            return;
+        }
+
+        Log.d("DXCC_INIT", "callsignDatabase ready, clearing maps...");
+        GeneralVariables.dxccMap.clear();
+        GeneralVariables.cqMap.clear();
+        GeneralVariables.ituMap.clear();
+
+        try {
+            // Get all unique callsigns from the QSL log
+            Cursor c = databaseOpr.getDb().rawQuery(
+                    "SELECT DISTINCT callsign FROM QslCallsigns WHERE callsign IS NOT NULL AND callsign != ''", null);
+
+            ArrayList<String> callsignList = new ArrayList<>();
+            if (c.moveToFirst()) {
+                do {
+                    String callsign = c.getString(0);
+                    if (callsign != null && !callsign.isEmpty()) {
+                        callsignList.add(callsign);
+                    }
+                } while (c.moveToNext());
+            }
+            c.close();
+
+            Log.d("DXCC_INIT", "Found " + callsignList.size() + " unique callsigns in log");
+
+            // Process callsigns sequentially using async callback
+            processCallsignsForDXCC(callsignList, 0);
+
+        } catch (Exception e) {
+            Log.e("DXCC_INIT", "Exception: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Recursively process callsign list to populate DXCC/CQ/ITU maps.
+     * Uses async callback to avoid blocking UI thread.
+     */
+    private void processCallsignsForDXCC(final ArrayList<String> callsignList, final int index) {
+        if (index >= callsignList.size()) {
+            // Done - log final stats
+            Log.d("DXCC_INIT", "Final maps: " + GeneralVariables.dxccMap.size() + " DXCC, " +
+                    GeneralVariables.cqMap.size() + " CQ, " + GeneralVariables.ituMap.size() + " ITU");
+            Log.d("DXCC_INIT", "dxccMap contains 'YO': " + GeneralVariables.dxccMap.containsKey("YO"));
+            Log.d("DXCC_INIT", "dxccMap contains 'IU': " + GeneralVariables.dxccMap.containsKey("IU"));
+            Log.d("DXCC_INIT", "=== initWorkedEntitiesFromQSL END ===");
+            return;
+        }
+
+        final String callsign = callsignList.get(index);
+
+        GeneralVariables.callsignDatabase.getCallsignInformation(callsign, new OnAfterQueryCallsignLocation() {
+            @Override
+            public void doOnAfterQueryCallsignLocation(CallsignInfo info) {
+                if (info != null && info.DXCC != null && !info.DXCC.isEmpty()) {
+                    GeneralVariables.dxccMap.put(info.DXCC.toUpperCase(), info.DXCC.toUpperCase());
+                    if (info.CQZone > 0) GeneralVariables.cqMap.put(info.CQZone, info.CQZone);
+                    if (info.ITUZone > 0) GeneralVariables.ituMap.put(info.ITUZone, info.ITUZone);
+
+                    // Log first 10 for debugging
+                    if (GeneralVariables.dxccMap.size() <= 10) {
+                        Log.d("DXCC_INIT", "Loaded: " + callsign + " → " +
+                                info.DXCC + " CQ" + info.CQZone + " ITU" + info.ITUZone);
+                    }
+                }
+                // Process next callsign
+                processCallsignsForDXCC(callsignList, index + 1);
+            }
+        });
+    }
+// [FIX-2026-05-17] END
 
 }

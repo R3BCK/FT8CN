@@ -1,10 +1,16 @@
+// [FIX-RECYCLER-ICONS 2026-05-17] Added explicit icon state reset to fix RecyclerView recycling bug
+// Issue: Icons D/C/I from previous list items could "leak" to new items due to ViewHolder reuse
+// Fix: Always set visibility to GONE first, then VISIBLE only if condition is true
+
 package com.bg7yoz.ft8cn.ui;
-package com.bg7yoz.ft8cn.ui;
+
 /**
  * Message list Adapter. Used for decode interface, calling interface, grid tracker.
  * Different periods have different backgrounds. Total 4 background colors.
  * @author BGY70Z
  * @date 2023-03-20
+ *
+ * [FIX-RECYCLER-ICONS 2026-05-17] Modified setFromDxcc/setToDxcc to prevent icon state leakage
  */
 
 import android.annotation.SuppressLint;
@@ -423,46 +429,78 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
     }
     // === END NEW ===
 
+    // [FIX-RECYCLER-ICONS 2026-05-17] BEGIN
+    /**
+     * Set visibility of DXCC/CQ/ITU icons for FROM callsign
+     * CRITICAL: Always reset to GONE first to prevent RecyclerView recycling artifacts
+     */
     private void setFromDxcc(@NonNull CallingListItemHolder holder) {
+        // [FIX-RECYCLER-ICONS 2026-05-17] Safety check for null message
+        if (holder.ft8Message == null) {
+            setViewVisibility(holder.dxccFromImageView, View.GONE);
+            setViewVisibility(holder.cqFromImageView, View.GONE);
+            setViewVisibility(holder.ituFromImageView, View.GONE);
+            return;
+        }
 
+        // [FIX-RECYCLER-ICONS 2026-05-17] STEP 1: Reset ALL icons to GONE first
+        // This prevents "ghost icons" from previous recycled ViewHolders
+        setViewVisibility(holder.dxccFromImageView, View.GONE);
+        setViewVisibility(holder.cqFromImageView, View.GONE);
+        setViewVisibility(holder.ituFromImageView, View.GONE);
+
+        // [FIX-RECYCLER-ICONS 2026-05-17] STEP 2: Set VISIBLE only if conditions are met
+        // Note: freq_hz check ensures we don't show icons in TX mode
         if (holder.ft8Message.fromDxcc && holder.ft8Message.freq_hz > 0.01f) {
             setViewVisibility(holder.dxccFromImageView, View.VISIBLE);
-        } else {
-            setViewVisibility(holder.dxccFromImageView, View.GONE);
         }
+        // else branch removed - already set to GONE above [FIX-RECYCLER-ICONS 2026-05-17]
 
         if (holder.ft8Message.fromCq && holder.ft8Message.freq_hz > 0.01f) {
             setViewVisibility(holder.cqFromImageView, View.VISIBLE);
-        } else {
-            setViewVisibility(holder.cqFromImageView, View.GONE);
         }
+        // else branch removed - already set to GONE above [FIX-RECYCLER-ICONS 2026-05-17]
 
         if (holder.ft8Message.fromItu && holder.ft8Message.freq_hz > 0.01f) {
             setViewVisibility(holder.ituFromImageView, View.VISIBLE);
-        } else {
-            setViewVisibility(holder.ituFromImageView, View.GONE);
         }
+        // else branch removed - already set to GONE above [FIX-RECYCLER-ICONS 2026-05-17]
     }
+    // [FIX-RECYCLER-ICONS 2026-05-17] END
 
+    // [FIX-RECYCLER-ICONS 2026-05-17] BEGIN
+    /**
+     * Set visibility of DXCC/CQ/ITU icons for TO callsign
+     * CRITICAL: Always reset to GONE first to prevent RecyclerView recycling artifacts
+     */
     private void setToDxcc(@NonNull CallingListItemHolder holder) {
+        // [FIX-RECYCLER-ICONS 2026-05-17] Safety check for null message
+        if (holder.ft8Message == null) {
+            setViewVisibility(holder.dxccToImageView, View.GONE);
+            setViewVisibility(holder.cqToImageView, View.GONE);
+            setViewVisibility(holder.ituToImageView, View.GONE);
+            return;
+        }
+
+        // [FIX-RECYCLER-ICONS 2026-05-17] STEP 1: Reset ALL icons to GONE first
+        setViewVisibility(holder.dxccToImageView, View.GONE);
+        setViewVisibility(holder.cqToImageView, View.GONE);
+        setViewVisibility(holder.ituToImageView, View.GONE);
+
+        // [FIX-RECYCLER-ICONS 2026-05-17] STEP 2: Set VISIBLE only if conditions are met
         if (holder.ft8Message.toDxcc && holder.ft8Message.freq_hz > 0.01f) {
             setViewVisibility(holder.dxccToImageView, View.VISIBLE);
-        } else {
-            setViewVisibility(holder.dxccToImageView, View.GONE);
         }
 
         if (holder.ft8Message.toCq && holder.ft8Message.freq_hz > 0.01f) {
             setViewVisibility(holder.cqToImageView, View.VISIBLE);
-        } else {
-            setViewVisibility(holder.cqToImageView, View.GONE);
         }
 
         if (holder.ft8Message.toItu && holder.ft8Message.freq_hz > 0.01f) {
             setViewVisibility(holder.ituToImageView, View.VISIBLE);
-        } else {
-            setViewVisibility(holder.ituToImageView, View.GONE);
         }
     }
+    // [FIX-RECYCLER-ICONS 2026-05-17] END
 
     //check if callsign was QSLed
     private void setQueryHolderQSL_Callsign(@NonNull CallingListItemHolder holder) {
