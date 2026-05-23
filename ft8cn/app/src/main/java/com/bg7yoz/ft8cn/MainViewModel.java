@@ -1003,95 +1003,76 @@ public class MainViewModel extends ViewModel {
                 " step=" + action.protocolStep + " freqHz=" + action.freqHz +
                 " reason=\"" + action.reason + "\"");
         switch (action.type) {
+// MainViewModel.java — метод executeAction(), замена блоков TRANSMIT и WAIT
+
             case TRANSMIT:
                 if (!ft8TransmitSignal.isActivated()) {
                     Log.d(TAG, "[ACTION] TRANSMIT blocked: transmission manually disabled");
-                    return; // Do not transmit!
+                    return;
                 }
-                // === [ACTION] TRANSMIT: Start or continue transmission ===
                 Log.d(TAG, "[ACTION] TRANSMIT to " + action.targetCallsign +
                         " step=" + action.protocolStep + " reason=\"" + action.reason + "\"");
                 Log.d(TAG, "[ACTION] Technical params: freqHz=" + action.freqHz +
                         " snr=" + action.snr + " i3=" + action.i3 + " n3=" + action.n3);
 
-                // Activate transmit signal if not already active
                 if (!ft8TransmitSignal.isActivated()) {
                     ft8TransmitSignal.setActivated(true);
                     Log.d(TAG, "[ACTION] Transmit signal activated");
                 }
 
-                // Prepare frequency: use action.freqHz if set, otherwise fallback to current band
                 long txFrequency = (action.freqHz > 0) ? action.freqHz : GeneralVariables.band;
-
-                // Prepare extra info: use action.extraInfo if set, otherwise empty string
                 String txExtraInfo = (action.extraInfo != null) ? action.extraInfo : "";
 
-                // ========================================================================
-                // [FIX] CALCULATE SEQUENTIAL SLOT BEFORE TRANSMIT
-                // ========================================================================
+                // CALCULATE SEQUENTIAL SLOT BEFORE TRANSMIT
                 int txSequential;
-
-                // Try to get partner's slot from World Model
                 if (action.targetCallsign != null && !action.targetCallsign.equals("CQ")) {
                     DatabaseOpr.StationRecord record = DatabaseOpr.getStationRecord(action.targetCallsign);
                     if (record != null && record.lastSequential >= 0) {
-                        txSequential = 1 - record.lastSequential; // Invert partner's slot
-                        Log.d(TAG, "[SEQUENTIAL] Using partner's slot: their=" + record.lastSequential + " → our=" + txSequential);
+                        txSequential = 1 - record.lastSequential;
+                        Log.d(TAG, "[SEQUENTIAL] Using partner's slot: their=" + record.lastSequential + " -> our=" + txSequential);
                     } else {
-                        // Fallback: invert current UTC slot
                         txSequential = 1 - (int)(UtcTimer.getNowSequential() % 2);
-                        Log.d(TAG, "[SEQUENTIAL] Fallback (no record): current=" + UtcTimer.getNowSequential() + " → our=" + txSequential);
+                        Log.d(TAG, "[SEQUENTIAL] Fallback (no record): current=" + UtcTimer.getNowSequential() + " -> our=" + txSequential);
                     }
                 } else {
-                    // For CQ: just invert current slot
                     txSequential = 1 - (int)(UtcTimer.getNowSequential() % 2);
                 }
-                // ========================================================================
 
-                // Start transmission with parameters from StationAction
                 ft8TransmitSignal.setTransmit(
-                        new TransmitCallsign(
-                                action.i3,                    // Hash part 1 (callsign)
-                                action.n3,                    // Hash part 2 (grid)
-                                action.targetCallsign,        // Target callsign
-                                txFrequency,                  // Frequency in Hz
-                                txSequential,                 // [FIX] Calculated Slot (0 or 1)
-                                action.snr),                  // Measured SNR
-                        action.protocolStep,                  // FT8 protocol step (1-6)
-                        txExtraInfo);                         // Extra text (grid, report, etc.)
+                        new TransmitCallsign(action.i3, action.n3, action.targetCallsign,
+                                txFrequency, txSequential, action.snr),
+                        action.protocolStep, txExtraInfo);
 
-                // [FIX] Count retry attempts properly
+                // [FIX 2026-05-23] Reset counter on new target, do NOT increment on transmit
                 if (action.targetCallsign != null &&
-                        stationContext.currentTarget != null &&
-                        action.targetCallsign.equals(stationContext.currentTarget)) {
-                    stationContext.noReplyCount++;
-                    Log.d(TAG, "[RETRY] Calling " + action.targetCallsign + "(attempt " + stationContext.noReplyCount + ")");
-                } else if (action.targetCallsign != null && !action.targetCallsign.equals(stationContext.currentTarget)) {
+                        !action.targetCallsign.equals(stationContext.currentTarget)) {
                     stationContext.noReplyCount = 0;
                     Log.d(TAG, "[NEW TARGET] Switched to " + action.targetCallsign + ", reset counter");
                 }
+                // Counter will increment in WAIT if no reply received
 
-                Log.d(TAG, "[ACTION] TX started (attempt " + stationContext.noReplyCount +
+                Log.d(TAG, "[ACTION] TX started (noReplyCount=" + stationContext.noReplyCount +
                         " to " + action.targetCallsign + ")");
                 break;
 
             case WAIT:
-                // [DEBUG] Detailed diagnostics for WAIT state
-                // [DEBUG] Detailed diagnostics for WAIT state
-                //Log.w(TAG, "[WAIT_DIAGNOSTIC] activated=" + ft8TransmitSignal.isActivated() +
-                //        " transmitting=" + ft8TransmitSignal.isTransmitting() +
-                //        " queueSize=" + (GeneralVariables.transmitMessages != null ?
-                //        GeneralVariables.transmitMessages.size() : 0) +
-                //        " manualCQReq=" + stationContext.manualCQRequested);
-                // [/DEBUG]
-                stationContext.noReplyCount++;
+                // [FIX 2026-05-23] Increment noReplyCount ONLY in dialogue
+                // In SEEKING, waiting is normal behavior (no suitable CQ yet)
+                if (stationContext.subState == StationState.OperatingSubState.IN_DIALOGUE &&
+                        stationContext.currentTarget != null &&
+                        !stationContext.currentTarget.isEmpty()) {
+                    stationContext.noReplyCount++;
+                    Log.d(TAG, "[WAIT] Dialogue idle, noReplyCount=" + stationContext.noReplyCount +
+                            " (target=" + stationContext.currentTarget + ")");
+                } else {
+                    Log.d(TAG, "[WAIT] state=" + stationContext.subState + ", noReplyCount unchanged");
+                }
                 break;
 
             case ABORT:
-                // === [ACTION] ABORT: Stop transmission and reset to seeking ===
                 Log.d(TAG, "[ACTION] ABORT reason=\"" + action.reason + "\"");
-                ft8TransmitSignal.resetToCQ();          // Stop any ongoing transmission
-                stationContext.resetToSeeking();        // Reset state machine to SEEKING
+                ft8TransmitSignal.resetToCQ();
+                stationContext.resetToSeeking();  // resetToSeeking() already sets noReplyCount=0
                 break;
 
             case RESUME:
@@ -2081,48 +2062,73 @@ public class MainViewModel extends ViewModel {
     public void manualCallStation(String callsign, int i3, int n3, String extraInfo, long freqHz, int snr) {
         Log.d(TAG, "[MANUAL_CALL] Requested for " + callsign);
 
-        // [NEW] CRITICAL: Check partner's sequential slot!
+        // [FIX] DETERMINE PARTNER SEQUENTIAL FROM DECODED MESSAGES
+        // Prepare context for state machine consistency without bypassing logic
+        int partnerSequential = findPartnerSequentialFromMessages(callsign);
+
+        // Update RAM cache if partner slot is known (public field, safe to modify)
+        if (partnerSequential >= 0) {
+            DatabaseOpr.StationRecord record = DatabaseOpr.getStationRecord(callsign);
+            if (record != null) {
+                // Record exists in cache - update sequential field directly
+                record.lastSequential = partnerSequential;
+                Log.d(TAG, "[SEQUENTIAL] Updated cache: " + callsign + " seq=" + partnerSequential);
+            }
+            // If record is null, cache will be populated later by normal decode flow
+            // We still use partnerSequential for immediate transmission
+        }
+
+        // Calculate our transmission sequential based on partner slot
+        int ourSequential;
+        if (partnerSequential >= 0) {
+            ourSequential = 1 - partnerSequential; // Invert partner's TX slot
+        } else {
+            // Fallback: invert current UTC slot when partner info is missing
+            ourSequential = 1 - (int)(UtcTimer.getNowSequential() % 2);
+        }
+
+        Log.d(TAG, "[SEQUENTIAL] Partner=" + partnerSequential + " -> Our=" + ourSequential);
+
+        // Trigger transmission with PRE-CALCULATED sequential (not -1!)
+        // This preserves state machine context: next decode will update cache properly
+        ft8TransmitSignal.setTransmit(
+                new TransmitCallsign(i3, n3, callsign, freqHz, ourSequential, snr),
+                1,
+                extraInfo
+        );
+
+        /* OLD CODE COMMENTED OUT
         DatabaseOpr.StationRecord record = DatabaseOpr.getStationRecord(callsign);
         if (record != null && record.lastSequential >= 0) {
             int expectedOurSlot = (record.lastSequential == 0) ? 1 : 0;
             long currentSlot = UtcTimer.getNowSequential();
-
             if (currentSlot % 2 != expectedOurSlot) {
-                Log.w(TAG, "[MANUAL_CALL] Wrong slot! Partner seq=" + record.lastSequential +
-                        ", our expected=" + expectedOurSlot + ", current=" + currentSlot +
-                        ". Waiting for correct slot...");
-                // Wait for correct slot or show warning to user
+                Log.w(TAG, "[MANUAL_CALL] Wrong slot! ... Waiting for correct slot...");
                 return;
             }
         }
-        // Update state machine context
-        stationContext.userOverrideActive = true;
-        stationContext.currentTarget = callsign;
-        stationContext.subState = StationState.OperatingSubState.IN_DIALOGUE;
-        stationContext.step = StationState.DialogueStep.CALLING;
-        stationContext.noReplyCount = 0;
-        stationContext.lastReplySlot = UtcTimer.getNowSequential();
-
-        // Activate transmit if needed
-        if (!ft8TransmitSignal.isActivated()) {
-            ft8TransmitSignal.setActivated(true);
-        }
-
-        // === [CRITICAL] FT8 SEQUENTIAL LOGIC ===
-        // Pass -1 for sequential to trigger auto-inversion in FT8TransmitSignal
-        // This ensures we always respond in the opposite slot from our partner
-        // ==========================================
-
-        // Start transmission
         ft8TransmitSignal.setTransmit(
-                new TransmitCallsign(i3, n3, callsign, freqHz, -1, snr),  // [FIX] -1 for auto-inverted sequential
-                1,  // protocol step 1 = calling
+                new TransmitCallsign(i3, n3, callsign, freqHz, -1, snr),
+                1,
                 extraInfo
         );
-
-        Log.d(TAG, "[MANUAL_CALL] Started transmission to " + callsign);
+        */
     }
 
+    private int findPartnerSequentialFromMessages(String callsign) {
+        if (GeneralVariables.transmitMessages == null) {
+            return -1;
+        }
+        // Search for messages FROM this callsign (they are transmitting CQ or reply)
+        for (Ft8Message msg : GeneralVariables.transmitMessages) {
+            if (msg != null && msg.getCallsignFrom().equals(callsign)) {
+                Log.d(TAG, "[SEQ_DETECT] Found msg from " + callsign +
+                        " in slot " + msg.getSequence() + ": " + msg.toString());
+                return msg.getSequence();
+            }
+        }
+        return -1;
+    }
     /**
      * [NEW] Send custom quick-message to target station.
      * Formats: "TARGET MYCALL SWR" or "TARGET MYCALL RSWR"

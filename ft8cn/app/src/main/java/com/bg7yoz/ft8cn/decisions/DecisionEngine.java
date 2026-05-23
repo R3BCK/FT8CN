@@ -60,12 +60,12 @@ public class DecisionEngine {
 
     public StationAction evaluate(DecisionContext ctx, List<Ft8Message> messages, DatabaseOpr db) {
         if (ctx.emergencyStop) {
-            Log.d(TAG, "[DECISION] emergencyStop=true → ABORT");
+            Log.d(TAG, "[DECISION] emergencyStop=true -> ABORT");
             return StationAction.abort("Emergency stop triggered");
         }
 
         if (ctx.forceOwnCQ) {
-            Log.d(TAG, "[DECISION] forceOwnCQ=true → TX_OWN_CQ");
+            Log.d(TAG, "[DECISION] forceOwnCQ=true -> TX_OWN_CQ");
             return StationAction.txOwnCQ();
         }
 
@@ -76,7 +76,7 @@ public class DecisionEngine {
         }
 
         if (ctx.userOverrideActive && ctx.currentTarget != null && !ctx.currentTarget.isEmpty()) {
-            Log.d(TAG, "[DECISION] userOverrideActive=true → TRANSMIT to " + ctx.currentTarget);
+            Log.d(TAG, "[DECISION] userOverrideActive=true -> TRANSMIT to " + ctx.currentTarget);
             Ft8Message msg = findMessageByCallsign(messages, ctx.currentTarget);
             return createTransmitAction(ctx.currentTarget, 1, "Manual override", msg);
         }
@@ -95,18 +95,18 @@ public class DecisionEngine {
                     nextStep = msgState + 1;
                     Log.d(TAG, "[DECISION] directCaller=" + ctx.directCaller.callsign +
                             " REPEAT detected (DB=" + dbState + " Msg=" + msgState +
-                            ") → Answering based on MSG → step=" + nextStep);
+                            ") -> Answering based on MSG -> step=" + nextStep);
                 } else {
                     if (dbState == 0 || msgState > dbState) {
                         nextStep = msgState + 1;
                         Log.d(TAG, "[DECISION] directCaller=" + ctx.directCaller.callsign +
                                 " NEW/SYNC (DB=" + dbState + " Msg=" + msgState +
-                                ") → Answering based on MSG to sync → step=" + nextStep);
+                                ") -> Answering based on MSG to sync -> step=" + nextStep);
                     } else {
                         nextStep = dbState + 1;
                         Log.d(TAG, "[DECISION] directCaller=" + ctx.directCaller.callsign +
                                 " FIRST TIME (DB=" + dbState + " Msg=" + msgState +
-                                ") → Answering based on DB → step=" + nextStep);
+                                ") -> Answering based on DB -> step=" + nextStep);
                     }
                 }
 
@@ -129,7 +129,7 @@ public class DecisionEngine {
             case NOMADIC:
                 return evaluateNomadic(ctx);
             default:
-                Log.d(TAG, "[DECISION] subState=" + ctx.subState + " not implemented → WAIT");
+                Log.d(TAG, "[DECISION] subState=" + ctx.subState + " not implemented -> WAIT");
                 return StationAction.wait("State " + ctx.subState + " not fully implemented");
         }
     }
@@ -149,7 +149,7 @@ public class DecisionEngine {
             Log.d(TAG, "[DECISION] Creating TRANSMIT with freq=" + msg.freq_hz + " snr=" + msg.snr);
             // [FIX] Use RF frequency (band), NOT audio offset (msg.freq_hz)
             return StationAction.transmit(callsign, step, reason,
-                    GeneralVariables.band,  // ← RF частота трансивера
+                    GeneralVariables.band,  // <- RF частота трансивера
                     msg.snr, msg.i3, msg.n3, msg.extraInfo);
         } else {
             Log.w(TAG, "[DECISION] No message for " + callsign + ", using default params");
@@ -240,7 +240,20 @@ public class DecisionEngine {
         List<DatabaseOpr.StationRecord> cqCandidates = new ArrayList<>();
         for (DatabaseOpr.StationRecord s : ctx.visibleStations) {
             if (s.ft8StateRelative == 6) {
-                if (isCallsignWorkedOnBand(s.callsign, com.bg7yoz.ft8cn.GeneralVariables.band, db)) {
+                // [FIX 2026-05-23] Skip own callsign to prevent self-calling
+                // This prevents the state machine from selecting our own CQ as a target
+                if (s.callsign != null && GeneralVariables.myCallsign != null &&
+                        s.callsign.equals(GeneralVariables.myCallsign)) {
+                    Log.d(TAG, "[DECISION] SKIP " + s.callsign + " (own callsign)");
+                    continue;
+                }
+                // [END FIX]
+
+                /* OLD CODE COMMENTED OUT
+                if (s.ft8StateRelative == 6) {
+                */
+
+                if (isCallsignWorkedOnBand(s.callsign, GeneralVariables.band, db)) {
                     Log.d(TAG, "[DECISION] SKIP " + s.callsign + " (already in QSL log)");
                     continue;
                 }
@@ -277,14 +290,14 @@ public class DecisionEngine {
             }
         }
 
-        Log.d(TAG, "[DECISION] SEEKING: no suitable CQ → let`s WAIT");
+        Log.d(TAG, "[DECISION] SEEKING: no suitable CQ -> let`s WAIT");
         return StationAction.wait("No suitable CQ found, waiting");
     }
 
     private StationAction evaluateInDialogue(DecisionContext ctx, List<Ft8Message> messages) {
         int maxAttempts = ctx.noReplyLimit > 0 ? ctx.noReplyLimit : 5;
         if (ctx.noReplyCount >= maxAttempts) {
-            Log.w(TAG, "[DECISION] IN_DIALOGUE: noReplyCount=" + ctx.noReplyCount + " >= " + maxAttempts + " → ABORT");
+            Log.w(TAG, "[DECISION] IN_DIALOGUE: noReplyCount=" + ctx.noReplyCount + " >= " + maxAttempts + " -> ABORT");
             return StationAction.abort("Max attempts (" + maxAttempts + ") reached");
         }
 
@@ -330,14 +343,14 @@ public class DecisionEngine {
     private StationAction evaluateSoftFinish(DecisionContext ctx, List<Ft8Message> messages) {
         for (DatabaseOpr.StationRecord s : ctx.visibleStations) {
             if (ctx.recentTargets.contains(s.callsign) && s.ft8StateRelative >= 1 && s.ft8StateRelative <= 4) {
-                Log.d(TAG, "[DECISION] SOFT_FINISH: recent target " + s.callsign + " called → RESUME");
+                Log.d(TAG, "[DECISION] SOFT_FINISH: recent target " + s.callsign + " called -> RESUME");
                 Ft8Message msg = findMessageByCallsign(messages, s.callsign);
                 return createTransmitAction(s.callsign, 1, "Recent target called", msg);
             }
         }
 
         if (ctx.currentSlot - ctx.lastReplySlot > 8) {
-            Log.d(TAG, "[DECISION] SOFT_FINISH: timeout → NO_OP");
+            Log.d(TAG, "[DECISION] SOFT_FINISH: timeout -> NO_OP");
             return StationAction.noOp("Soft finish timeout");
         }
 
@@ -347,7 +360,7 @@ public class DecisionEngine {
 
     private StationAction evaluateNomadic(DecisionContext ctx) {
         if (ctx.noReplyCount >= 3) {
-            Log.d(TAG, "[DECISION] NOMADIC: noReplyCount >= 3 → NOMADIC_SWITCH");
+            Log.d(TAG, "[DECISION] NOMADIC: noReplyCount >= 3 -> NOMADIC_SWITCH");
             return StationAction.nomadicSwitch(0, "Nomadic switch trigger");
         }
         Log.d(TAG, "[DECISION] NOMADIC: monitoring current frequency");
