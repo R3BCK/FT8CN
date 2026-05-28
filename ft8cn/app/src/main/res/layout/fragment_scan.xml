@@ -99,7 +99,7 @@
         <ImageView android:layout_width="0dp" android:layout_height="16dp" android:layout_weight="1" android:src="@drawable/cqzone" android:scaleType="centerInside" android:contentDescription="C" />
         <ImageView android:layout_width="0dp" android:layout_height="16dp" android:layout_weight="1" android:src="@drawable/itu" android:scaleType="centerInside" android:contentDescription="I" />
         <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="New" android:textStyle="bold" android:gravity="center" android:textColor="@color/text_view_color" android:textSize="11sp" />
-        <Button android:id="@+id/btnHeaderGo" android:layout_width="72dp" android:layout_height="32dp" android:text="Go" android:textSize="10sp" android:backgroundTint="@color/button_start_color" android:textColor="@color/white" />
+        <Button android:id="@+id/btnHeaderGo" android:visibility="invisible" android:layout_width="72dp" android:layout_height="32dp" android:text="Go" android:textSize="10sp" android:backgroundTint="@color/button_start_color" android:textColor="@color/white" />
     </LinearLayout>
 
     <!-- Scrollable Content -->

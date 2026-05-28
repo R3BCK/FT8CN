@@ -1,3 +1,7 @@
+// [MOD] ScanFragment.java - Full version with dynamic frequency counting via Map
+// Changes marked with: // [MOD] ... // [/MOD]
+// Old code preserved with: // [OLD] ... // [/OLD]
+
 package com.bg7yoz.ft8cn.ui;
 
 import android.content.Context;
@@ -35,9 +39,11 @@ import com.bg7yoz.ft8cn.rigs.IcomRigConstant;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 public class ScanFragment extends Fragment {
@@ -47,7 +53,13 @@ public class ScanFragment extends Fragment {
     private static final String PREFS_SCAN = "scan_fragment_prefs";
     private static final String KEY_SELECTED_FREQS = "selected_frequencies";
     private static final String KEY_CYCLES = "scan_cycles";
-    private static final String KEY_COUNTERS = "row_counters"; // Format: "freq:tot,d,c,itu,new;..."
+    // [MOD] Updated comment to reflect RFfreq naming
+    // [OLD]
+    // private static final String KEY_COUNTERS = "row_counters"; // Format: "freq:tot,d,c,itu,new;..."
+    // [/OLD]
+    // [NEW]
+    private static final String KEY_COUNTERS = "row_counters"; // Format: "RFfreq:tot,d,c,itu,new;..."
+    // [/MOD]
 
     private MainViewModel mainViewModel;
     private NavController navController;
@@ -83,7 +95,13 @@ public class ScanFragment extends Fragment {
     private int totalStations = 0;
     private int newStations = 0;
 
+    // [MOD] Dynamic per-frequency counters via Map (no hardcoded array size)
+    private final Map<Long, Integer> freqTotals = new HashMap<>();
+    private final Map<Long, Integer> freqNew = new HashMap<>();
+    // [/MOD]
+
     private Observer<ArrayList<Ft8Message>> scanMessageObserver;
+    private Observer<Long> scanTimerObserver;
 
     @Nullable
     @Override
@@ -121,6 +139,20 @@ public class ScanFragment extends Fragment {
         cbHeaderHide = view.findViewById(R.id.cbHeaderHide);
         cbHeaderSelect = view.findViewById(R.id.cbHeaderSelect);
 
+        // === [MOD] Disable header GO button programmatically (safety) ===
+        // [OLD]
+        // (no code for btnHeaderGo in original)
+        // [/OLD]
+        // [NEW]
+        Button btnHeaderGo = view.findViewById(R.id.btnHeaderGo);
+        if (btnHeaderGo != null) {
+            btnHeaderGo.setEnabled(false);
+            btnHeaderGo.setClickable(false);
+            btnHeaderGo.setFocusable(false);
+            //Log.d(TAG, "Header GO button disabled programmatically");
+        }
+        // [/MOD]
+
         // === [AUDIO] Pause global listener when entering Scan ===
         // This prevents crashes caused by concurrent audio processing
         pauseGlobalListenerIfNeeded();
@@ -152,6 +184,10 @@ public class ScanFragment extends Fragment {
             resetRowCounters();
             totalStations = 0;
             newStations = 0;
+            // [MOD] Reset dynamic per-frequency counters
+            freqTotals.clear();
+            freqNew.clear();
+            // [/MOD]
             updateTotals();
             scannedCallsigns.clear();
             scannedDxcc.clear();
@@ -197,7 +233,13 @@ public class ScanFragment extends Fragment {
         }, 500);
 
         updateRigStatus();
-        tvRfFreq.setText(formatFreq(GeneralVariables.band));
+        // [MOD] Use raw long value for UI, no formatFreq conversion
+        // [OLD]
+        // tvRfFreq.setText(formatFreq(GeneralVariables.band));
+        // [/OLD]
+        // [NEW]
+        tvRfFreq.setText(String.valueOf(GeneralVariables.band));
+        // [/MOD]
 
         // [FIX] Populate table FIRST, then restore state
         populateFrequencyTable();
@@ -291,13 +333,20 @@ public class ScanFragment extends Fragment {
         editor.putString(KEY_SELECTED_FREQS, sb.toString());
         editor.putInt(KEY_CYCLES, scanCycles);
 
-        // Save row counters: "freq:tot,d,c,itu,new;freq:tot,d,c,itu,new;..."
+        // Save row counters: "RFfreq:tot,d,c,itu,new;RFfreq:tot,d,c,itu,new;..."
         StringBuilder countersSb = new StringBuilder();
         if (containerScanContent != null) {
             for (int i = 0; i < containerScanContent.getChildCount(); i++) {
                 View row = containerScanContent.getChildAt(i);
-                Long freq = (Long) row.getTag();
-                if (freq != null) {
+                // [MOD] Rename freq -> RFfreq for clarity
+                // [OLD]
+                // Long freq = (Long) row.getTag();
+                // if (freq != null) {
+                // [/OLD]
+                // [NEW]
+                Long RFfreq = (Long) row.getTag();
+                if (RFfreq != null) {
+                    // [/MOD]
                     TextView tvTot = row.findViewById(R.id.tvRowTot);
                     TextView tvD = row.findViewById(R.id.tvRowD);
                     TextView tvC = row.findViewById(R.id.tvRowC);
@@ -311,7 +360,13 @@ public class ScanFragment extends Fragment {
                     int newC = parseInt(tvNew != null ? tvNew.getText().toString() : "0");
 
                     if (countersSb.length() > 0) countersSb.append(";");
-                    countersSb.append(freq).append(":")
+                    // [MOD] Use RFfreq variable
+                    // [OLD]
+                    // countersSb.append(freq).append(":")
+                    // [/OLD]
+                    // [NEW]
+                    countersSb.append(RFfreq).append(":")
+                            // [/MOD]
                             .append(tot).append(",").append(d).append(",")
                             .append(c).append(",").append(itu).append(",").append(newC);
                 }
@@ -368,7 +423,13 @@ public class ScanFragment extends Fragment {
                 String[] parts = rowStr.split(":");
                 if (parts.length != 2) continue;
                 try {
-                    long freq = Long.parseLong(parts[0]);
+                    // [MOD] Rename freq -> RFfreq
+                    // [OLD]
+                    // long freq = Long.parseLong(parts[0]);
+                    // [/OLD]
+                    // [NEW]
+                    long RFfreq = Long.parseLong(parts[0]);
+                    // [/MOD]
                     String[] counts = parts[1].split(",");
                     if (counts.length != 5) continue;
 
@@ -376,7 +437,13 @@ public class ScanFragment extends Fragment {
                     for (int i = 0; i < containerScanContent.getChildCount(); i++) {
                         View row = containerScanContent.getChildAt(i);
                         Long rowFreq = (Long) row.getTag();
-                        if (rowFreq != null && rowFreq == freq) {
+                        // [MOD] Compare with RFfreq
+                        // [OLD]
+                        // if (rowFreq != null && rowFreq == freq) {
+                        // [/OLD]
+                        // [NEW]
+                        if (rowFreq != null && rowFreq == RFfreq) {
+                            // [/MOD]
                             TextView tvTot = row.findViewById(R.id.tvRowTot);
                             TextView tvD = row.findViewById(R.id.tvRowD);
                             TextView tvC = row.findViewById(R.id.tvRowC);
@@ -388,6 +455,10 @@ public class ScanFragment extends Fragment {
                             if (tvC != null) tvC.setText(counts[2]);
                             if (tvI != null) tvI.setText(counts[3]);
                             if (tvNew != null) tvNew.setText(counts[4]);
+                            // [MOD] Also restore to dynamic per-frequency maps
+                            freqTotals.put(RFfreq, parseInt(counts[0]));
+                            freqNew.put(RFfreq, parseInt(counts[4]));
+                            // [/MOD]
                             break;
                         }
                     }
@@ -413,6 +484,10 @@ public class ScanFragment extends Fragment {
             if (tvI != null) tvI.setText("0");
             if (tvNew != null) tvNew.setText("0");
         }
+        // [MOD] Reset dynamic per-frequency maps
+        freqTotals.clear();
+        freqNew.clear();
+        // [/MOD]
     }
 
     private int parseInt(String s) {
@@ -456,10 +531,20 @@ public class ScanFragment extends Fragment {
         LayoutInflater inflater = LayoutInflater.from(getContext());
         for (int i = 0; i < 20; i++) {
             try {
-                long freq = OperationBand.getBandFreq(i);
-                if (freq <= 0) continue;
+                // [MOD] Rename freq -> RFfreq
+                // [OLD]
+                // long freq = OperationBand.getBandFreq(i);
+                // if (freq <= 0) continue;
+                // View rowView = inflater.inflate(R.layout.item_scan_row, containerScanContent, false);
+                // bindRowData(rowView, formatFreq(freq), freq, true, true, 0, 0, 0, 0, 0);
+                // [/OLD]
+                // [NEW]
+                long RFfreq = OperationBand.getBandFreq(i);
+                if (RFfreq <= 0) continue;
                 View rowView = inflater.inflate(R.layout.item_scan_row, containerScanContent, false);
-                bindRowData(rowView, formatFreq(freq), freq, true, true, 0, 0, 0, 0, 0);
+                // Use raw long value for label, no formatFreq conversion
+                bindRowData(rowView, String.valueOf(RFfreq), RFfreq, true, true, 0, 0, 0, 0, 0);
+                // [/MOD]
                 containerScanContent.addView(rowView);
             } catch (Exception e) { break; }
         }
@@ -491,10 +576,16 @@ public class ScanFragment extends Fragment {
         }
     }
 
-    private void bindRowData(View rowView, String label, long freq, boolean visible, boolean selected,
+    private void bindRowData(View rowView, String label, long RFfreq, boolean visible, boolean selected,
                              int tot, int d, int c, int itu, int newCount) {
         rowView.setVisibility(visible ? View.VISIBLE : View.GONE);
-        rowView.setTag(freq);
+        // [MOD] Tag with RFfreq
+        // [OLD]
+        // rowView.setTag(freq);
+        // [/OLD]
+        // [NEW]
+        rowView.setTag(RFfreq);
+        // [/MOD]
 
         CheckBox cbHide = rowView.findViewById(R.id.cbRowHide);
         cbHide.setChecked(visible);
@@ -525,25 +616,73 @@ public class ScanFragment extends Fragment {
         ((TextView) rowView.findViewById(R.id.tvRowI)).setText(String.valueOf(itu));
         ((TextView) rowView.findViewById(R.id.tvRowNew)).setText(String.valueOf(newCount));
 
+        // === [MOD] Rename Go -> Switch button (safeguard) ===
+        // [OLD]
+        // Button btnGo = rowView.findViewById(R.id.btnRowGo);
+        // btnGo.setOnClickListener(v -> {
+        //     safeSwitchToFrequencyAndNavigate(freq);
+        // });
+        // [/OLD]
+        // [NEW]
         Button btnGo = rowView.findViewById(R.id.btnRowGo);
+        // Safeguard: rename if text is still "Go" (in case XML not updated)
+        // [MOD] Log with RFfreq
+        // [OLD]
+        // if ("Go".equals(btnGo.getText().toString())) {
+        //     btnGo.setText("Switch");
+        //     Log.d(TAG, "Renamed row button Go->Switch for freq=" + freq);
+        // }
+        // btnGo.setOnClickListener(v -> {
+        //     safeSwitchToFrequencyAndNavigate(freq);
+        // });
+        // [/OLD]
+        // [NEW]
+        if ("Go".equals(btnGo.getText().toString())) {
+            btnGo.setText("Switch");
+            Log.d(TAG, "Renamed row button Go->Switch for RFfreq=" + RFfreq);
+        }
         btnGo.setOnClickListener(v -> {
-            safeSwitchToFrequencyAndNavigate(freq);
+            safeSwitchToFrequencyAndNavigate(RFfreq);
         });
+        // [/MOD]
     }
 
-    private String formatFreq(long freqHz) { return String.format("%.3f MHz", freqHz / 1_000_000f); }
+    // [MOD] formatFreq method is no longer used for logic, only for potential UI fallback
+    // Keeping it commented to avoid accidental use
+    // [OLD]
+    // private String formatFreq(long freqHz) { return String.format("%.3f MHz", freqHz / 1_000_000f); }
+    // [/OLD]
+    // [NEW]
+    // private String formatFreq(long freqHz) { return String.format("%.3f MHz", freqHz / 1_000_000f); }
+    // [/MOD]
 
-    private void switchToFrequency(long freq) {
+    private void switchToFrequency(long RFfreq) {
         synchronized (freqSwitchLock) {
             if (mainViewModel != null && mainViewModel.baseRig != null && mainViewModel.baseRig.isConnected()) {
                 try {
-                    GeneralVariables.band = freq;
-                    GeneralVariables.bandListIndex = OperationBand.getIndexByFreq(freq);
+                    // === [MOD] LogCat: Final check before sending command to Rig ===
+                    // [OLD]
+                    // GeneralVariables.band = freq;
+                    // Log.d(TAG, "switchToFrequency: FINAL COMMAND TO RIG -> freq=" + freq);
+                    // [/OLD]
+                    // [NEW]
+                    Log.d(TAG, "switchToFrequency: FINAL COMMAND TO RIG -> RFfreq=" + RFfreq);
+                    // [/MOD]
+
+                    GeneralVariables.band = RFfreq;
+                    GeneralVariables.bandListIndex = OperationBand.getIndexByFreq(RFfreq);
                     GeneralVariables.mutableBandChange.postValue(GeneralVariables.bandListIndex);
                     mainViewModel.setOperationBand();
-                    if (tvRfFreq != null) tvRfFreq.setText(formatFreq(freq));
+                    // [MOD] Use raw long for UI
+                    // [OLD]
+                    // if (tvRfFreq != null) tvRfFreq.setText(formatFreq(freq));
+                    // Toast.makeText(getContext(), "Switched to " + formatFreq(freq), Toast.LENGTH_SHORT).show();
+                    // [/OLD]
+                    // [NEW]
+                    if (tvRfFreq != null) tvRfFreq.setText(String.valueOf(RFfreq));
                     updateRigStatus();
-                    Toast.makeText(getContext(), "Switched to " + formatFreq(freq), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Switched to " + RFfreq, Toast.LENGTH_SHORT).show();
+                    // [/MOD]
                 } catch (Exception e) {
                     Log.e(TAG, "Error switching frequency: " + e.getMessage());
                 }
@@ -553,17 +692,38 @@ public class ScanFragment extends Fragment {
         }
     }
 
-    private void safeSwitchToFrequencyAndNavigate(long freq) {
+    private void safeSwitchToFrequencyAndNavigate(long RFfreq) {
+        // === [MOD] LogCat: вывод частоты при запросе переключения ===
+        // [OLD]
+        // if (isScanning) {
+        // Log.d(TAG, ">>> ENTRY safeSwitchToFrequencyAndNavigate: freq=" + freq);
+        // [/OLD]
+        // [NEW]
+        Log.d(TAG, ">>> ENTRY safeSwitchToFrequencyAndNavigate: RFfreq=" + RFfreq);
+        // [/MOD]
+
         if (isScanning) {
             isScanning = false;
             if (btnStartStop != null) btnStartStop.setText("Start");
             stopScan();
             new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                switchToFrequency(freq);
+                // [MOD] Pass RFfreq
+                // [OLD]
+                // switchToFrequency(freq);
+                // [/OLD]
+                // [NEW]
+                switchToFrequency(RFfreq);
+                // [/MOD]
                 if (navController != null) navController.navigate(R.id.menu_nav_mycalling);
             }, 100);
         } else {
-            switchToFrequency(freq);
+            // [MOD] Pass RFfreq
+            // [OLD]
+            // switchToFrequency(freq);
+            // [/OLD]
+            // [NEW]
+            switchToFrequency(RFfreq);
+            // [/MOD]
             if (navController != null) navController.navigate(R.id.menu_nav_mycalling);
         }
     }
@@ -586,6 +746,10 @@ public class ScanFragment extends Fragment {
         scannedItu.clear();
         totalStations = 0;
         newStations = 0;
+        // [MOD] Reset dynamic per-frequency counters
+        freqTotals.clear();
+        freqNew.clear();
+        // [/MOD]
 
         List<Long> initialFreqs;
         synchronized (scanListLock) {
@@ -597,6 +761,22 @@ public class ScanFragment extends Fragment {
             if (btnStartStop != null) btnStartStop.setText("Start");
             return;
         }
+
+        // === [MOD] Log the content of the initial frequency table ===
+        // [OLD]
+        // if (initialFreqs.isEmpty()) { ... return; }
+        // scanMessageObserver = messages -> { ... };
+        // scanNextFrequency(initialFreqs);
+        // [/OLD]
+        // [NEW]
+        Log.d(TAG, "startRealScan: === STARTING SCAN ===");
+        Log.d(TAG, "startRealScan: Total frequencies in list: " + initialFreqs.size());
+        for (int i = 0; i < initialFreqs.size(); i++) {
+            Long f = initialFreqs.get(i);
+            Log.d(TAG, "startRealScan: initialFreqs[" + i + "] = " + f);
+        }
+        Log.d(TAG, "startRealScan: ===========================");
+        // [/MOD]
 
         scanMessageObserver = messages -> {
             if (!isScanning || messages == null) return;
@@ -643,7 +823,15 @@ public class ScanFragment extends Fragment {
                 return;
             }
 
-            long freq = currentList.get(currentFreqIndex);
+            // [MOD] Rename freq -> RFfreq
+            // [OLD]
+            // long freq = currentList.get(currentFreqIndex);
+            // Log.d(TAG, "scanNextFrequency: Selected RF freq=" + freq);
+            // [/OLD]
+            // [NEW]
+            long RFfreq = currentList.get(currentFreqIndex);
+            Log.d(TAG, "scanNextFrequency: Selected RF freq=" + RFfreq);
+            // [/MOD]
 
             // === FIX: Ensure rig is connected before sending commands ===
             if (mainViewModel.baseRig == null || !mainViewModel.baseRig.isConnected()) {
@@ -654,11 +842,21 @@ public class ScanFragment extends Fragment {
             }
 
             try {
-                GeneralVariables.band = freq;
-                GeneralVariables.bandListIndex = OperationBand.getIndexByFreq(freq);
-                // Explicitly call setOperationBand
+                // [MOD] Use RFfreq
+                // [OLD]
+                // GeneralVariables.band = freq;
+                // GeneralVariables.bandListIndex = OperationBand.getIndexByFreq(freq);
+                // Log.d(TAG, "scanNextFrequency: Calculated bandListIndex=" + GeneralVariables.bandListIndex);
+                // mainViewModel.setOperationBand();
+                // if (tvRfFreq != null) tvRfFreq.setText(formatFreq(freq));
+                // [/OLD]
+                // [NEW]
+                GeneralVariables.band = RFfreq;
+                GeneralVariables.bandListIndex = OperationBand.getIndexByFreq(RFfreq);
+                Log.d(TAG, "scanNextFrequency: Calculated bandListIndex=" + GeneralVariables.bandListIndex);
                 mainViewModel.setOperationBand();
-                if (tvRfFreq != null) tvRfFreq.setText(formatFreq(freq));
+                if (tvRfFreq != null) tvRfFreq.setText(String.valueOf(RFfreq));
+                // [/MOD]
             } catch (Exception e) {
                 Log.e(TAG, "Error setting band: " + e.getMessage());
                 stopScan();
@@ -681,44 +879,115 @@ public class ScanFragment extends Fragment {
                 mainViewModel.mutableFt8MessageList.observe(getViewLifecycleOwner(), scanMessageObserver);
             }
 
-            listenForMessages(freq, scanCycles, currentList);
+            // === [MOD] Add delay after setOperationBand for radio tuning ===
+            // [OLD]
+            // listenForMessages(freq, scanCycles, currentList);
+            // Log.d(TAG, "scanNextFrequency: Waiting 1000ms for radio to tune to " + freq);
+            // Log.d(TAG, "scanNextFrequency: Starting listen cycle for " + freq);
+            // [/OLD]
+            // [NEW]
+            Log.d(TAG, "scanNextFrequency: Waiting 1000ms for radio to tune to " + RFfreq);
+            scanHandler.postDelayed(() -> {
+                if (isScanning) {
+                    Log.d(TAG, "scanNextFrequency: Starting listen cycle for " + RFfreq);
+                    // [MOD] Pass RFfreq to listenForMessages
+                    // [OLD]
+                    // listenForMessages(freq, scanCycles, currentList);
+                    // [/OLD]
+                    // [NEW]
+                    listenForMessages(RFfreq, scanCycles, currentList);
+                    // [/MOD]
+                }
+            }, 1000);
+            // [/MOD]
         }
     }
 
-    private void listenForMessages(long freq, int cycles, List<Long> currentList) {
-        if (scanHandler == null) return;
-        final int[] done = {0};
-        final long[] last = {UtcTimer.getNowSequential()};
+    // [MOD] Listen for messages using UtcTimer events, no polling, no delay math
+    // [OLD]
+    // private void listenForMessages(long RFfreq, int cycles, List<Long> currentList) {
+    //     if (scanHandler == null) return;
+    //     final int[] done = {0};
+    //     final long[] last = {UtcTimer.getNowSequential()};
+    //     Runnable r = new Runnable() {
+    //         @Override
+    //         public void run() {
+    //             synchronized (freqSwitchLock) {
+    //                 if (!isScanning) {
+    //                     if (scanMessageObserver != null && mainViewModel != null)
+    //                         mainViewModel.mutableFt8MessageList.removeObserver(scanMessageObserver);
+    //                     return;
+    //                 }
+    //             }
+    //             long seq = UtcTimer.getNowSequential();
+    //             if (seq != last[0]) {
+    //                 last[0] = seq;
+    //                 done[0]++;
+    //                 applyPendingScanList();
+    //                 if (done[0] >= cycles) {
+    //                     if (scanMessageObserver != null && mainViewModel != null)
+    //                         mainViewModel.mutableFt8MessageList.removeObserver(scanMessageObserver);
+    //                     currentFreqIndex++;
+    //                     scanHandler.postDelayed(() -> scanNextFrequency(currentList), 2000);
+    //                     return;
+    //                 }
+    //             }
+    //             scanHandler.postDelayed(this, 1000);
+    //         }
+    //     };
+    //     scanHandler.post(r);
+    // }
+    // [/OLD]
 
-        Runnable r = new Runnable() {
-            @Override
-            public void run() {
-                synchronized (freqSwitchLock) {
-                    if (!isScanning) {
-                        if (scanMessageObserver != null && mainViewModel != null)
-                            mainViewModel.mutableFt8MessageList.removeObserver(scanMessageObserver);
-                        return;
-                    }
-                }
+    // [NEW]
+    private void listenForMessages(long RFfreq, int cycles, List<Long> currentList) {
+        if (scanHandler == null || !isScanning) return;
 
-                long seq = UtcTimer.getNowSequential();
-                if (seq != last[0]) {
-                    last[0] = seq;
-                    done[0]++;
-                    applyPendingScanList();
-                    if (done[0] >= cycles) {
-                        if (scanMessageObserver != null && mainViewModel != null)
-                            mainViewModel.mutableFt8MessageList.removeObserver(scanMessageObserver);
-                        currentFreqIndex++;
-                        scanHandler.postDelayed(() -> scanNextFrequency(currentList), 2000);
-                        return;
-                    }
-                }
-                scanHandler.postDelayed(this, 1000);
+        final int[] slotsProcessed = {0};
+        final int startSequential = UtcTimer.getNowSequential();
+
+        // Use class field to satisfy Java initialization rules
+        scanTimerObserver = utcMillis -> {
+            if (!isScanning) {
+                mainViewModel.timerSec.removeObserver(scanTimerObserver);
+                return;
             }
+
+            // Use UtcTimer.sequential() to detect slot boundary
+            int currentSequential = UtcTimer.sequential(utcMillis);
+            int expectedSequential = (startSequential + slotsProcessed[0]) % 2;
+
+            // Skip until slot boundary is crossed
+            if (currentSequential != expectedSequential) return;
+
+            slotsProcessed[0]++;
+            Log.d(TAG, "listenForMessages: Slot " + slotsProcessed[0] + "/" + cycles +
+                    " completed on " + RFfreq);
+
+            if (slotsProcessed[0] >= cycles) {
+                // Finished listening on this frequency
+                mainViewModel.timerSec.removeObserver(scanTimerObserver);
+
+                if (scanMessageObserver != null) {
+                    mainViewModel.mutableFt8MessageList.removeObserver(scanMessageObserver);
+                }
+
+                // === SWITCH TO NEXT FREQUENCY IMMEDIATELY ===
+                // No delay calculation needed for receive frequency switching
+                Log.d(TAG, "listenForMessages: Switching to next frequency now");
+
+                currentFreqIndex++;
+                scanNextFrequency(currentList);
+                // Direct call, no postDelayed, no math
+            }
+            // If cycles not finished -> just wait for next slot event
+            // Message decoding runs in parallel via scanMessageObserver
         };
-        scanHandler.post(r);
+
+        mainViewModel.timerSec.observe(getViewLifecycleOwner(), scanTimerObserver);
+        Log.d(TAG, "listenForMessages: Started on " + RFfreq + " for " + cycles + " slots");
     }
+    // [/MOD]
 
     private void processDecodedMessage(Ft8Message msg) {
         String callsign = msg.getCallsignFrom();
@@ -726,9 +995,17 @@ public class ScanFragment extends Fragment {
 
         totalStations++;
 
+        // [MOD] Use dynamic per-frequency counters via Map (no hardcoded index bounds)
+        long currentRfFreq = GeneralVariables.band;
+        freqTotals.put(currentRfFreq, freqTotals.getOrDefault(currentRfFreq, 0) + 1);
+        // [/MOD]
+
         if (!scannedCallsigns.contains(callsign)) {
             scannedCallsigns.add(callsign);
             newStations++;
+            // [MOD] Also increment per-frequency new counter via Map
+            freqNew.put(currentRfFreq, freqNew.getOrDefault(currentRfFreq, 0) + 1);
+            // [/MOD]
 
             try {
                 if (mainViewModel != null && GeneralVariables.callsignDatabase != null) {
@@ -756,24 +1033,46 @@ public class ScanFragment extends Fragment {
             }
         }
 
-        updateRowForFrequency((long) msg.freq_hz, totalStations, newStations);
+        // [MOD] Update row using RFfreq for accurate per-frequency stats (no index dependency)
+        updateRowForFrequency(currentRfFreq);
+        // [/MOD]
         updateTotals();
     }
 
-    private void updateRowForFrequency(long freq, int total, int newCount) {
+    // [MOD] Updated to use RFfreq key for direct row lookup via Map
+    // [OLD]
+    // private void updateRowForFrequency(int total, int newCount) {
+    //     if (containerScanContent == null) return;
+    //     long currentRfFreq = GeneralVariables.band;
+    //     for (int i = 0; i < containerScanContent.getChildCount(); i++) {
+    //         View row = containerScanContent.getChildAt(i);
+    //         Long rowRfFreq = (Long) row.getTag();
+    //         if (rowRfFreq != null && rowRfFreq == currentRfFreq) {
+    //             TextView tvTot = row.findViewById(R.id.tvRowTot);
+    //             TextView tvNew = row.findViewById(R.id.tvRowNew);
+    //             if (tvTot != null) tvTot.setText(String.valueOf(total));
+    //             if (tvNew != null) tvNew.setText(String.valueOf(newCount));
+    //             break;
+    //         }
+    //     }
+    // }
+    // [/OLD]
+    // [NEW]
+    private void updateRowForFrequency(long RFfreq) {
         if (containerScanContent == null) return;
         for (int i = 0; i < containerScanContent.getChildCount(); i++) {
             View row = containerScanContent.getChildAt(i);
-            Long f = (Long) row.getTag();
-            if (f != null && f == freq) {
+            Long rowRfFreq = (Long) row.getTag();
+            if (rowRfFreq != null && rowRfFreq == RFfreq) {
                 TextView tvTot = row.findViewById(R.id.tvRowTot);
                 TextView tvNew = row.findViewById(R.id.tvRowNew);
-                if (tvTot != null) tvTot.setText(String.valueOf(total));
-                if (tvNew != null) tvNew.setText(String.valueOf(newCount));
+                if (tvTot != null) tvTot.setText(String.valueOf(freqTotals.getOrDefault(RFfreq, 0)));
+                if (tvNew != null) tvNew.setText(String.valueOf(freqNew.getOrDefault(RFfreq, 0)));
                 break;
             }
         }
     }
+    // [/MOD]
 
     private void stopScan() {
         synchronized (freqSwitchLock) {
@@ -814,7 +1113,17 @@ public class ScanFragment extends Fragment {
     }
 
     private void updateTotals() {
-        if (tvTotalAll != null) tvTotalAll.setText(String.valueOf(totalStations));
-        if (tvTotalNew != null) tvTotalNew.setText(String.valueOf(newStations));
+        // [MOD] Sum dynamic per-frequency counters from Maps for accurate totals
+        int sumTot = 0;
+        int sumNew = 0;
+        for (int count : freqTotals.values()) {
+            sumTot += count;
+        }
+        for (int count : freqNew.values()) {
+            sumNew += count;
+        }
+        if (tvTotalAll != null) tvTotalAll.setText(String.valueOf(sumTot));
+        if (tvTotalNew != null) tvTotalNew.setText(String.valueOf(sumNew));
+        // [/MOD]
     }
 }
